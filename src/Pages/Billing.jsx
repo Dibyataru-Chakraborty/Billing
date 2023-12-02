@@ -1,839 +1,428 @@
+import { faInr } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { FloatButton, QRCode, Watermark } from "antd";
 import React, { useEffect, useRef, useState } from "react";
+import Barcode from "react-barcode";
+import { useParams } from "react-router-dom";
+import { PrinterOutlined } from "@ant-design/icons";
+
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 import Select from "react-select";
-import { Button } from "antd";
 
 export default function Billing() {
-  const [searchAvailableValue, setSearchAvailableValue] = useState("");
-  const [availableItems, setAvailableItems] = useState([]);
-  const [selectedItems, setSelectedItems] = useState([]);
-  const [TestTotal, setTestTotal] = useState("0");
-  const [BillTotal, setBillTotal] = useState("0");
-  const [FlatDiscount, setFlatDiscount] = useState("0");
-  const [DoctorDiscountisToggled, DoctorDiscountsetToggled] = useState(true);
-  const [DoctorDiscount, setDoctorDiscount] = useState("0");
-  const [currentDateTime, setcurrentDateTime] = useState("");
-  const [PaidAmount, setPaidAmount] = useState("0");
-  const [DueRefund, setDueRefund] = useState(true);
-  const [RefundMoney, setRefundMoney] = useState("0");
-  const [loadings, setLoadings] = useState(false);
-  const [Paid, setPaid] = useState(true);
+  const invoice = useRef();
 
-  const [mobile, setMobile] = useState('')
-  const [Patientinfo, setPatientinfo] = useState([]);
-  const Patientinfo_data = [];
-  var Patientinfo_count = "0";
-  JSON.parse(localStorage.getItem("PatientManage")).forEach((element) => {
-    if (element !== null) {
-      Patientinfo_data.push({
-        key: Patientinfo_count++,
-        address: element["address"],
-        age: element["age"],
-        age_day: element["age_day"],
-        age_month: element["age_month"],
-        age_period: element["age_period"],
-        age_year: element["age_year"],
-        breed_id: element["breed_id"],
-        city: element["city"],
-        created_at: element["created_at"],
-        discount_expiry_date: element["discount_expiry_date"],
-        discount_package_id: element["discount_package_id"],
-        dob: element["dob"],
-        gender: element["gender"],
-        id: element["id"],
-        is_revisit: element["is_revisit"],
-        local_area: element["local_area"],
-        mobile: element["mobile"],
-        name_prefix: element["name_prefix"],
-        owner_name: element["owner_name"],
-        p_name: element["p_name"],
-        pin: element["pin"],
-        referral_lab_id: element["referral_lab_id"],
-        updated_at: element["updated_at"],
-        whatsapp: element["whatsapp"],
-      });
-    }
-  });
-  const getMobile = useRef()
-  const filterPatientInfo = () => {
-    const filteredData = Patientinfo_data.filter((item) => item.mobile === mobile);
-    setPatientinfo(filteredData);
-    console.log(filteredData);
-  };
-
-  const getarea = (event) => {
-    var [Local_Area] = "";
-    let pincode = event.target;
-    let pos = document.getElementById("Local_Area");
-    if (pincode.value !== "" && pincode.value.length === 6) {
-      fetch("https://api.postalpincode.in/pincode/" + pincode.value)
-        .then((response) => response.json())
-        .then((data) => {
-          var html = "";
-          if (data[0].PostOffice === null) {
-          } else {
-            for (let i = 0; i < data[0].PostOffice.length; i++) {
-              let info = data[0].PostOffice[i];
-              html +=
-                '<option value="' + info.Name + '">' + info.Name + "</option>";
-              Local_Area = pos.innerHTML = html;
-            }
-          }
-        });
-    } else {
-      var html1 = "";
-      html1 = '<option value="">Select</option>';
-      Local_Area = pos.innerHTML = html1;
-    }
-  };
-
-  const getTest = () => {
-    const tempTargetKeys = [];
-    const temptestData = [];
-
-    var count = "";
-
-    JSON.parse(localStorage.getItem("LabTest")).forEach((element) => {
-      const data = {
-        key: count++,
-        title: element["name"],
-        price: element["price"],
-      };
-      if (data.chosen) {
-        tempTargetKeys.push(data.key);
-      }
-      temptestData.push(data);
+  const handlePrint = () => {
+    html2canvas(invoice.current).then((canvas) => {
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+      pdf.addImage(imgData, "PNG", 10, 10, 190, 0);
+      const pdfBlob = pdf.output("blob");
+      const blobUrl = URL.createObjectURL(pdfBlob);
+      window.open(blobUrl);
     });
-    setAvailableItems(temptestData);
-    setSelectedItems(tempTargetKeys);
-  };
-
-  const AvailableSearch = (event) => {
-    setSearchAvailableValue(event.target.value);
-  };
-
-  const handleItemClick = (item) => {
-    setSelectedItems((prevSelected) => {
-      if (prevSelected.find((i) => i.key === item.key)) {
-        return prevSelected.filter((i) => i.key !== item.key);
-      } else {
-        return [...prevSelected, item];
-      }
-    });
-  };
-
-  const filteredAvailableItems = availableItems.filter((item) =>
-    item.title.toLowerCase().includes(searchAvailableValue.toLowerCase())
-  );
-
-  const DateTime = () => {
-    var date = new Date();
-    var day = date.getDate();
-    var month = date.getMonth() + 1;
-    var year = date.getFullYear();
-    var hour = date.getHours();
-    var min = date.getMinutes();
-    if (day < 10) day = "0" + day;
-    if (month < 10) month = "0" + month;
-    if (hour < 10) hour = "0" + hour;
-    if (min < 10) min = "0" + min;
-    setcurrentDateTime(year + "-" + month + "-" + day + " " + hour + ":" + min);
-  };
-
-  const [ServiceCharge, setServiceCharge] = useState("0");
-  const [ServiceChargeSelect, setServiceChargeSelect] = useState([]);
-  const ServiceOtherChargePay = (e) => {
-    const selectedOptions = e.map((selected) => selected.value);
-
-    const selectedOptionDetails = e
-      .filter((option) => selectedOptions.includes(option.value))
-      .map((option) => ({ label: option.label, amount: option.amount }));
-
-    const totalAmount = selectedOptionDetails.reduce(
-      (total, option) => Number(total) + Number(option.amount),
-      0
-    );
-
-    setServiceCharge(Number(totalAmount));
-    setServiceChargeSelect(selectedOptionDetails);
-  };
-  const Service_Other_Charge = [];
-  JSON.parse(localStorage.getItem("ServiceCharge")).forEach((element) => {
-    Service_Other_Charge.push({
-      label: element["name"],
-      value: element["name"],
-      amount: element["amount"],
-    });
-  });
-
-  const Sample_Collected_From = [
-    { value: "Inside", label: "Inside" },
-    { value: "Outside", label: "Outside" },
-  ];
-  const SampleCollectedFrom = (e) => {
-    console.log(e.value);
-  };
-
-  const [Discount_Amount, setDiscount_Amount] = useState("");
-  const [DiscountCauseSelect, setDiscountCauseSelect] = useState([]);
-  const DiscountCause = (e) => {
-    if (e !== null) {
-      const value = e.value;
-      const amount = e.amount;
-      setDiscount_Amount(Number(amount));
-      setDiscountCauseSelect([{ label: value, amount }]);
-    } else {
-      const amount = '0'
-      const value = []
-      setDiscount_Amount(Number(amount));
-      setDiscountCauseSelect(value);
-    }
-  };
-  const Discount_Cause = [];
-  JSON.parse(localStorage.getItem("DiscountCause")).forEach((element) => {
-    Discount_Cause.push({
-      label: element["name"],
-      value: element["name"],
-      amount: element["amount"],
-    });
-  });
-
-  const Gender = [
-    { value: "Male", label: "Male" },
-    { value: "Female", label: "Female" },
-    { value: "Others", label: "Others" },
-  ];
-
-  const PayMode = [
-    { value: "Cash", label: "Cash" },
-    { value: "Card", label: "Card" },
-    { value: "UPI", label: "UPI" },
-  ];
-
-  const DoctorDiscountToggle = () => {
-    DoctorDiscountsetToggled((prev) => !prev);
-  };
-
-  const Due_Refund = () => {
-    PaidAmount > BillTotal ? refund() : due();
-
-    function due() {
-      return (
-        setDueRefund(true),
-        setRefundMoney(Number(BillTotal) - Number(PaidAmount))
-      );
-    }
-
-    function refund() {
-      return (
-        setDueRefund(false),
-        setRefundMoney(Number(PaidAmount) - Number(BillTotal))
-      );
-    }
-  };
-
-  const TotalTest = () => {
-    var sum = 0;
-    selectedItems.length > 0
-      ? selectedItems.forEach((e) => {
-          setTestTotal((sum = sum + Number(e.price)));
-        })
-      : setTestTotal("0");
-  };
-
-  const TotalBill = () => {
-    var sum = 0;
-    var charge = sum + Number(TestTotal) + Number(ServiceCharge);
-    var discount = Math.round((Number(TestTotal) * Number(DoctorDiscount)) / 100);
-    var discountcause = (Number(TestTotal) * Number(Discount_Amount)) / 100;
-    selectedItems.length > 0
-      ? DoctorDiscountisToggled
-        ? Rupee()
-        : Percentage()
-      : setBillTotal("0");
-
-    function Percentage() {
-      return (
-        setBillTotal(Math.round(Number(charge) - Number(discount) - Number(discountcause))),
-        setFlatDiscount(discount)
-      );
-    }
-
-    function Rupee() {
-      return (
-        setBillTotal(
-          Math.round(Number(charge) - Number(DoctorDiscount) - Number(discountcause))
-        ),
-        setFlatDiscount(Number(DoctorDiscount))
-      );
-    }
-
-    Number(PaidAmount) !== "0" && Number(PaidAmount) !== Number("")
-      ? Number(PaidAmount) <= Number(BillTotal)
-        ? setPaid(false)
-        : setPaid(true)
-      : setPaid(true);
-  };
-
-  useEffect(() => {
-    getTest();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [1]);
-
-  useEffect(() => {
-    TotalTest();
-    DateTime();
-    TotalBill();
-    Due_Refund();
-  });
-
-  const Submit = () => {
-    setLoadings(true);
-    setTimeout(() => {
-      setLoadings(false);
-    }, 2000);
   };
 
   return (
     <>
-      <div
-        className="container"
-        style={{
-          overflow: "auto",
-        }}
-      >
-        <div className="row my-3 justify-content-between">
-          <div className="col-sm-6 mb-3 mb-sm-0">
-            <div className="card">
-              <div className="card-header">
-                <strong>Lab Patient</strong> Basic Information
-              </div>
-              <div className="card-body">
-                <div className="card-text">
-                  <div className="row g-3">
-                    <div className="col-sm-6">
-                      <div className="form-outline">
-                        <label className="form-label" htmlFor="Mobile">
-                          Mobile
-                        </label>
-                        <input
-                          type="tel"
-                          className="form-control"
-                          placeholder="ex: 9898988988"
-                          id="Mobile"
-                          maxLength={10}
-                          minLength={10}
-                          pattern="[6-9][0-9]{9}"
-                          onChange={(e) => setMobile(e.target.value)}
-                          list="mobile"
-                          onKeyUp={filterPatientInfo}
-                        />
-                        <datalist id="mobile" ref={getMobile}>
-                          {Patientinfo.map((patient, index) => (
-                            <option key={index} value={`${patient.mobile}${" "}${patient.p_name}`} />
-                          ))}
-                        </datalist>
-                      </div>
+      <div className="container my-2">
+        <div className="card">
+          <div className="card-body">
+            <div ref={invoice}>
+              <Watermark
+                height={30}
+                width={130}
+                zIndex={11}
+                rotate={-26}
+                content={"store name"}
+              >
+                <header>
+                  <div className="row">
+                    <div className="col-8">
+                      <table>
+                        <tbody>
+                          <tr>
+                            {/* <td>
+                              <img
+                                src="/Logos/Logo.jpg"
+                                alt="KD"
+                                style={{ maxWidth: 150, maxHeight: 150 }}
+                              />
+                            </td> */}
+                            <td>
+                              <div className="fs-2">MINA CREATION</div>
+                              <div>
+                                <p>
+                                  D-39/12-D,Road No.19,
+                                  <br />
+                                  Hojiwala Industrial Estate,
+                                  <br />
+                                  PalsanaRoad,
+                                  <br />
+                                  Surat
+                                </p>
+                              </div>
+                              <div>GSTIN/UIN: 24AWSPB3606K1ZI</div>
+                              <div>State Name : Gujarat, Code : 24</div>
+                              <div>E-Mail : minacreation3912@gmail.com</div>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                      <hr class="border border-dark border-3 opacity-75" />
+                      <table>
+                        <tbody>
+                          <tr>
+                            <td>
+                              <div>Buyer (Bill to)</div>
+                              <div className="fs-2">ARYA TEXTILES</div>
+                              <div>
+                                <p>
+                                  Belpukur , DHUBULIYA, Nadia, <br />
+                                  WEST BENGAL
+                                </p>
+                              </div>
+                              <div>GSTIN/UIN : 19BLZPB9514R1ZY</div>
+                              <div>State Name : West Bengal, Code : 19</div>
+                              <div>E-Mail : minacreation3912@gmail.com</div>
+                              {/* {Patientdata.map((item) => (
+                                <div className="fw-bold">
+                                  Bill #: {item.bill_id} on {item.bill_dt_tm}{" "}
+                                  {item.is_revised === "y" ? "(Revised)" : ""}
+                                </div>
+                              ))} */}
+                              <div className="p-2">
+                                {/* <Barcode
+                                  value={Patientdata.map(
+                                    (item) => item.bill_id
+                                  )}
+                                  displayValue={false}
+                                  fontSize={100}
+                                  margin={0}
+                                  format="CODE128"
+                                  width={2}
+                                  height={30}
+                                /> */}
+                              </div>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
                     </div>
-                    <div className="col-sm-6">
-                      <div className="form-outline">
-                        <label className="form-label" htmlFor="Name">
-                          Name
-                        </label>
-                        <div className="input-group">
-                          <select className="btn active">
-                            <option value="Mr">Mr.</option>
-                            <option value="Mrs">Mrs.</option>
-                            <option value="Miss">Miss.</option>
-                            <option value="Master">Master</option>
-                            <option value="B/O.">B/O.</option>
-                            <option value="C/O.">C/O.</option>
-                            <option value="Dr.">Dr.</option>
-                            <option value=" ">N/A</option>
-                          </select>
-                          <input
-                            type="text"
-                            id="Name"
-                            className="form-control"
-                            aria-label="Text input with dropdown button"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                    <div className="col-sm-6">
-                      <div className="form-outline">
-                        <label className="form-label" htmlFor="Gender">
-                          Gender
-                        </label>
-                        <Select options={Gender} />
-                      </div>
-                    </div>
-                    <div className="col-md-6">
-                      <div className="form-outline">
-                        <label htmlFor="Age" className="form-label">
-                          Age
-                        </label>
-                        <div className="input-group">
-                          <input
-                            type="number"
-                            className="form-control col"
-                            placeholder="Year"
-                            required
-                            maxLength={3}
-                            minLength={1}
-                            pattern="[0-9]{1,3}"
-                            //   onChange={(event) => {
-                            //     setpatientAge(event.target.value);
-                            //   }}
-                          />
-                          <input
-                            type="number"
-                            className="form-control col"
-                            placeholder="Month"
-                            required
-                            maxLength={3}
-                            minLength={1}
-                            pattern="[0-9]{1,3}"
-                            //   onChange={(event) => {
-                            //     setpatientAge(event.target.value);
-                            //   }}
-                          />
-                          <input
-                            type="number"
-                            className="form-control col"
-                            placeholder="Day"
-                            required
-                            maxLength={3}
-                            minLength={1}
-                            pattern="[0-9]{1,3}"
-                            //   onChange={(event) => {
-                            //     setpatientAge(event.target.value);
-                            //   }}
-                          />
-                        </div>
-
-                        <div
-                          className="invalid-feedback"
-                          style={{ color: "#fbacb4" }}
-                        >
-                          Please enter a Age.
-                        </div>
-                      </div>
-                    </div>
-                    <div className="col-sm-12">
-                      <div className="form-outline">
-                        <label className="form-label" htmlFor="Ref_Doctor">
-                          Ref Doctor
-                        </label>
-                        <input
-                          type="text"
-                          className="form-control"
-                          id="Ref_Doctor"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="col-sm-6 mb-3 mb-sm-0">
-            <div className="card">
-              <div className="card-header">
-                <strong>Patient</strong> Additional Information
-              </div>
-              <div className="card-body">
-                <div className="card-text">
-                  <div className="row g-3">
-                    <div className="col-sm-6">
-                      <div className="form-outline">
-                        <label className="form-label" htmlFor="WhatsApp">
-                          WhatsApp
-                        </label>
-                        <input
-                          type="tel"
-                          className="form-control"
-                          placeholder="Enter WhatsApp Number"
-                          id="WhatsApp"
-                          maxLength={10}
-                          minLength={10}
-                          pattern="[6-9][0-9]{9}"
-                          //   onChange={(event) => {
-                          //     setpatientMobile(event.target.value);
-                          //   }}
-                        />
-                      </div>
-                    </div>
-                    <div className="col-sm-6">
-                      <div className="form-outline">
-                        <label className="form-label" htmlFor="Local_Area">
-                          Local Area
-                        </label>
-                        <select className="form-control" id="Local_Area">
-                          <option value="">Select</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div className="col-sm-6">
-                      <div className="form-outline">
-                        <label className="form-label" htmlFor="Address">
-                          Address
-                        </label>
-                        <input
-                          type="text"
-                          className="form-control"
-                          placeholder="Enter Address"
-                          id="Address"
-                        />
-                      </div>
-                    </div>
-                    <div className="col-sm-6">
-                      <div className="form-outline">
-                        <label className="form-label" htmlFor="Pincode">
-                          Pincode
-                        </label>
-                        <input
-                          type="text"
-                          className="form-control"
-                          placeholder="Enter Pincode"
-                          maxLength={6}
-                          minLength={6}
-                          pattern="[0-9]{6}"
-                          id="Pincode"
-                          onKeyUp={getarea}
-                        />
-                      </div>
-                    </div>
-                    <div className="col-sm-12">
-                      <div className="form-outline">
-                        <label className="form-label" htmlFor="City">
-                          City
-                        </label>
-                        <input
-                          type="text"
-                          className="form-control"
-                          placeholder="Enter City"
-                          id="City"
-                        />
-                      </div>
+                    <div className="col-4">
+                      <table class="table table-bordered">
+                        <tbody>
+                          <tr>
+                            <td>
+                              <div>Invoice No.</div>
+                              <div>01</div>
+                            </td>
+                            <td>
+                              <div>Dated</div>
+                              <div>3-Apr-23</div>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <div>Delivery Note</div>
+                              <div></div>
+                            </td>
+                            <td>
+                              <div>Mode/Terms of Payment</div>
+                              <div></div>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <div>Reference No. & Date.</div>
+                              <div></div>
+                            </td>
+                            <td>
+                              <div>Other References</div>
+                              <div></div>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <div>Buyer’s Order No.</div>
+                              <div></div>
+                            </td>
+                            <td>
+                              <div>Dated</div>
+                              <div></div>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <div>Dispatch Doc No.</div>
+                              <div>01</div>
+                            </td>
+                            <td>
+                              <div>Delivery Note Date</div>
+                              <div></div>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <div>Dispatched through</div>
+                              <div></div>
+                            </td>
+                            <td>
+                              <div>Destination</div>
+                              <div></div>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td colSpan={2}>
+                              <div>Terms of Delivery</div>
+                              <div></div>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
                     </div>
                   </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="row">
-          <div className="col-sm-12 mb-3 mb-sm-0">
-            <div className="card">
-              <div className="card-header">
-                <div className="row justify-content-between">
-                  <div className="col-6">
-                    <strong>Lab Test</strong> Information
-                  </div>
-                  <div className="col-6">
-                    <div className="d-grid justify-content-end">
-                      <strong>Test Total: ₹{TestTotal}</strong>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="card-body">
-                <div className="card-text">
-                  <div className="container">
-                    <div className="row my-3 justify-content-between">
-                      <div className="col-md-6">
-                        <h5>Available Tests</h5>
-                        <input
-                          type="text"
-                          className="form-control mb-3"
-                          placeholder="Search Available Items"
-                          value={searchAvailableValue}
-                          onChange={AvailableSearch}
-                        />
-                        <div style={{ maxHeight: 300, overflow: "auto" }}>
-                          <table className="table table-bordered table-hover">
-                            <thead>
-                              <tr>
-                                <th>Item Name</th>
-                                <th>Price</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {filteredAvailableItems.map((item) => (
-                                <tr
-                                  key={item.key}
-                                  onClick={() => handleItemClick(item)}
-                                  className={
-                                    selectedItems.includes(item)
-                                      ? "table-info"
-                                      : ""
-                                  }
-                                >
-                                  <td>{item.title}</td>
-                                  <td>{item.price}</td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
-                      <div className="col-md-6">
-                        <h5>Selected Tests</h5>
-                        <div style={{ maxHeight: 300, overflow: "auto" }}>
-                          <table className="table table-bordered table-hover">
-                            <thead>
-                              <tr>
-                                <th>Item Name</th>
-                                <th>Price</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {selectedItems.map((item) => (
-                                <tr key={item.key}>
-                                  <td>{item.title}</td>
-                                  <td>{item.price}</td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="card-footer">
-                <div className="row justify-content-end">
-                  <div className="d-grid justify-content-end">
-                    <strong>Test Total: ₹{TestTotal}</strong>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="row my-3 justify-content-between">
-          <div className="col-sm-6 mb-3 mb-sm-0">
-            <div className="card">
-              <div className="card-header">
-                <strong>Billing</strong> Information
-              </div>
-              <div className="card-body">
-                <div className="card-text">
-                  <div className="row g-3">
-                    <div className="col-sm-6">
-                      <div className="form-outline">
-                        <label className="form-label" htmlFor="Billing_Time">
-                          Billing Time
-                        </label>
-                        <input
-                          type="text"
-                          className="form-control"
-                          id="Billing_Time"
-                          value={currentDateTime}
-                          disabled
-                        />
-                      </div>
-                    </div>
-                    <div className="col-sm-6">
-                      <div className="form-outline">
-                        <label
-                          className="form-label"
-                          htmlFor="Sample_Collected_From"
-                        >
-                          Sample Collected From
-                        </label>
-                        <Select
-                          onChange={SampleCollectedFrom}
-                          options={Sample_Collected_From}
-                          id="Sample_Collected_From"
-                          defaultValue={Sample_Collected_From[0]}
-                        />
-                      </div>
-                    </div>
-                    <div className="col-sm-6">
-                      <div className="form-outline">
-                        <label
-                          className="form-label"
-                          htmlFor="Service/Other_Charge"
-                        >
-                          Service/Other Charge
-                        </label>
-                        <Select
-                          isMulti
-                          name="Service/Other_Charge"
-                          onChange={ServiceOtherChargePay}
-                          options={Service_Other_Charge}
-                          className="basic-multi-select"
-                          classNamePrefix="select"
-                        />
-                      </div>
-                    </div>
-                    <div className="col-sm-6">
-                      <div className="form-outline">
-                        <label className="form-label" htmlFor="Discount_Cause">
-                          Discount Cause
-                        </label>
-                        <Select
-                          isClearable
-                          name="Discount_Cause"
-                          options={Discount_Cause}
-                          onChange={DiscountCause}
-                          className="basic-multi-select"
-                          classNamePrefix="select"
-                        />
-                      </div>
-                    </div>
-                    <div className="col-sm-6">
-                      <div className="form-outline">
-                        <label className="form-label" htmlFor="DoctorDiscount">
-                          Doctor Discount
-                        </label>
-                        <div className="input-group mb-3">
-                          <button
-                            className="input-group-text"
-                            onClick={DoctorDiscountToggle}
-                          >
-                            {DoctorDiscountisToggled ? "₹" : "%"}
-                          </button>
-                          <input
-                            type="number"
-                            className="form-control"
-                            placeholder="Doctor Discount"
-                            aria-label="DoctorDiscount"
-                            onChange={(event) => {
-                              setDoctorDiscount(event.target.value);
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                    <div className="col-sm-6">
-                      <div className="form-outline">
-                        <label className="form-label" htmlFor="Agent">
-                          Agent
-                        </label>
-                        <input
-                          type="text"
-                          className="form-control"
-                          id="Agent"
-                        />
-                      </div>
-                    </div>
-                    <div className="col-sm-12">
-                      <div className="form-outline">
-                        <label className="form-label" htmlFor="Comment">
-                          Comment
-                        </label>
-                        <textarea
-                          style={{ height: 10 }}
-                          type="text"
-                          className="form-control"
-                          id="Comment"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="col-sm-6 mb-3 mb-sm-0">
-            <div className="card">
-              <div className="card-header">
-                <strong>Billing </strong>Preview
-              </div>
-              <div className="card-body">
-                <div className="card-text d-flex justify-content-center">
-                  <table>
-                    <tbody>
-                      <tr className="h4">
-                        <th>Test Total:</th>
-                        <td></td>
-                        <td className="text-success text-end">+ {TestTotal} ₹</td>
-                      </tr>
-                      {ServiceChargeSelect.map((charge) => (
-                        <tr className="h4" key={charge.label}>
-                          <th>{charge.label}</th>
-                          <td></td>
-                          <td className="text-success text-end">
-                            + {charge.amount} ₹
-                          </td>
-                        </tr>
-                      ))}
-                      {DiscountCauseSelect.map((charge) => (
-                        <tr className="h4" key={charge.label}>
-                          <th>{charge.label}</th>
-                          <td></td>                  
-                          <td className="text-danger text-end">
-                            - {charge.amount} %
-                          </td>
-                        </tr>
-                      ))}
-                      <tr className="h4">
-                        <th>Flat Discount:</th>
-                        <td></td>
-                        <td className="text-danger text-end">
-                          - {FlatDiscount} ₹
-                        </td>
-                      </tr>
+                </header>
+                <main>
+                  <table className="table table-borderless table-responsive">
+                    <thead className="table-secondary fs-6">
                       <tr>
-                        <td colSpan="3">
-                          <hr className="border border-danger border-2 opacity-50" />
-                        </td>
+                        <th className="text-start">Sl No.</th>
+                        <th>Description of Services</th>
+                        <th>HSN/SAC</th>
+                        <th>Quantity</th>
+                        <th>Rate</th>
+                        <th>per</th>
+                        <th className="text-end">Amount</th>
                       </tr>
+                    </thead>
+                    <tbody className="fs-5">
+                      {/* Testdata.map((item, index) => ( */}
                       <tr>
-                        <th>
-                          <input
-                            type="number"
-                            className="form-control"
-                            placeholder="Paid Amount"
-                            onChange={(event) => {
-                              setPaidAmount(event.target.value);
-                            }}
-                          />
+                        <th scope="row" className="text-start">
+                          {/* {index+1}. */}
                         </th>
                         <td>
-                          <Select options={PayMode} defaultValue={PayMode[0]} />
+                          <Select
+                          // options={options}
+                          // value={{ value: index, label: item.name }}
+                          />
                         </td>
+                        <td>{/* {item.timeframe} */}</td>
+                        <td className="text-end">{/* {item.price} */}</td>
+                      </tr>
+                      {/* )) */}
+                      <tr>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td>TOTAL</td>
+                      </tr>
+                      <tr>
+                        <td></td>
+                        <td>
+                          <div className="text-end">IGST</div>
+                        </td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td>TOTAL</td>
                       </tr>
                     </tbody>
+                    <tfoot className="table-bordered">
+                      <tr>
+                        <td></td>
+                        <td>
+                          <div className="text-end">Total</div>
+                        </td>
+                        <td></td>
+                        <td>numberofpcs</td>
+                        <td></td>
+                        <td></td>
+                        <td>
+                          <FontAwesomeIcon icon={faInr} /> TOTAL
+                        </td>
+                      </tr>
+                    </tfoot>
                   </table>
-                </div>
-              </div>
-              <div className="card-footer">
-                <div className="d-flex justify-content-between">
-                  {DueRefund ? (
-                    <div className="text-danger">
-                      <h4>Due: ₹{RefundMoney}</h4>
+                  <div className="row">
+                    <div className="text-start">
+                      Amount Chargeable (in words)
                     </div>
-                  ) : (
-                    <div className="text-success">
-                      <h4>Refund: ₹{RefundMoney}</h4>
+                    <div className="text-end">E. & O.E</div>
+                    <div className="text-start fs-5 fw-bold">
+                      {/* INR Two Lakh Sixty Eight Thousand Five Hundred Sixty Nine Only */}
                     </div>
-                  )}
-                  <div>
-                    <h4>Bill Total: ₹{BillTotal}</h4>
+                    <table className="table table-striped table-bordered table-responsive" border={2}>
+                      <thead className="fs-6 text-center">
+                        <tr>
+                          <td rowSpan={2}>HSN/SAC</td>
+                          <td rowSpan={2}>Taxable Value</td>
+                          <td colSpan={2}>Integrated Tax</td>
+                          <td rowSpan={2}>Total Tax Amount</td>
+                        </tr>
+                        <tr>
+                          <td>Rate</td>
+                          <td>Amount</td>
+                        </tr>
+                      </thead>
+                    </table>
+                    <div className="col-5">
+                      <table>
+                        <tbody>
+                          <tr>
+                            <td>
+                              <div className="fs-4">Thank You!</div>
+                              <div className="fw-normal">
+                                Report will be delivered only after full payment
+                                is done.
+                              </div>
+                              <div className="fw-normal">
+                                Sample collection:{" "}
+                                {/* {Patientdata.map((item) =>
+                                  item.sample_collected_from === "in"
+                                    ? "Inside"
+                                    : "Outside"
+                                )}
+                              </div>
+                              <div className="fw-normal">
+                                Billed By:{" "}
+                                {Patientdata.map((item) => item.billed_by)}
+                              </div>
+                              <div className="fw-light">
+                                Notes: {clinic_Billing} */}
+                              </div>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                    <div className="col-2">
+                      {/* <QRCode
+                        value={`/print-report/${PatientKey.patientId}`}
+                        size={150}
+                        type="svg"
+                      /> */}
+                    </div>
+                    <div className="col-5">
+                      <table className="table">
+                        <tbody>
+                          {/* {Patientdata.map((item) => (
+                            <>
+                              <tr className="fs-6">
+                                <th className="text-end" colSpan={4}>
+                                  SUBTOTAL
+                                </th>
+                                <th className="text-end">
+                                  <FontAwesomeIcon icon={faInr} />
+                                  {item.test_total}
+                                </th>
+                              </tr>
+                              {item.discount_cause_total !== 0 ? (
+                                <tr className="fs-6">
+                                  <th className="text-end" colSpan={4}>
+                                    Discount Cause Total{" "}
+                                  </th>
+                                  <th className="text-end text-success">
+                                    - <FontAwesomeIcon icon={faInr} />
+                                    {item.discount_cause_total}
+                                  </th>
+                                </tr>
+                              ) : null}
+                              {item.service_charge_total !== 0 ? (
+                                <tr className="fs-6">
+                                  <th className="text-end" colSpan={4}>
+                                    Service Charge Total{" "}
+                                  </th>
+                                  <th className="text-end">
+                                    + <FontAwesomeIcon icon={faInr} />
+                                    {item.service_charge_total}
+                                  </th>
+                                </tr>
+                              ) : null}
+                              {item.flat_discount !== 0 ? (
+                                <tr className="fs-6">
+                                  <th className="text-end" colSpan={4}>
+                                    Flat Discount{" "}
+                                  </th>
+                                  <th className="text-end text-success">
+                                    - <FontAwesomeIcon icon={faInr} />
+                                    {item.flat_discount}
+                                  </th>
+                                </tr>
+                              ) : null}
+                              <tr className="table-active fs-6">
+                                <th className="text-end" colSpan={4}>
+                                  GRAND TOTAL{" "}
+                                </th>
+                                <th className="text-end">
+                                  <FontAwesomeIcon icon={faInr} />
+                                  {item.grand_total}
+                                </th>
+                              </tr>
+                              <tr className="fs-6">
+                                <th className="fs-6 text-end" colSpan={4}>
+                                  Received Amount{" "}
+                                </th>
+                                {income.length !== 0 ? (
+                                  income.map((items) => (
+                                    <div
+                                      className="fs-6 fw-bold text-end"
+                                      key={items.id}
+                                    >
+                                      - <FontAwesomeIcon icon={faInr} />
+                                      {items.amount || 0} ({items.payment_mode}{" "}
+                                      on {items.payment_date.split(" ")[0]})
+                                    </div>
+                                  ))
+                                ) : (
+                                  <div className="fs-6 fw-bold text-end">
+                                    - <FontAwesomeIcon icon={faInr} />0
+                                  </div>
+                                )}
+                              </tr>
+                              <tr className="fs-4 table-group-divider table-borderless">
+                                <th
+                                  className="text-end text-primary"
+                                  colSpan={4}
+                                >
+                                  Due Amount
+                                </th>
+                                <th className="text-end text-danger">
+                                  <FontAwesomeIcon icon={faInr} />
+                                  {item.dues}
+                                </th>
+                              </tr>
+                              <tr>
+                                <th
+                                  className="text-end font-monospace text-body-tertiary"
+                                  colSpan={6}
+                                >
+                                  Software Powered By © Dibyataru Chakraborty
+                                </th>
+                              </tr>
+                            </>
+                          ))} */}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="d-flex justify-content-end my-3">
-              {Paid ? (
-                <></>
-              ) : (
-                <Button type="primary" loading={loadings} onClick={Submit}>
-                  Generate Bill
-                </Button>
-              )}
+                </main>
+              </Watermark>
             </div>
           </div>
         </div>
       </div>
+      <FloatButton
+        onClick={handlePrint}
+        tooltip={<div>Print</div>}
+        icon={<PrinterOutlined />}
+      />
     </>
   );
 }
