@@ -258,7 +258,7 @@ export default function Billing() {
                     <div className="text-start fs-5 fw-bold">
                       {/* INR Two Lakh Sixty Eight Thousand Five Hundred Sixty Nine Only */}
                     </div>
-                    <table className="table table-striped table-bordered table-responsive" border={2}>
+                    <table className="table table-striped table-bordered table-responsive">
                       <thead className="fs-6 text-center">
                         <tr>
                           <td rowSpan={2}>HSN/SAC</td>
@@ -271,16 +271,44 @@ export default function Billing() {
                           <td>Amount</td>
                         </tr>
                       </thead>
+                      <tbody>
+                        <tr></tr>
+                      </tbody>
+                      <tfoot>
+                        <tr>
+                          <td className="text-end">Total</td>
+                          <td className="text-center">a</td>
+                          <td className="text-center">b</td>
+                          <td className="text-center">b</td>
+                          <td className="text-center">b</td>
+                        </tr>
+                      </tfoot>
                     </table>
+                    <div className="text-start">
+                      <span>Tax Amount (in words) :</span>&nbsp;&nbsp;&nbsp;
+                      <span className="fw-bold">
+                        INR Two Lakh Sixty Eight Thousand Five Hundred Sixty
+                        Nine Only
+                      </span>
+                    </div>
                     <div className="col-5">
                       <table>
                         <tbody>
                           <tr>
                             <td>
-                              <div className="fs-4">Thank You!</div>
+                              <div>
+                                <span>Company’s PAN:</span>&nbsp;
+                                <span className="fw-bold">AWSPB3606K</span>
+                              </div>
+                              <div>
+                                <u>Declaration</u>
+                              </div>
                               <div className="fw-normal">
-                                Report will be delivered only after full payment
-                                is done.
+                                1.We declare that this invoice shows the actual
+                                price of the goods described and that all
+                                particulars are true and correct.2.On Overdue
+                                Payment Compensation @ 1.50 Percent Per Month
+                                Will Be Charged.
                               </div>
                               <div className="fw-normal">
                                 Sample collection:{" "}
@@ -310,104 +338,29 @@ export default function Billing() {
                       /> */}
                     </div>
                     <div className="col-5">
-                      <table className="table">
+                      <table>
                         <tbody>
-                          {/* {Patientdata.map((item) => (
-                            <>
-                              <tr className="fs-6">
-                                <th className="text-end" colSpan={4}>
-                                  SUBTOTAL
-                                </th>
-                                <th className="text-end">
-                                  <FontAwesomeIcon icon={faInr} />
-                                  {item.test_total}
-                                </th>
-                              </tr>
-                              {item.discount_cause_total !== 0 ? (
-                                <tr className="fs-6">
-                                  <th className="text-end" colSpan={4}>
-                                    Discount Cause Total{" "}
-                                  </th>
-                                  <th className="text-end text-success">
-                                    - <FontAwesomeIcon icon={faInr} />
-                                    {item.discount_cause_total}
-                                  </th>
-                                </tr>
-                              ) : null}
-                              {item.service_charge_total !== 0 ? (
-                                <tr className="fs-6">
-                                  <th className="text-end" colSpan={4}>
-                                    Service Charge Total{" "}
-                                  </th>
-                                  <th className="text-end">
-                                    + <FontAwesomeIcon icon={faInr} />
-                                    {item.service_charge_total}
-                                  </th>
-                                </tr>
-                              ) : null}
-                              {item.flat_discount !== 0 ? (
-                                <tr className="fs-6">
-                                  <th className="text-end" colSpan={4}>
-                                    Flat Discount{" "}
-                                  </th>
-                                  <th className="text-end text-success">
-                                    - <FontAwesomeIcon icon={faInr} />
-                                    {item.flat_discount}
-                                  </th>
-                                </tr>
-                              ) : null}
-                              <tr className="table-active fs-6">
-                                <th className="text-end" colSpan={4}>
-                                  GRAND TOTAL{" "}
-                                </th>
-                                <th className="text-end">
-                                  <FontAwesomeIcon icon={faInr} />
-                                  {item.grand_total}
-                                </th>
-                              </tr>
-                              <tr className="fs-6">
-                                <th className="fs-6 text-end" colSpan={4}>
-                                  Received Amount{" "}
-                                </th>
-                                {income.length !== 0 ? (
-                                  income.map((items) => (
-                                    <div
-                                      className="fs-6 fw-bold text-end"
-                                      key={items.id}
-                                    >
-                                      - <FontAwesomeIcon icon={faInr} />
-                                      {items.amount || 0} ({items.payment_mode}{" "}
-                                      on {items.payment_date.split(" ")[0]})
-                                    </div>
-                                  ))
-                                ) : (
-                                  <div className="fs-6 fw-bold text-end">
-                                    - <FontAwesomeIcon icon={faInr} />0
-                                  </div>
-                                )}
-                              </tr>
-                              <tr className="fs-4 table-group-divider table-borderless">
-                                <th
-                                  className="text-end text-primary"
-                                  colSpan={4}
-                                >
-                                  Due Amount
-                                </th>
-                                <th className="text-end text-danger">
-                                  <FontAwesomeIcon icon={faInr} />
-                                  {item.dues}
-                                </th>
-                              </tr>
-                              <tr>
-                                <th
-                                  className="text-end font-monospace text-body-tertiary"
-                                  colSpan={6}
-                                >
-                                  Software Powered By © Dibyataru Chakraborty
-                                </th>
-                              </tr>
-                            </>
-                          ))} */}
+                          <tr>
+                            <td>
+                              <div>Company’s Bank Details</div>
+                              <div>
+                                <span>A/c Holder’s Name:</span>&nbsp;
+                                <span className="fw-bold">MINA CREATION</span>
+                              </div>
+                              <div>
+                                <span>Bank Name:</span>&nbsp;
+                                <span className="fw-bold">HDFC BANK LTD</span>
+                              </div>
+                              <div>
+                                <span>A/c No.:</span>&nbsp;
+                                <span className="fw-bold">50200068169809</span>
+                              </div>
+                              <div>
+                                <span>Branch & IFS Code:</span>&nbsp;
+                                <span className="fw-bold">SACHIN,SURAT & HDFC0001706</span>
+                              </div>
+                            </td>
+                          </tr>
                         </tbody>
                       </table>
                     </div>
