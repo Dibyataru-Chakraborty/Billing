@@ -1,6 +1,16 @@
 import { faInr } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Cascader, FloatButton, QRCode, Tooltip, Watermark } from "antd";
+import {
+  Cascader,
+  Checkbox,
+  FloatButton,
+  Modal,
+  Popover,
+  QRCode,
+  Select,
+  Tooltip,
+  Watermark,
+} from "antd";
 import React, { useEffect, useRef, useState } from "react";
 import Barcode from "react-barcode";
 import { useParams } from "react-router-dom";
@@ -8,6 +18,7 @@ import { PrinterOutlined } from "@ant-design/icons";
 
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import TextArea from "antd/es/input/TextArea";
 
 export default function Billing() {
   const invoice = useRef();
@@ -23,48 +34,112 @@ export default function Billing() {
     });
   };
 
-  const options = [
+  const [Consignee_isModalOpen, setConsignee_isModalOpen] = useState(false);
+  const [Consignee_Name, setConsignee_Name] = useState("");
+  const [Consignee_Address, setConsignee_Address] = useState("");
+  const [Consignee_State, setConsignee_State] = useState("");
+  const [Consignee_Code, setConsignee_Code] = useState("");
+  const [Consignee_Contact, setConsignee_Contact] = useState("");
+  const [Consignee_GSTIN, setConsignee_GSTIN] = useState("");
+  const Consignee_showModal = () => {
+    setConsignee_isModalOpen(true);
+  };
+  const Consignee_handleCancel = () => {
+    setConsignee_isModalOpen(false);
+  };
+
+  const [Buyer_isModalOpen, setBuyer_isModalOpen] = useState(false);
+  const [Buyer_Name, setBuyer_Name] = useState("");
+  const [Buyer_Address, setBuyer_Address] = useState("");
+  const [Buyer_State, setBuyer_State] = useState("");
+  const [Buyer_Code, setBuyer_Code] = useState("");
+  const [Buyer_Contact, setBuyer_Contact] = useState("");
+  const [Buyer_GSTIN, setBuyer_GSTIN] = useState("");
+  const Buyer_showModal = () => {
+    setBuyer_isModalOpen(true);
+  };
+  const Buyer_handleCancel = () => {
+    setBuyer_isModalOpen(false);
+  };
+  const BuyerSame = (e) => {
+    console.log(e.target.checked);
+    e.target.checked ? assignConsigneeToBuyer() : NotassignConsigneeToBuyer();
+    function assignConsigneeToBuyer() {
+      setBuyer_Name(Consignee_Name);
+      setBuyer_Address(Consignee_Address);
+      setBuyer_State(Consignee_State);
+      setBuyer_Code(Consignee_Code);
+      setBuyer_Contact(Consignee_Contact);
+      setBuyer_GSTIN(Consignee_GSTIN);
+    }
+    function NotassignConsigneeToBuyer() {
+      setBuyer_Name("");
+      setBuyer_Address(null);
+      setBuyer_State("");
+      setBuyer_Code("");
+      setBuyer_Contact("");
+      setBuyer_GSTIN("");
+    }
+  };
+
+  const InvoiceNumber = () => {
+    const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    let result = "";
+    for (let i = 0; i < 6; i++) {
+      const randomIndex = Math.floor(Math.random() * characters.length);
+      result += characters.charAt(randomIndex);
+    }
+    return result;
+  };
+  const date = new Date();
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  const seconds = String(date.getSeconds()).padStart(2, "0");
+  const formattedDate = `${day}/${month}/${year}`;
+  const formattedTime = `${hours}:${minutes}:${seconds}`;
+
+  const [Vehicle, setVehicle] = useState("");
+  const Vehicleno = (
+    <div>
+      <input
+        type="text"
+        className="form-control"
+        value={Vehicle}
+        onChange={(e) => setVehicle(e.target.value)}
+      />
+    </div>
+  );
+
+  const List = [
     {
-      value: 'zhejiang',
-      label: 'Zhejiang',
-      children: [
-        {
-          value: 'hangzhou',
-          label: 'Hangzhou',
-          children: [
-            {
-              value: 'xihu',
-              label: 'West Lake',
-            },
-          ],
-        },
-      ],
+      value: "zhejiang",
+      label: "Zhejiang",
     },
     {
-      value: 'jiangsu',
-      label: 'Jiangsu',
-      children: [
-        {
-          value: 'nanjing',
-          label: 'Nanjing',
-          children: [
-            {
-              value: 'zhonghuamen',
-              label: 'Zhong Hua Men',
-            },
-          ],
-        },
-      ],
+      value: "jiangsu",
+      label: "Jiangsu",
     },
   ];
   const onChange = (value) => {
-    console.log(value);
+    console.log(`selected ${value}`);
+  };
+  const onSearch = (value) => {
+    console.log("search:", value);
   };
 
-  const filter = (inputValue, path) =>
-  path.some((option) => option.label.toLowerCase().indexOf(inputValue.toLowerCase()) > -1);
-
-  const displayRender = (labels) => labels[labels.length - 1]
+  const [Products, setProducts] = useState([
+    {
+      services: "",
+      hsn: "",
+      quantity: "",
+      rate: "",
+      per: "PCS",
+      amount: "",
+    },
+  ]);
 
   return (
     <>
@@ -81,94 +156,107 @@ export default function Billing() {
               >
                 <header>
                   <div className="row">
-                    <div className="col-8">
-                      <table>
+                    <div className="col">
+                      <table className="table table-borderless table-responsive">
                         <tbody>
                           <tr>
-                            {/* <td>
-                              <img
-                                src="/Logos/Logo.jpg"
-                                alt="KD"
-                                style={{ maxWidth: 150, maxHeight: 150 }}
-                              />
-                            </td> */}
                             <td>
-                              <div className="fs-2">MINA CREATION</div>
+                              <div className="fs-2">
+                                JALANGI POLYMER ENTERPRISE
+                              </div>
                               <div>
                                 <p>
-                                  D-39/12-D,Road No.19,
+                                  Nimtala Bazar, Near Dhubulia Station,
                                   <br />
-                                  Hojiwala Industrial Estate,
+                                  Dwipchandrapur, Dhubulia,
                                   <br />
-                                  PalsanaRoad,
+                                  Nadia, West Bengal,
                                   <br />
-                                  Surat
+                                  741125
                                 </p>
                               </div>
-                              <div>GSTIN/UIN: 24AWSPB3606K1ZI</div>
-                              <div>State Name : Gujarat, Code : 24</div>
-                              <div>E-Mail : minacreation3912@gmail.com</div>
+                              <div>GSTIN: I9AATFJ769IR1ZV</div>
+                              <div>Contact No.: 9002630036 / 9563414242</div>
+                              <div>E-Mail : jpedhubulia@gmail.com</div>
                             </td>
                           </tr>
                         </tbody>
                       </table>
-                      <hr class="border border-dark border-3 opacity-75" />
-                      <table>
+                      <hr className="border border-dark border-1 opacity-100" />
+                      <table className="table table-borderless table-responsive">
                         <tbody>
                           <tr>
                             <td>
-                              <div>Buyer (Bill to)</div>
-                              <div className="fs-2">ARYA TEXTILES</div>
                               <div>
-                                <p>
-                                  Belpukur , DHUBULIYA, Nadia, <br />
-                                  WEST BENGAL
-                                </p>
+                                <Popover
+                                  title={false}
+                                  arrow={false}
+                                  onClick={Consignee_showModal}
+                                >
+                                  Consignee (Ship to)
+                                </Popover>
                               </div>
-                              <div>GSTIN/UIN : 19BLZPB9514R1ZY</div>
-                              <div>State Name : West Bengal, Code : 19</div>
-                              <div>E-Mail : minacreation3912@gmail.com</div>
-                              {/* {Patientdata.map((item) => (
-                                <div className="fw-bold">
-                                  Bill #: {item.bill_id} on {item.bill_dt_tm}{" "}
-                                  {item.is_revised === "y" ? "(Revised)" : ""}
-                                </div>
-                              ))} */}
-                              <div className="p-2">
-                                {/* <Barcode
-                                  value={Patientdata.map(
-                                    (item) => item.bill_id
-                                  )}
-                                  displayValue={false}
-                                  fontSize={100}
-                                  margin={0}
-                                  format="CODE128"
-                                  width={2}
-                                  height={30}
-                                /> */}
+                              <div className="fs-2">{Consignee_Name}</div>
+                              <div>{Consignee_Address}</div>
+                              <div>
+                                State: {Consignee_State} Code: {Consignee_Code}
                               </div>
+                              <div>Contact No.: {Consignee_Contact}</div>
+                              <div>GSTIN: {Consignee_GSTIN}</div>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                      <hr className="border border-dark border-1 opacity-100" />
+                      <table className="table table-borderless table-responsive">
+                        <tbody>
+                          <tr>
+                            <td>
+                              <div>
+                                <Popover
+                                  title={false}
+                                  arrow={false}
+                                  onClick={Buyer_showModal}
+                                >
+                                  Buyer (Bill to)
+                                </Popover>
+                              </div>
+                              <div className="fs-2">{Buyer_Name}</div>
+                              <div>{Buyer_Address}</div>
+                              <div>
+                                State: {Buyer_State} Code: {Buyer_Code}
+                              </div>
+                              <div>Contact No.: {Buyer_Contact}</div>
+                              <div>GSTIN: {Buyer_GSTIN}</div>
                             </td>
                           </tr>
                         </tbody>
                       </table>
                     </div>
-                    <div className="col-4">
-                      <table class="table table-bordered">
+                    <div className="col">
+                      <table class="table table-bordered table-responsive">
                         <tbody>
                           <tr>
                             <td>
                               <div>Invoice No.</div>
-                              <div>01</div>
+                              <div>
+                                {InvoiceNumber()}/{year}
+                              </div>
                             </td>
                             <td>
                               <div>Dated</div>
-                              <div>3-Apr-23</div>
+                              <div>{formattedDate}</div>
+                              <div>{formattedTime}</div>
                             </td>
                           </tr>
                           <tr>
                             <td>
-                              <div>Delivery Note</div>
-                              <div></div>
+                              <div>
+                                <Popover title={false} content={Vehicleno} trigger="click" >
+                                  Vehicle No.
+                                </Popover>
+                              </div>
+                              <div>{Vehicle}</div>
                             </td>
                             <td>
                               <div>Mode/Terms of Payment</div>
@@ -227,79 +315,103 @@ export default function Billing() {
                   </div>
                 </header>
                 <main>
-                  <table className="table table-striped table-responsive">
-                    <thead className="table-secondary fs-6">
-                      <tr>
-                        <th className="text-start">Sl No.</th>
-                        <th>Description of Services</th>
-                        <th>HSN/SAC</th>
-                        <th>Quantity</th>
-                        <th>Rate</th>
-                        <th>per</th>
-                        <th className="text-end">Amount</th>
-                      </tr>
-                    </thead>
-                    <tbody className="fs-5">
-                      {/* Testdata.map((item, index) => ( */}
-                      <tr>
-                        <th scope="row" className="text-start">
-                          {/* {index+1}. */}
-                        </th>
-                        <td className="text-center">
-                          <Tooltip>
-                            <Cascader
-                              options={options}
-                              expandTrigger="hover"
-                              displayRender={displayRender}
-                              onSearch={(value) => console.log(value)}
-                              onChange={onChange}
-                            />
-                          </Tooltip>
-                        </td>
-                        <td className="text-center">a</td>
-                        <td className="text-center">b</td>
-                        <td className="text-center">c</td>
-                        <td className="text-center">d</td>
-                        <td className="text-center">e</td>
-                      </tr>
-                      {/* )) */}
-                      <tr>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td>TOTAL</td>
-                      </tr>
-                      <tr>
-                        <td></td>
-                        <td>
-                          <div className="text-end">IGST</div>
-                        </td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td>TOTAL</td>
-                      </tr>
-                    </tbody>
-                    <tfoot className="table-bordered">
-                      <tr>
-                        <td></td>
-                        <td>
-                          <div className="text-end">Total</div>
-                        </td>
-                        <td></td>
-                        <td>numberofpcs</td>
-                        <td></td>
-                        <td></td>
-                        <td>
-                          <FontAwesomeIcon icon={faInr} /> TOTAL
-                        </td>
-                      </tr>
-                    </tfoot>
-                  </table>
+                  <div className="col">
+                    <table className="table table-striped table-responsive">
+                      <thead className="table-secondary fs-6">
+                        <tr>
+                          <th className="text-start">Sl No.</th>
+                          <th className="text-center">
+                            Description of Services
+                          </th>
+                          <th className="text-center">HSN/SAC</th>
+                          <th className="text-center">Quantity</th>
+                          <th className="text-center">Rate</th>
+                          <th className="text-center">per</th>
+                          <th className="text-end">Amount</th>
+                        </tr>
+                      </thead>
+                      <tbody className="fs-5">
+                        {Products.map((item, index) => (
+                          <tr>
+                            <th scope="row" className="text-start" key={index}>
+                              {index + 1}.
+                            </th>
+                            <td className="text-center">
+                              <Tooltip>
+                                <Select
+                                  showSearch
+                                  placeholder="Search to Select"
+                                  optionFilterProp="children"
+                                  onChange={onChange}
+                                  onSearch={onSearch}
+                                  filterOption={(input, option) =>
+                                    (option?.label ?? "")
+                                      .toLowerCase()
+                                      .includes(input.toLowerCase())
+                                  }
+                                  options={List}
+                                  value={List.find(
+                                    (unit) => unit.value === item.services || ""
+                                  )}
+                                  allowClear
+                                  style={{
+                                    width: 200,
+                                  }}
+                                  filterSort={(optionA, optionB) =>
+                                    (optionA?.label ?? "")
+                                      .toLowerCase()
+                                      .localeCompare(
+                                        (optionB?.label ?? "").toLowerCase()
+                                      )
+                                  }
+                                />
+                              </Tooltip>
+                            </td>
+                            <td className="text-center">{item.hsn}</td>
+                            <td className="text-center">{item.quantity}</td>
+                            <td className="text-center">{item.rate}</td>
+                            <td className="text-center">{item.per}</td>
+                            <td className="text-end">{item.amount}</td>
+                          </tr>
+                        ))}
+                        <tr>
+                          <td></td>
+                          <td></td>
+                          <td></td>
+                          <td></td>
+                          <td></td>
+                          <td></td>
+                          <td>TOTAL</td>
+                        </tr>
+                        <tr>
+                          <td></td>
+                          <td>
+                            <div className="text-end">IGST</div>
+                          </td>
+                          <td></td>
+                          <td></td>
+                          <td></td>
+                          <td></td>
+                          <td>TOTAL</td>
+                        </tr>
+                      </tbody>
+                      <tfoot className="table-bordered">
+                        <tr>
+                          <td></td>
+                          <td>
+                            <div className="text-end">Total</div>
+                          </td>
+                          <td></td>
+                          <td>numberofpcs</td>
+                          <td></td>
+                          <td></td>
+                          <td>
+                            <FontAwesomeIcon icon={faInr} /> TOTAL
+                          </td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
                   <div className="row">
                     <div className="text-start">
                       Amount Chargeable (in words)
@@ -407,7 +519,9 @@ export default function Billing() {
                               </div>
                               <div>
                                 <span>Branch & IFS Code:</span>&nbsp;
-                                <span className="fw-bold">SACHIN,SURAT & HDFC0001706</span>
+                                <span className="fw-bold">
+                                  SACHIN,SURAT & HDFC0001706
+                                </span>
                               </div>
                             </td>
                           </tr>
@@ -419,6 +533,179 @@ export default function Billing() {
               </Watermark>
             </div>
           </div>
+          {/* Consignee */}
+          <Modal
+            title="Consignee"
+            open={Consignee_isModalOpen}
+            onCancel={Consignee_handleCancel}
+            okButtonProps={{ hidden: true }}
+            cancelButtonProps={{ hidden: true }}
+          >
+            <div className="row g-3">
+              <div className="col-md-12">
+                <label htmlFor="Consignee_Name" className="form-label">
+                  Name
+                </label>
+                <input
+                  type="text"
+                  className="form-control"
+                  id="Consignee_Name"
+                  value={Consignee_Name}
+                  onChange={(e) => setConsignee_Name(e.target.value)}
+                />
+              </div>
+              <div className="col-md-12">
+                <label htmlFor="Consignee_Address" className="form-label">
+                  Address
+                </label>
+                <TextArea
+                  className="form-control"
+                  value={Consignee_Address}
+                  onChange={(e) => setConsignee_Address(e.target.value)}
+                  type="text"
+                  autoSize
+                  id="Consignee_Address"
+                />
+              </div>
+              <div className="col-md-6">
+                <label htmlFor="Consignee_State" className="form-label">
+                  State
+                </label>
+                <input
+                  type="text"
+                  className="form-control"
+                  id="Consignee_State"
+                  value={Consignee_State}
+                  onChange={(e) => setConsignee_State(e.target.value)}
+                />
+              </div>
+              <div className="col-md-6">
+                <label htmlFor="Consignee_Code" className="form-label">
+                  Code
+                </label>
+                <input
+                  type="text"
+                  className="form-control"
+                  id="Consignee_Code"
+                  value={Consignee_Code}
+                  onChange={(e) => setConsignee_Code(e.target.value)}
+                />
+              </div>
+              <div className="col-md-6">
+                <label htmlFor="Consignee_Contact" className="form-label">
+                  Contact
+                </label>
+                <input
+                  type="text"
+                  className="form-control"
+                  id="Consignee_Contact"
+                  value={Consignee_Contact}
+                  onChange={(e) => setConsignee_Contact(e.target.value)}
+                />
+              </div>
+              <div className="col-md-6">
+                <label htmlFor="Consignee_GSTIN" className="form-label">
+                  GSTIN
+                </label>
+                <input
+                  type="text"
+                  className="form-control"
+                  id="Consignee_GSTIN"
+                  value={Consignee_GSTIN}
+                  onChange={(e) => setConsignee_GSTIN(e.target.value)}
+                />
+              </div>
+            </div>
+          </Modal>
+          {/* Buyer */}
+          <Modal
+            title={
+              <div>
+                Buyer / (Same as Consignee){" "}
+                <Checkbox onChange={BuyerSame} style={{ marginRight: 8 }} />
+              </div>
+            }
+            open={Buyer_isModalOpen}
+            onCancel={Buyer_handleCancel}
+            okButtonProps={{ hidden: true }}
+            cancelButtonProps={{ hidden: true }}
+          >
+            <div className="row g-3">
+              <div className="col-md-12">
+                <label htmlFor="Buyer_Name" className="form-label">
+                  Name
+                </label>
+                <input
+                  type="text"
+                  className="form-control"
+                  id="Buyer_Name"
+                  value={Buyer_Name}
+                  onChange={(e) => setBuyer_Name(e.target.value)}
+                />
+              </div>
+              <div className="col-md-12">
+                <label htmlFor="Buyer_Address" className="form-label">
+                  Address
+                </label>
+                <TextArea
+                  className="form-control"
+                  value={Buyer_Address}
+                  onChange={(e) => setBuyer_Address(e.target.value)}
+                  type="text"
+                  autoSize
+                  id="Buyer_Address"
+                />
+              </div>
+              <div className="col-md-6">
+                <label htmlFor="Buyer_State" className="form-label">
+                  State
+                </label>
+                <input
+                  type="text"
+                  className="form-control"
+                  id="Buyer_State"
+                  value={Buyer_State}
+                  onChange={(e) => setBuyer_State(e.target.value)}
+                />
+              </div>
+              <div className="col-md-6">
+                <label htmlFor="Buyer_Code" className="form-label">
+                  Code
+                </label>
+                <input
+                  type="text"
+                  className="form-control"
+                  id="Buyer_Code"
+                  value={Buyer_Code}
+                  onChange={(e) => setBuyer_Code(e.target.value)}
+                />
+              </div>
+              <div className="col-md-6">
+                <label htmlFor="Buyer_Contact" className="form-label">
+                  Contact
+                </label>
+                <input
+                  type="text"
+                  className="form-control"
+                  id="Buyer_Contact"
+                  value={Buyer_Contact}
+                  onChange={(e) => setBuyer_Contact(e.target.value)}
+                />
+              </div>
+              <div className="col-md-6">
+                <label htmlFor="Buyer_GSTIN" className="form-label">
+                  GSTIN
+                </label>
+                <input
+                  type="text"
+                  className="form-control"
+                  id="Buyer_GSTIN"
+                  value={Buyer_GSTIN}
+                  onChange={(e) => setBuyer_GSTIN(e.target.value)}
+                />
+              </div>
+            </div>
+          </Modal>
         </div>
       </div>
       <FloatButton
