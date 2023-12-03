@@ -1,6 +1,6 @@
 import { faInr } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { FloatButton, QRCode, Watermark } from "antd";
+import { Cascader, FloatButton, QRCode, Tooltip, Watermark } from "antd";
 import React, { useEffect, useRef, useState } from "react";
 import Barcode from "react-barcode";
 import { useParams } from "react-router-dom";
@@ -8,7 +8,6 @@ import { PrinterOutlined } from "@ant-design/icons";
 
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
-import Select from "react-select";
 
 export default function Billing() {
   const invoice = useRef();
@@ -23,6 +22,49 @@ export default function Billing() {
       window.open(blobUrl);
     });
   };
+
+  const options = [
+    {
+      value: 'zhejiang',
+      label: 'Zhejiang',
+      children: [
+        {
+          value: 'hangzhou',
+          label: 'Hangzhou',
+          children: [
+            {
+              value: 'xihu',
+              label: 'West Lake',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      value: 'jiangsu',
+      label: 'Jiangsu',
+      children: [
+        {
+          value: 'nanjing',
+          label: 'Nanjing',
+          children: [
+            {
+              value: 'zhonghuamen',
+              label: 'Zhong Hua Men',
+            },
+          ],
+        },
+      ],
+    },
+  ];
+  const onChange = (value) => {
+    console.log(value);
+  };
+
+  const filter = (inputValue, path) =>
+  path.some((option) => option.label.toLowerCase().indexOf(inputValue.toLowerCase()) > -1);
+
+  const displayRender = (labels) => labels[labels.length - 1]
 
   return (
     <>
@@ -185,7 +227,7 @@ export default function Billing() {
                   </div>
                 </header>
                 <main>
-                  <table className="table table-borderless table-responsive">
+                  <table className="table table-striped table-responsive">
                     <thead className="table-secondary fs-6">
                       <tr>
                         <th className="text-start">Sl No.</th>
@@ -203,14 +245,22 @@ export default function Billing() {
                         <th scope="row" className="text-start">
                           {/* {index+1}. */}
                         </th>
-                        <td>
-                          <Select
-                          // options={options}
-                          // value={{ value: index, label: item.name }}
-                          />
+                        <td className="text-center">
+                          <Tooltip>
+                            <Cascader
+                              options={options}
+                              expandTrigger="hover"
+                              displayRender={displayRender}
+                              onSearch={(value) => console.log(value)}
+                              onChange={onChange}
+                            />
+                          </Tooltip>
                         </td>
-                        <td>{/* {item.timeframe} */}</td>
-                        <td className="text-end">{/* {item.price} */}</td>
+                        <td className="text-center">a</td>
+                        <td className="text-center">b</td>
+                        <td className="text-center">c</td>
+                        <td className="text-center">d</td>
+                        <td className="text-center">e</td>
                       </tr>
                       {/* )) */}
                       <tr>
