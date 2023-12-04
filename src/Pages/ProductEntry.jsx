@@ -5,7 +5,7 @@ import React, { useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPenToSquare, faTrashCan } from "@fortawesome/free-regular-svg-icons";
 import { ref, remove, set, update } from "firebase/database";
-import { db } from "../Utils/Firebase/Firebase_config";
+// import { db } from "../Utils/Firebase/Firebase_config";
 
 export default function ProductEntry() {
   const [searchText, setSearchText] = useState("");
@@ -25,9 +25,9 @@ export default function ProductEntry() {
     setLoadings(true);
     const id = details.id - 1;
     setTimeout(async () => {
-      await update(ref(db, "Private/ManageTestUnits/" + id + "/"), {
-        name: details.name,
-      });
+      // await update(ref(db, "Private/ManageTestUnits/" + id + "/"), {
+      //   name: details.name,
+      // });
       setLoadings(false);
       setIsDetailsVisible(false);
     }, 2000);
@@ -52,7 +52,7 @@ export default function ProductEntry() {
     };
     setLoadings(true);
     setTimeout(async () => {
-      await set(ref(db, "Private/ManageTestUnits/" + count + "/"), test);
+      // await set(ref(db, "Private/ManageTestUnits/" + count + "/"), test);
       setLoadings(false);
       setIsAddVisible(false);
       setUnitName("");
@@ -193,7 +193,7 @@ export default function ProductEntry() {
         const confirm = async () => {
           const { id } = record;
           const key = id - 1;
-          await remove(ref(db, "Private/ManageTestUnits/" + key + "/"));
+          // await remove(ref(db, "Private/ManageTestUnits/" + key + "/"));
           message.success("Unit Delete");
         };
         const cancel = () => {
