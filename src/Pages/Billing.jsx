@@ -1,7 +1,6 @@
 import { faInr } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  Cascader,
   Checkbox,
   FloatButton,
   Modal,
@@ -109,6 +108,90 @@ export default function Billing() {
         className="form-control"
         value={Vehicle}
         onChange={(e) => setVehicle(e.target.value)}
+      />
+    </div>
+  );
+
+  const [Payment, setPayment] = useState("");
+  const Mode_of_Payment = (
+    <div>
+      <Select
+        optionFilterProp="children"
+        onChange={(e) => setPayment(e)}
+        options={[
+          {
+            value: "offline",
+            label: "Offline",
+          },
+          {
+            value: "online",
+            label: "Online",
+          },
+        ]}
+        allowClear
+        style={{
+          width: 200,
+        }}
+      />
+    </div>
+  );
+
+  const [Reference_No, setReference_No] = useState("");
+  const Reference = (
+    <div>
+      <input
+        type="text"
+        className="form-control"
+        value={Reference_No}
+        onChange={(e) => setReference_No(e.target.value)}
+      />
+    </div>
+  );
+
+  const [Other_References, setOther_References] = useState("");
+  const OtherReferences = (
+    <div>
+      <input
+        type="text"
+        className="form-control"
+        value={Other_References}
+        onChange={(e) => setOther_References(e.target.value)}
+      />
+    </div>
+  );
+
+  const [Sale, setSale] = useState("");
+  const Sale_Type = (
+    <div>
+      <Select
+        optionFilterProp="children"
+        onChange={(e) => setSale(e)}
+        options={[
+          {
+            value: "State sale",
+            label: "State sale",
+          },
+          {
+            value: "Other state sale",
+            label: "Other state sale",
+          },
+        ]}
+        allowClear
+        style={{
+          width: 200,
+        }}
+      />
+    </div>
+  );
+
+  const [EWayBill, setEWayBill] = useState("");
+  const E_Way_Bill_No = (
+    <div>
+      <input
+        type="text"
+        className="form-control"
+        value={EWayBill}
+        onChange={(e) => setEWayBill(e.target.value)}
       />
     </div>
   );
@@ -252,61 +335,86 @@ export default function Billing() {
                           <tr>
                             <td>
                               <div>
-                                <Popover title={false} content={Vehicleno} trigger="click" >
+                                <Popover
+                                  title={false}
+                                  content={Vehicleno}
+                                  trigger="click"
+                                >
                                   Vehicle No.
                                 </Popover>
                               </div>
                               <div>{Vehicle}</div>
                             </td>
                             <td>
-                              <div>Mode/Terms of Payment</div>
-                              <div></div>
+                              <div>
+                                <Popover
+                                  title={false}
+                                  content={Mode_of_Payment}
+                                  trigger="click"
+                                >
+                                  Mode/Terms of Payment
+                                </Popover>
+                              </div>
+                              <div>{Payment}</div>
                             </td>
                           </tr>
+                          {Payment === "online" ? (
+                            <tr>
+                              <td colSpan={2}>
+                                <div>
+                                  <Popover
+                                    title={false}
+                                    content={Reference}
+                                    trigger="click"
+                                  >
+                                    Reference No.
+                                  </Popover>
+                                </div>
+                                <div>{Reference_No}</div>
+                              </td>
+                            </tr>
+                          ) : Payment === "offline" ? (
+                            <tr>
+                              <td colSpan={2}>
+                                <div>
+                                  <Popover
+                                    title={false}
+                                    content={OtherReferences}
+                                    trigger="click"
+                                  >
+                                    Other References:
+                                  </Popover>
+                                </div>
+                                <div>{Other_References}</div>
+                              </td>
+                            </tr>
+                          ) : null}
                           <tr>
-                            <td>
-                              <div>Reference No. & Date.</div>
-                              <div></div>
-                            </td>
-                            <td>
-                              <div>Other References</div>
-                              <div></div>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td>
-                              <div>Buyer’s Order No.</div>
-                              <div></div>
-                            </td>
-                            <td>
-                              <div>Dated</div>
-                              <div></div>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td>
-                              <div>Dispatch Doc No.</div>
-                              <div>01</div>
-                            </td>
-                            <td>
-                              <div>Delivery Note Date</div>
-                              <div></div>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td>
-                              <div>Dispatched through</div>
-                              <div></div>
-                            </td>
-                            <td>
-                              <div>Destination</div>
-                              <div></div>
+                            <td colSpan={2}>
+                              <div>
+                                <Popover
+                                  title={false}
+                                  content={Sale_Type}
+                                  trigger="click"
+                                >
+                                  Sale Type:
+                                </Popover>{" "}
+                                {Sale}
+                              </div>
                             </td>
                           </tr>
                           <tr>
                             <td colSpan={2}>
-                              <div>Terms of Delivery</div>
-                              <div></div>
+                              <div>
+                                <Popover
+                                  title={false}
+                                  content={E_Way_Bill_No}
+                                  trigger="click"
+                                >
+                                  E Way Bill No:
+                                </Popover>
+                              </div>
+                              <div>{EWayBill}</div>
                             </td>
                           </tr>
                         </tbody>
@@ -337,35 +445,33 @@ export default function Billing() {
                               {index + 1}.
                             </th>
                             <td className="text-center">
-                              <Tooltip>
-                                <Select
-                                  showSearch
-                                  placeholder="Search to Select"
-                                  optionFilterProp="children"
-                                  onChange={onChange}
-                                  onSearch={onSearch}
-                                  filterOption={(input, option) =>
-                                    (option?.label ?? "")
-                                      .toLowerCase()
-                                      .includes(input.toLowerCase())
-                                  }
-                                  options={List}
-                                  value={List.find(
-                                    (unit) => unit.value === item.services || ""
-                                  )}
-                                  allowClear
-                                  style={{
-                                    width: 200,
-                                  }}
-                                  filterSort={(optionA, optionB) =>
-                                    (optionA?.label ?? "")
-                                      .toLowerCase()
-                                      .localeCompare(
-                                        (optionB?.label ?? "").toLowerCase()
-                                      )
-                                  }
-                                />
-                              </Tooltip>
+                              <Select
+                                showSearch
+                                placeholder="Search to Select"
+                                optionFilterProp="children"
+                                onChange={onChange}
+                                onSearch={onSearch}
+                                filterOption={(input, option) =>
+                                  (option?.label ?? "")
+                                    .toLowerCase()
+                                    .includes(input.toLowerCase())
+                                }
+                                options={List}
+                                value={List.find(
+                                  (unit) => unit.value === item.services || ""
+                                )}
+                                allowClear
+                                style={{
+                                  width: 200,
+                                }}
+                                filterSort={(optionA, optionB) =>
+                                  (optionA?.label ?? "")
+                                    .toLowerCase()
+                                    .localeCompare(
+                                      (optionB?.label ?? "").toLowerCase()
+                                    )
+                                }
+                              />
                             </td>
                             <td className="text-center">{item.hsn}</td>
                             <td className="text-center">{item.quantity}</td>
@@ -533,6 +639,7 @@ export default function Billing() {
               </Watermark>
             </div>
           </div>
+
           {/* Consignee */}
           <Modal
             title="Consignee"
@@ -707,6 +814,7 @@ export default function Billing() {
             </div>
           </Modal>
         </div>
+        {/* <Footer/> */}
       </div>
       <FloatButton
         onClick={handlePrint}
