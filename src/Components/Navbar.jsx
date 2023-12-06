@@ -20,7 +20,7 @@ export default function Navbar(props) {
   const [current, setCurrent] = useState(props.number);
   const onClick = (e) => {
     const routes = {
-      // "1": "/admin/dashboard",
+      "1": "/",
       "2": "/billing",
       // "3": "/admin/opd/new-opd-billing",
       "4": "/productentry",
@@ -129,7 +129,7 @@ export default function Navbar(props) {
               />
             </Col>
             <Col xs={4} sm={4} md={0}>
-              <Button type="primary" onClick={showDrawer}>
+              <Button type="primary" danger onClick={showDrawer}>
                 <MenuOutlined />
               </Button>
             </Col>

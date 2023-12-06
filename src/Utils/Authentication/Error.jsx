@@ -4,11 +4,17 @@ import { Link } from "react-router-dom";
 
 export default function Error(props) {
   return (
-    <Result
-      status="404"
-      title="404"
-      subTitle="Sorry, the page you visited does not exist."
-      extra={<Link to={`${props.link}`}><Button type="primary">Back Home</Button></Link>}
-    />
+    <div className="container my-2">
+      <Result
+        status="404"
+        title="404"
+        subTitle="Sorry, the page you visited does not exist."
+        extra={
+          <Link to={`${props.link}`}>
+            <Button type="primary">Back Home</Button>
+          </Link>
+        }
+      />
+    </div>
   );
 }

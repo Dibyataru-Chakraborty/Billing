@@ -173,11 +173,27 @@ export default function ProductEntry() {
       ...getColumnSearchProps("id"),
     },
     {
-      title: "Unit Name",
-      dataIndex: "name",
+      title: "Description of Services",
+      dataIndex: "Services",
       width: 150,
-      sorter: (a, b) => a.name.length - b.name.length,
-      ...getColumnSearchProps("name"),
+      sorter: (a, b) => a.Services.length - b.Services.length,
+      ...getColumnSearchProps("Services"),
+      sortDirections: ["descend", "ascend"],
+    },
+    {
+      title: "Quantity",
+      dataIndex: "Quantity",
+      width: 150,
+      sorter: (a, b) => a.Quantity - b.Quantity,
+      ...getColumnSearchProps("Quantity"),
+      sortDirections: ["descend", "ascend"],
+    },
+    {
+      title: "Rate",
+      dataIndex: "Rate",
+      width: 150,
+      sorter: (a, b) => a.Rate - b.Rate,
+      ...getColumnSearchProps("Rate"),
       sortDirections: ["descend", "ascend"],
     },
     {
@@ -236,15 +252,15 @@ export default function ProductEntry() {
   ];
   const data = [];
   var count = "0";
-//   JSON.parse(localStorage.getItem("ManageTestUnits")).forEach((element) => {
-//     if (element !== null) {
-//       data.push({
-//         key: count++,
-//         id: element.id,
-//         name: element.name,
-//       });
-//     }
-//   });
+  //   JSON.parse(localStorage.getItem("ManageTestUnits")).forEach((element) => {
+  //     if (element !== null) {
+  //       data.push({
+  //         key: count++,
+  //         id: element.id,
+  //         name: element.name,
+  //       });
+  //     }
+  //   });
 
   return (
     <>
@@ -266,7 +282,7 @@ export default function ProductEntry() {
                       marginBottom: 16,
                     }}
                   >
-                    Add Method
+                    Add Product
                   </Button>
                 )}
                 columns={columns}
@@ -288,32 +304,81 @@ export default function ProductEntry() {
         okText="Update"
         confirmLoading={loadings}
       >
-        <h4>ID: {details.id}</h4>
+        {/* <h4>ID: {details.id}</h4> */}
         <hr />
         <form className="row g-3">
-          <div className="col-md-12">
-            <label htmlFor="Name" className="form-label">
-              Unit Name
+          <div className="col-md-6">
+            <label htmlFor="Description_of_Services" className="form-label">
+              Description of Services
             </label>
             <input
               type="text"
               className="form-control"
-              id="Name"
-              value={details.name}
-              onChange={(e) =>
-                setdetails({
-                  key: details.key,
-                  id: details.id,
-                  name: e.target.value,
-                })
-              }
+              id="Description_of_Services"
+              // value={UnitName}
+              // onChange={(e) => setUnitName(e.target.value)}
+            />
+          </div>
+          <div className="col-md-6">
+            <label htmlFor="HSN" className="form-label">
+              HSN/SAC
+            </label>
+            <input
+              type="text"
+              className="form-control"
+              id="HSN"
+              // value={details.name}
+              // onChange={(e) =>
+              //   setdetails({
+              //     key: details.key,
+              //     id: details.id,
+              //     name: e.target.value,
+              //   })
+              // }
+            />
+          </div>
+          <div className="col-md-6">
+            <label htmlFor="Quantity" className="form-label">
+            Quantity
+            </label>
+            <input
+              type="number"
+              className="form-control"
+              id="Quantity"
+              min={0}
+              // value={details.name}
+              // onChange={(e) =>
+              //   setdetails({
+              //     key: details.key,
+              //     id: details.id,
+              //     name: e.target.value,
+              //   })
+              // }
+            />
+          </div>
+          <div className="col-md-6">
+            <label htmlFor="RATE" className="form-label">
+              Rate
+            </label>
+            <input
+              type="text"
+              className="form-control"
+              id="RATE"
+              // value={details.name}
+              // onChange={(e) =>
+              //   setdetails({
+              //     key: details.key,
+              //     id: details.id,
+              //     name: e.target.value,
+              //   })
+              // }
             />
           </div>
         </form>
       </Modal>
 
       <Modal
-        title="ADD TEST UNITS"
+        title="ADD PRODUCTS"
         open={isAddVisible}
         onOk={addOk}
         onCancel={addCancel}
@@ -324,16 +389,71 @@ export default function ProductEntry() {
         }}
       >
         <form className="row g-3">
-          <div className="col-md-12">
-            <label htmlFor="Name" className="form-label">
-              Unit Name
+          <div className="col-md-6">
+            <label htmlFor="Description_of_Services" className="form-label">
+              Description of Services
             </label>
             <input
               type="text"
               className="form-control"
-              id="Name"
-              value={UnitName}
-              onChange={(e) => setUnitName(e.target.value)}
+              id="Description_of_Services"
+              // value={UnitName}
+              // onChange={(e) => setUnitName(e.target.value)}
+            />
+          </div>
+          <div className="col-md-6">
+            <label htmlFor="HSN" className="form-label">
+              HSN/SAC
+            </label>
+            <input
+              type="text"
+              className="form-control"
+              id="HSN"
+              // value={details.name}
+              // onChange={(e) =>
+              //   setdetails({
+              //     key: details.key,
+              //     id: details.id,
+              //     name: e.target.value,
+              //   })
+              // }
+            />
+          </div>
+          <div className="col-md-6">
+            <label htmlFor="Quantity" className="form-label">
+            Quantity
+            </label>
+            <input
+              type="number"
+              className="form-control"
+              id="Quantity"
+              min={0}
+              // value={details.name}
+              // onChange={(e) =>
+              //   setdetails({
+              //     key: details.key,
+              //     id: details.id,
+              //     name: e.target.value,
+              //   })
+              // }
+            />
+          </div>
+          <div className="col-md-6">
+            <label htmlFor="RATE" className="form-label">
+              Rate
+            </label>
+            <input
+              type="text"
+              className="form-control"
+              id="RATE"
+              // value={details.name}
+              // onChange={(e) =>
+              //   setdetails({
+              //     key: details.key,
+              //     id: details.id,
+              //     name: e.target.value,
+              //   })
+              // }
             />
           </div>
         </form>

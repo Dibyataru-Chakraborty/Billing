@@ -5,6 +5,8 @@ import { message } from "antd";
 import { AuthErrorCodes, signInWithEmailAndPassword } from "firebase/auth";
 // import { auth, db } from "../Utils/Firebase/Firebase_config";
 import { get, ref } from "firebase/database";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faEye, faEyeSlash } from "@fortawesome/free-regular-svg-icons";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -28,6 +30,20 @@ export default function Login() {
     );
   };
 
+  const [PasswordType, setPasswordType] = useState({type: "password", passowrd: true});
+  const showPassword = () => {
+    setPasswordType({
+      type: "text",
+      passowrd: false
+    })
+  }
+  const hidePassword = () => {
+    setPasswordType({
+      type: "password",
+      passowrd: true
+    })
+  }
+
   const getowner = (event) => {
     const getowner = event;
     setOwner(
@@ -49,29 +65,21 @@ export default function Login() {
       <section className="vh-100">
         <div className="container py-5 h-100">
           <div className="row d-flex justify-content-center align-items-center h-100">
-            <div className="col col-xl-10">
+            <div className="col" style={{width:'fit-content',flex: '0 0 auto'}}>
               <div className="card" style={{ borderRadius: "1rem" }}>
                 <div
                   className="row g-0 rounded"
                   style={{ boxShadow: "20px 2rem 3em rgba(121, 115, 115, 1)" }}
                 >
-                  <div className="col-md-6 col-lg-5 d-none d-md-block">
-                    <img
-                      src="/login_form.png"
-                      alt="login form"
-                      className="img-fluid"
-                      style={{ borderRadius: "1rem 0 0 1rem" }}
-                    />
-                  </div>
-                  <div className="col-md-6 col-lg-7 d-flex align-items-center">
+                  <div className="col d-flex align-items-center">
                     <div className="card-body p-4 p-lg-5 text-black">
                       <div className="d-flex align-items-center mb-3 pb-1">
                         <i
-                          className="fa fa-heartbeat fa-2x me-3"
+                          className="fa fa-2x me-3 fa-solid fa-receipt"
                           style={{ color: "#d10000" }}
                         />
                         <span className="h1 fw-bold mb-0">
-                          Kanika Diagnostic
+                          Your Billing
                         </span>
                       </div>
                       <form className={Validation}>
@@ -114,9 +122,14 @@ export default function Login() {
                         <div className="form-outline">
                           <label className="form-label" htmlFor="password">
                             Password
-                          </label>
+                          </label>{" "}
+                          {
+                            PasswordType.passowrd ? 
+                            <FontAwesomeIcon icon={faEye} onClick={showPassword}/>
+                            : <FontAwesomeIcon icon={faEyeSlash} onClick={hidePassword}/>
+                          }
                           <input
-                            type="password"
+                            type={PasswordType.type}
                             minLength={8}
                             onKeyUp={checkPassword}
                             placeholder="Password"
@@ -157,7 +170,7 @@ export default function Login() {
                         </div>
                         <Link
                           className="small text-muted"
-                          to="/clinic/forget"
+                          to="/forget"
                           style={{ textDecoration: "None" }}
                         >
                           Forgot password?

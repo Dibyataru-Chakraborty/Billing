@@ -231,11 +231,10 @@ export default function Billing() {
           <div className="card-body">
             <div ref={invoice}>
               <Watermark
-                height={30}
-                width={130}
+                fontSize= {16}
                 zIndex={11}
                 rotate={-26}
-                content={"store name"}
+                content={"JALANGI POLYMER ENTERPRISE"}
               >
                 <header>
                   <div className="row">
@@ -317,7 +316,7 @@ export default function Billing() {
                       </table>
                     </div>
                     <div className="col">
-                      <table class="table table-bordered table-responsive">
+                      <table className="table table-bordered table-responsive">
                         <tbody>
                           <tr>
                             <td>
