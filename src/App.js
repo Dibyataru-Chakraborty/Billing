@@ -24,11 +24,10 @@ function App() {
       } else {
         setProductsData(data);
       }
-      // setProductsData(snapshot.val())
     });
   };
 
-  // localStorage.setItem("ProductsData", JSON.stringify(ProductsData));
+  localStorage.setItem("ProductsData", JSON.stringify(ProductsData));
 
   useEffect(() => {
     const fetchData = async () => {
