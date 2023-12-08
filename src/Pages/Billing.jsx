@@ -1,6 +1,9 @@
+import { SearchOutlined } from "@ant-design/icons";
+import Highlighter from "react-highlight-words";
 import { faInr } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
+  Button,
   Checkbox,
   FloatButton,
   Modal,
@@ -9,11 +12,17 @@ import {
   Select,
   Tooltip,
   Watermark,
+  Input,
+  Space,
+  Table,
+  message,
+  Popconfirm,
+  InputNumber,
 } from "antd";
 import React, { useEffect, useRef, useState } from "react";
 import Barcode from "react-barcode";
 import { useParams } from "react-router-dom";
-import { PrinterOutlined } from "@ant-design/icons";
+import { PrinterOutlined, PlusCircleOutlined } from "@ant-design/icons";
 
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
@@ -61,7 +70,6 @@ export default function Billing() {
     setBuyer_isModalOpen(false);
   };
   const BuyerSame = (e) => {
-    console.log(e.target.checked);
     e.target.checked ? assignConsigneeToBuyer() : NotassignConsigneeToBuyer();
     function assignConsigneeToBuyer() {
       setBuyer_Name(Consignee_Name);
@@ -196,33 +204,201 @@ export default function Billing() {
     </div>
   );
 
-  const List = [
-    {
-      value: "zhejiang",
-      label: "Zhejiang",
-    },
-    {
-      value: "jiangsu",
-      label: "Jiangsu",
-    },
-  ];
-  const onChange = (value) => {
-    console.log(`selected ${value}`);
+  const [Services_isModalOpen, setServices_isModalOpen] = useState(false);
+  const Services_showModal = () => {
+    setServices_isModalOpen(true);
   };
-  const onSearch = (value) => {
-    console.log("search:", value);
+  const Services_handleCancel = () => {
+    setServices_isModalOpen(false);
   };
 
-  const [Products, setProducts] = useState([
-    {
-      services: "",
-      hsn: "",
-      quantity: "",
-      rate: "",
-      per: "PCS",
-      amount: "",
+
+  const [searchText, setSearchText] = useState("");
+  const [searchedColumn, setSearchedColumn] = useState("");
+  const searchInput = useRef(null);
+  const handleSearch = (selectedKeys, confirm, dataIndex) => {
+    confirm();
+    setSearchText(selectedKeys[0]);
+    setSearchedColumn(dataIndex);
+  };
+  const handleReset = (clearFilters) => {
+    clearFilters();
+    setSearchText("");
+  };
+  const getColumnSearchProps = (dataIndex) => ({
+    filterDropdown: ({
+      setSelectedKeys,
+      selectedKeys,
+      confirm,
+      clearFilters,
+      close,
+    }) => (
+      <div
+        style={{
+          padding: 8,
+        }}
+        onKeyDown={(e) => e.stopPropagation()}
+      >
+        <Input
+          ref={searchInput}
+          placeholder={`Search ${dataIndex}`}
+          value={selectedKeys[0]}
+          onChange={(e) =>
+            setSelectedKeys(e.target.value ? [e.target.value] : [])
+          }
+          onPressEnter={() => handleSearch(selectedKeys, confirm, dataIndex)}
+          style={{
+            marginBottom: 8,
+            display: "block",
+          }}
+        />
+        <Space>
+          <Button
+            type="primary"
+            onClick={() => handleSearch(selectedKeys, confirm, dataIndex)}
+            icon={<SearchOutlined />}
+            size="small"
+            style={{
+              width: 90,
+            }}
+          >
+            Search
+          </Button>
+          <Button
+            onClick={() => clearFilters && handleReset(clearFilters)}
+            size="small"
+            style={{
+              width: 90,
+            }}
+          >
+            Reset
+          </Button>
+          <Button
+            type="link"
+            size="small"
+            onClick={() => {
+              close();
+            }}
+          >
+            close
+          </Button>
+        </Space>
+      </div>
+    ),
+    filterIcon: (filtered) => (
+      <SearchOutlined
+        style={{
+          color: filtered ? "#1677ff" : undefined,
+        }}
+      />
+    ),
+    onFilter: (value, record) =>
+      record[dataIndex].toString().toLowerCase().includes(value.toLowerCase()),
+    onFilterDropdownOpenChange: (visible) => {
+      if (visible) {
+        setTimeout(() => searchInput.current?.select(), 100);
+      }
     },
-  ]);
+    render: (text) =>
+      searchedColumn === dataIndex ? (
+        <Highlighter
+          highlightStyle={{
+            backgroundColor: "#ffc069",
+            padding: 0,
+          }}
+          searchWords={[searchText]}
+          autoEscape
+          textToHighlight={text ? text.toString() : ""}
+        />
+      ) : (
+        text
+      ),
+  });
+  const [SelectedCheckbox, setSelectedCheckbox] = useState([]);
+  const rowSelection = {
+    onChange: (selectedRowKeys, selectedRows) => {
+      setSelectedCheckbox(selectedRows);
+    },
+  };
+  const columns = [
+    {
+      title: "Description of Services",
+      dataIndex: "DescriptionofServices",
+      width: 150,
+      sorter: (a, b) =>
+        a.DescriptionofServices.length - b.DescriptionofServices.length,
+      ...getColumnSearchProps("DescriptionofServices"),
+      sortDirections: ["descend", "ascend"],
+    },
+    {
+      title: "HSN",
+      dataIndex: "HSN",
+      width: 150,
+      sorter: (a, b) => a.HSN.length - b.HSN.length,
+      ...getColumnSearchProps("HSN"),
+      sortDirections: ["descend", "ascend"],
+    },
+    {
+      title: "Quantity",
+      dataIndex: "Quantity",
+      width: 150,
+      sorter: (a, b) => a.Quantity - b.Quantity,
+      ...getColumnSearchProps("Quantity"),
+      sortDirections: ["descend", "ascend"],
+    },
+    {
+      title: "Rate",
+      dataIndex: "RATE",
+      width: 150,
+      sorter: (a, b) => a.RATE - b.RATE,
+      ...getColumnSearchProps("RATE"),
+      sortDirections: ["descend", "ascend"],
+    },
+  ];
+  const data = [];
+  var count = "0";
+  JSON.parse(localStorage.getItem("ProductsData")).forEach((element) => {
+    if (element !== null) {
+      data.push({
+        key: count++,
+        id: element.id,
+        DescriptionofServices: element.DescriptionofServices,
+        HSN: element.HSN,
+        Quantity: element.Quantity,
+        RATE: element.RATE,
+      });
+    }
+  });
+  localStorage.setItem("SelectedCheckbox", JSON.stringify(SelectedCheckbox));
+
+  const Products = SelectedCheckbox.map((element) => ({
+    key: element.key,
+    id: element.id,
+    services: element.DescriptionofServices,
+    hsn: element.HSN,
+    quantity: element.Quantity,
+    rate: element.RATE,
+    per: "PCS",
+    amount: element.amount,
+  }));
+
+  const [PerProductPrice, setPerProductPrice] = useState("0");
+  const [PerProductAmount, setPerProductAmount] = useState(0);
+  const onChangeQuantity = (value) => {
+    setPerProductAmount(value);
+  };
+  const ProductPrice = () => {
+    Products.length > 0
+      ? SelectedCheckbox.forEach((element) => {
+          setPerProductPrice(Number(element.RATE) * Number(PerProductAmount));
+        })
+      : setPerProductPrice(0);
+  };
+  useEffect(() => {
+    ProductPrice();
+  });
+  
+  
 
   return (
     <>
@@ -231,7 +407,7 @@ export default function Billing() {
           <div className="card-body">
             <div ref={invoice}>
               <Watermark
-                fontSize= {16}
+                fontSize={16}
                 zIndex={11}
                 rotate={-26}
                 content={"JALANGI POLYMER ENTERPRISE"}
@@ -428,7 +604,15 @@ export default function Billing() {
                         <tr>
                           <th className="text-start">Sl No.</th>
                           <th className="text-center">
-                            Description of Services
+                            Description of Services{" "}
+                            <Button
+                              onClick={Services_showModal}
+                              danger
+                              type="primary"
+                              shape="circle"
+                              icon={<PlusCircleOutlined />}
+                              size="small"
+                            />
                           </th>
                           <th className="text-center">HSN/SAC</th>
                           <th className="text-center">Quantity</th>
@@ -443,40 +627,12 @@ export default function Billing() {
                             <th scope="row" className="text-start" key={index}>
                               {index + 1}.
                             </th>
-                            <td className="text-center">
-                              <Select
-                                showSearch
-                                placeholder="Search to Select"
-                                optionFilterProp="children"
-                                onChange={onChange}
-                                onSearch={onSearch}
-                                filterOption={(input, option) =>
-                                  (option?.label ?? "")
-                                    .toLowerCase()
-                                    .includes(input.toLowerCase())
-                                }
-                                options={List}
-                                value={List.find(
-                                  (unit) => unit.value === item.services || ""
-                                )}
-                                allowClear
-                                style={{
-                                  width: 200,
-                                }}
-                                filterSort={(optionA, optionB) =>
-                                  (optionA?.label ?? "")
-                                    .toLowerCase()
-                                    .localeCompare(
-                                      (optionB?.label ?? "").toLowerCase()
-                                    )
-                                }
-                              />
-                            </td>
+                            <td className="text-center">{item.services}</td>
                             <td className="text-center">{item.hsn}</td>
-                            <td className="text-center">{item.quantity}</td>
+                            <td className="text-center"><InputNumber min={0} max={item.quantity} defaultValue={0} onChange={onChangeQuantity} /></td>
                             <td className="text-center">{item.rate}</td>
                             <td className="text-center">{item.per}</td>
-                            <td className="text-end">{item.amount}</td>
+                            <td className="text-end">{PerProductPrice}</td>
                           </tr>
                         ))}
                         <tr>
@@ -486,7 +642,7 @@ export default function Billing() {
                           <td></td>
                           <td></td>
                           <td></td>
-                          <td>TOTAL</td>
+                          <td className="text-end">TOTAL</td>
                         </tr>
                         <tr>
                           <td></td>
@@ -497,7 +653,7 @@ export default function Billing() {
                           <td></td>
                           <td></td>
                           <td></td>
-                          <td>TOTAL</td>
+                          <td className="text-end">TOTAL</td>
                         </tr>
                       </tbody>
                       <tfoot className="table-bordered">
@@ -510,7 +666,7 @@ export default function Billing() {
                           <td>numberofpcs</td>
                           <td></td>
                           <td></td>
-                          <td>
+                          <td className="text-end">
                             <FontAwesomeIcon icon={faInr} /> TOTAL
                           </td>
                         </tr>
@@ -812,8 +968,28 @@ export default function Billing() {
               </div>
             </div>
           </Modal>
+
+          {/*Products*/}
+          <Modal
+            title="Products"
+            open={Services_isModalOpen}
+            okButtonProps={{ hidden: true }}
+            onCancel={Services_handleCancel}
+            width={700}
+          >
+            <Table
+              rowSelection={{
+                type: "checkbox",
+                ...rowSelection,
+              }}
+              columns={columns}
+              dataSource={data}
+              scroll={{
+                y: 240,
+              }}
+            />
+          </Modal>
         </div>
-        {/* <Footer/> */}
       </div>
       <FloatButton
         onClick={handlePrint}

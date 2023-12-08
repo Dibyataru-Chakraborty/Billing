@@ -5,7 +5,7 @@ import React, { useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPenToSquare, faTrashCan } from "@fortawesome/free-regular-svg-icons";
 import { ref, remove, set, update } from "firebase/database";
-// import { db } from "../Utils/Firebase/Firebase_config";
+import { db } from "../Utils/Firebase/Firebase_config";
 
 export default function ProductEntry() {
   const [searchText, setSearchText] = useState("");
@@ -13,9 +13,13 @@ export default function ProductEntry() {
   const [details, setdetails] = useState([]);
   const searchInput = useRef(null);
   const [isDetailsVisible, setIsDetailsVisible] = useState(false);
-  const [isAddVisible, setIsAddVisible] = useState(false);
-  const [UnitName, setUnitName] = useState("");
   const [loadings, setLoadings] = useState(false);
+  const [isAddVisible, setIsAddVisible] = useState(false);
+
+  const [DescriptionofServices, setDescriptionofServices] = useState("");
+  const [HSN, setHSN] = useState("");
+  const [Quantity, setQuantity] = useState("");
+  const [RATE, setRATE] = useState("");
 
   const showDetails = () => {
     setIsDetailsVisible(true);
@@ -38,7 +42,7 @@ export default function ProductEntry() {
   };
 
   const showAdd = () => {
-    setUnitName("");
+    setDescriptionofServices("");
     setIsAddVisible(true);
   };
 
@@ -46,16 +50,22 @@ export default function ProductEntry() {
     const count = data.reduce((max, current) => {
       return current.id > max ? current.id : max;
     }, 0);
-    const test = {
+    let product = {
       id: count + 1,
-      name: UnitName,
+      DescriptionofServices: DescriptionofServices,
+      HSN: HSN,
+      Quantity: Quantity,
+      RATE: RATE,
     };
     setLoadings(true);
     setTimeout(async () => {
-      // await set(ref(db, "Private/ManageTestUnits/" + count + "/"), test);
+      await set(ref(db, "Products/" + count + "/"), product);
       setLoadings(false);
       setIsAddVisible(false);
-      setUnitName("");
+      setDescriptionofServices("");
+      setHSN("");
+      setQuantity("");
+      setRATE("");
     }, 2000);
   };
 
@@ -174,10 +184,19 @@ export default function ProductEntry() {
     },
     {
       title: "Description of Services",
-      dataIndex: "Services",
+      dataIndex: "DescriptionofServices",
       width: 150,
-      sorter: (a, b) => a.Services.length - b.Services.length,
-      ...getColumnSearchProps("Services"),
+      sorter: (a, b) =>
+        a.DescriptionofServices.length - b.DescriptionofServices.length,
+      ...getColumnSearchProps("DescriptionofServices"),
+      sortDirections: ["descend", "ascend"],
+    },
+    {
+      title: "HSN",
+      dataIndex: "HSN",
+      width: 150,
+      sorter: (a, b) => a.HSN.length - b.HSN.length,
+      ...getColumnSearchProps("HSN"),
       sortDirections: ["descend", "ascend"],
     },
     {
@@ -190,10 +209,10 @@ export default function ProductEntry() {
     },
     {
       title: "Rate",
-      dataIndex: "Rate",
+      dataIndex: "RATE",
       width: 150,
-      sorter: (a, b) => a.Rate - b.Rate,
-      ...getColumnSearchProps("Rate"),
+      sorter: (a, b) => a.RATE - b.RATE,
+      ...getColumnSearchProps("RATE"),
       sortDirections: ["descend", "ascend"],
     },
     {
@@ -250,17 +269,21 @@ export default function ProductEntry() {
       },
     },
   ];
+
   const data = [];
   var count = "0";
-  //   JSON.parse(localStorage.getItem("ManageTestUnits")).forEach((element) => {
-  //     if (element !== null) {
-  //       data.push({
-  //         key: count++,
-  //         id: element.id,
-  //         name: element.name,
-  //       });
-  //     }
-  //   });
+  JSON.parse(localStorage.getItem("ProductsData")).forEach((element) => {
+    if (element !== null) {
+      data.push({
+        key: count++,
+        id: element.id,
+        DescriptionofServices: element.DescriptionofServices,
+        HSN: element.HSN,
+        Quantity: element.Quantity,
+        RATE: element.RATE,
+      });
+    }
+  });
 
   return (
     <>
@@ -304,8 +327,6 @@ export default function ProductEntry() {
         okText="Update"
         confirmLoading={loadings}
       >
-        {/* <h4>ID: {details.id}</h4> */}
-        <hr />
         <form className="row g-3">
           <div className="col-md-6">
             <label htmlFor="Description_of_Services" className="form-label">
@@ -315,8 +336,8 @@ export default function ProductEntry() {
               type="text"
               className="form-control"
               id="Description_of_Services"
-              // value={UnitName}
-              // onChange={(e) => setUnitName(e.target.value)}
+              value={DescriptionofServices}
+              onChange={(e) => setDescriptionofServices(e.target.value)}
             />
           </div>
           <div className="col-md-6">
@@ -327,33 +348,21 @@ export default function ProductEntry() {
               type="text"
               className="form-control"
               id="HSN"
-              // value={details.name}
-              // onChange={(e) =>
-              //   setdetails({
-              //     key: details.key,
-              //     id: details.id,
-              //     name: e.target.value,
-              //   })
-              // }
+              value={HSN}
+              onChange={(e) => setHSN(e.target.value)}
             />
           </div>
           <div className="col-md-6">
             <label htmlFor="Quantity" className="form-label">
-            Quantity
+              Quantity
             </label>
             <input
               type="number"
               className="form-control"
               id="Quantity"
               min={0}
-              // value={details.name}
-              // onChange={(e) =>
-              //   setdetails({
-              //     key: details.key,
-              //     id: details.id,
-              //     name: e.target.value,
-              //   })
-              // }
+              value={Quantity}
+              onChange={(e) => setQuantity(e.target.value)}
             />
           </div>
           <div className="col-md-6">
@@ -364,14 +373,8 @@ export default function ProductEntry() {
               type="text"
               className="form-control"
               id="RATE"
-              // value={details.name}
-              // onChange={(e) =>
-              //   setdetails({
-              //     key: details.key,
-              //     id: details.id,
-              //     name: e.target.value,
-              //   })
-              // }
+              value={RATE}
+              onChange={(e) => setRATE(e.target.value)}
             />
           </div>
         </form>
@@ -385,7 +388,9 @@ export default function ProductEntry() {
         okText="Add Record"
         confirmLoading={loadings}
         okButtonProps={{
-          disabled: UnitName === null || UnitName.trim() === "",
+          disabled:
+            DescriptionofServices === null ||
+            DescriptionofServices.trim() === "",
         }}
       >
         <form className="row g-3">
@@ -397,8 +402,8 @@ export default function ProductEntry() {
               type="text"
               className="form-control"
               id="Description_of_Services"
-              // value={UnitName}
-              // onChange={(e) => setUnitName(e.target.value)}
+              value={DescriptionofServices}
+              onChange={(e) => setDescriptionofServices(e.target.value)}
             />
           </div>
           <div className="col-md-6">
@@ -409,33 +414,21 @@ export default function ProductEntry() {
               type="text"
               className="form-control"
               id="HSN"
-              // value={details.name}
-              // onChange={(e) =>
-              //   setdetails({
-              //     key: details.key,
-              //     id: details.id,
-              //     name: e.target.value,
-              //   })
-              // }
+              value={HSN}
+              onChange={(e) => setHSN(e.target.value)}
             />
           </div>
           <div className="col-md-6">
             <label htmlFor="Quantity" className="form-label">
-            Quantity
+              Quantity
             </label>
             <input
               type="number"
               className="form-control"
               id="Quantity"
               min={0}
-              // value={details.name}
-              // onChange={(e) =>
-              //   setdetails({
-              //     key: details.key,
-              //     id: details.id,
-              //     name: e.target.value,
-              //   })
-              // }
+              value={Quantity}
+              onChange={(e) => setQuantity(e.target.value)}
             />
           </div>
           <div className="col-md-6">
@@ -446,14 +439,8 @@ export default function ProductEntry() {
               type="text"
               className="form-control"
               id="RATE"
-              // value={details.name}
-              // onChange={(e) =>
-              //   setdetails({
-              //     key: details.key,
-              //     id: details.id,
-              //     name: e.target.value,
-              //   })
-              // }
+              value={RATE}
+              onChange={(e) => setRATE(e.target.value)}
             />
           </div>
         </form>
