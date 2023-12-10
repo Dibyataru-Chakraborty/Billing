@@ -8,25 +8,19 @@ import {
   FloatButton,
   Modal,
   Popover,
-  QRCode,
   Select,
-  Tooltip,
   Watermark,
   Input,
   Space,
   Table,
-  message,
-  Popconfirm,
-  InputNumber,
 } from "antd";
 import React, { useEffect, useRef, useState } from "react";
-import Barcode from "react-barcode";
-import { useParams } from "react-router-dom";
 import { PrinterOutlined, PlusCircleOutlined } from "@ant-design/icons";
 
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import TextArea from "antd/es/input/TextArea";
+import { ToWords } from "to-words";
 
 export default function Billing() {
   const invoice = useRef();
@@ -212,7 +206,6 @@ export default function Billing() {
     setServices_isModalOpen(false);
   };
 
-
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
@@ -358,7 +351,7 @@ export default function Billing() {
   const data = [];
   var count = "0";
   JSON.parse(localStorage.getItem("ProductsData")).forEach((element) => {
-    if (element !== null) {
+    if (element !== null && element.RATE > 0) {
       data.push({
         key: count++,
         id: element.id,
@@ -366,39 +359,58 @@ export default function Billing() {
         HSN: element.HSN,
         Quantity: element.Quantity,
         RATE: element.RATE,
+        Amount: 0,
+        userQyt: 0,
       });
     }
   });
   localStorage.setItem("SelectedCheckbox", JSON.stringify(SelectedCheckbox));
 
-  const Products = SelectedCheckbox.map((element) => ({
-    key: element.key,
-    id: element.id,
-    services: element.DescriptionofServices,
-    hsn: element.HSN,
-    quantity: element.Quantity,
-    rate: element.RATE,
-    per: "PCS",
-    amount: element.amount,
-  }));
+  const handleQuantityChange = (e, productId) => {
+    const newQuantity = parseInt(e.target.value, 10) || 0;
 
-  const [PerProductPrice, setPerProductPrice] = useState("0");
-  const [PerProductAmount, setPerProductAmount] = useState(0);
-  const onChangeQuantity = (value) => {
-    setPerProductAmount(value);
+    // Update the state with the new quantity
+    setSelectedCheckbox((prevProducts) =>
+      prevProducts.map((product) =>
+        product.id === productId
+          ? {
+              ...product,
+              userQyt: newQuantity,
+              Amount: product.RATE * newQuantity,
+            }
+          : product
+      )
+    );
   };
-  const ProductPrice = () => {
-    Products.length > 0
-      ? SelectedCheckbox.forEach((element) => {
-          setPerProductPrice(Number(element.RATE) * Number(PerProductAmount));
-        })
-      : setPerProductPrice(0);
-  };
+
+  const [totalAmount, setTotalAmount] = useState(0);
+  const [IGSTAmount, setIGSTAmount] = useState(0);
+  const [totalProductQuantity, setTotalProductQuantity] = useState(0);
+  const [NetAmount, setNetAmount] = useState(0);
+  const [NetAmountWord, setNetAmountWord] = useState("");
+  const [IGSTAmountWord, setIGSTAmountWord] = useState("");
+
   useEffect(() => {
-    ProductPrice();
-  });
-  
-  
+    // Calculate the total amount whenever selectedProducts change
+    const toWords = new ToWords();
+    const newTotalAmount = SelectedCheckbox.reduce(
+      (total, product) => total + product.Amount,
+      0
+    );
+    const newIGSTAmount = (Number(newTotalAmount) * 18) / 100;
+    const newtotalProductQuantity = SelectedCheckbox.reduce(
+      (total, product) => total + product.userQyt,
+      0
+    );
+    const newNetAmount = Number(newTotalAmount) + Number(newIGSTAmount);
+
+    setTotalAmount(newTotalAmount);
+    setTotalProductQuantity(newtotalProductQuantity);
+    setIGSTAmount(newIGSTAmount);
+    setNetAmount(newNetAmount);
+    setNetAmountWord(toWords.convert(newNetAmount, { currency: true }));
+    setIGSTAmountWord(toWords.convert(newIGSTAmount, { currency: true }));
+  }, [SelectedCheckbox]);
 
   return (
     <>
@@ -415,7 +427,7 @@ export default function Billing() {
                 <header>
                   <div className="row">
                     <div className="col">
-                      <table className="table table-borderless table-responsive">
+                      <table className="table table-borderless">
                         <tbody>
                           <tr>
                             <td>
@@ -441,7 +453,7 @@ export default function Billing() {
                         </tbody>
                       </table>
                       <hr className="border border-dark border-1 opacity-100" />
-                      <table className="table table-borderless table-responsive">
+                      <table className="table table-borderless">
                         <tbody>
                           <tr>
                             <td>
@@ -466,7 +478,7 @@ export default function Billing() {
                         </tbody>
                       </table>
                       <hr className="border border-dark border-1 opacity-100" />
-                      <table className="table table-borderless table-responsive">
+                      <table className="table table-borderless">
                         <tbody>
                           <tr>
                             <td>
@@ -599,195 +611,220 @@ export default function Billing() {
                 </header>
                 <main>
                   <div className="col">
-                    <table className="table table-striped table-responsive">
-                      <thead className="table-secondary fs-6">
-                        <tr>
-                          <th className="text-start">Sl No.</th>
-                          <th className="text-center">
-                            Description of Services{" "}
-                            <Button
-                              onClick={Services_showModal}
-                              danger
-                              type="primary"
-                              shape="circle"
-                              icon={<PlusCircleOutlined />}
-                              size="small"
-                            />
-                          </th>
-                          <th className="text-center">HSN/SAC</th>
-                          <th className="text-center">Quantity</th>
-                          <th className="text-center">Rate</th>
-                          <th className="text-center">per</th>
-                          <th className="text-end">Amount</th>
-                        </tr>
-                      </thead>
-                      <tbody className="fs-5">
-                        {Products.map((item, index) => (
+                    <div className="table-responsive">
+                      <table className="table">
+                        <thead className="table-secondary fs-6">
                           <tr>
-                            <th scope="row" className="text-start" key={index}>
-                              {index + 1}.
+                            <th className="text-start">Sl No.</th>
+                            <th className="text-center">
+                              Description of Services{" "}
+                              <Button
+                                onClick={Services_showModal}
+                                danger
+                                type="primary"
+                                shape="circle"
+                                icon={<PlusCircleOutlined />}
+                                size="small"
+                              />
                             </th>
-                            <td className="text-center">{item.services}</td>
-                            <td className="text-center">{item.hsn}</td>
-                            <td className="text-center"><InputNumber min={0} max={item.quantity} defaultValue={0} onChange={onChangeQuantity} /></td>
-                            <td className="text-center">{item.rate}</td>
-                            <td className="text-center">{item.per}</td>
-                            <td className="text-end">{PerProductPrice}</td>
+                            <th className="text-center">HSN/SAC</th>
+                            <th className="text-center">Quantity</th>
+                            <th className="text-center">Rate</th>
+                            <th className="text-center">per</th>
+                            <th className="text-end">Amount</th>
                           </tr>
-                        ))}
-                        <tr>
-                          <td></td>
-                          <td></td>
-                          <td></td>
-                          <td></td>
-                          <td></td>
-                          <td></td>
-                          <td className="text-end">TOTAL</td>
-                        </tr>
-                        <tr>
-                          <td></td>
-                          <td>
-                            <div className="text-end">IGST</div>
-                          </td>
-                          <td></td>
-                          <td></td>
-                          <td></td>
-                          <td></td>
-                          <td className="text-end">TOTAL</td>
-                        </tr>
-                      </tbody>
-                      <tfoot className="table-bordered">
-                        <tr>
-                          <td></td>
-                          <td>
-                            <div className="text-end">Total</div>
-                          </td>
-                          <td></td>
-                          <td>numberofpcs</td>
-                          <td></td>
-                          <td></td>
-                          <td className="text-end">
-                            <FontAwesomeIcon icon={faInr} /> TOTAL
-                          </td>
-                        </tr>
-                      </tfoot>
-                    </table>
+                        </thead>
+                        <tbody className="fs-5 table-group-divider">
+                          {SelectedCheckbox.map((item, index) => (
+                            <tr>
+                              <th
+                                scope="row"
+                                className="text-start"
+                                key={index}
+                              >
+                                {index + 1}
+                              </th>
+                              <td className="text-center">
+                                {item.DescriptionofServices}
+                              </td>
+                              <td className="text-center">{item.HSN}</td>
+                              <td className="text-center">
+                                <input
+                                  className="form-control"
+                                  type={"number"}
+                                  min={1}
+                                  max={item.Quantity}
+                                  defaultValue={0}
+                                  onChange={(e) =>
+                                    handleQuantityChange(e, item.id)
+                                  }
+                                />
+                              </td>
+                              <td className="text-center">{item.RATE}</td>
+                              <td className="text-center">PCS</td>
+                              <td className="text-end">{item.Amount}</td>
+                            </tr>
+                          ))}
+                          <tr>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td className="text-end table-group-divider">
+                              {totalAmount}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td></td>
+                            <td>
+                              <div className="text-end">IGST 18%</div>
+                            </td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td className="text-end">{IGSTAmount}</td>
+                          </tr>
+                        </tbody>
+                        <tfoot className="table-bordered">
+                          <tr>
+                            <td></td>
+                            <td>
+                              <div className="text-end">Total</div>
+                            </td>
+                            <td></td>
+                            <td>{totalProductQuantity}</td>
+                            <td></td>
+                            <td></td>
+                            <td className="text-end">
+                              <FontAwesomeIcon icon={faInr} /> {NetAmount}
+                            </td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
                   </div>
                   <div className="row">
-                    <div className="text-start">
-                      Amount Chargeable (in words)
+                    <div className="d-flex justify-content-between">
+                      <span className="text-start">
+                        Amount Chargeable (in words)
+                      </span>
+                      <span className="text-end">E. & O.E</span>
                     </div>
-                    <div className="text-end">E. & O.E</div>
                     <div className="text-start fs-5 fw-bold">
-                      {/* INR Two Lakh Sixty Eight Thousand Five Hundred Sixty Nine Only */}
+                      {NetAmount > 0 ? <>INR {NetAmountWord}</> : null}
                     </div>
-                    <table className="table table-striped table-bordered table-responsive">
-                      <thead className="fs-6 text-center">
-                        <tr>
-                          <td rowSpan={2}>HSN/SAC</td>
-                          <td rowSpan={2}>Taxable Value</td>
-                          <td colSpan={2}>Integrated Tax</td>
-                          <td rowSpan={2}>Total Tax Amount</td>
-                        </tr>
-                        <tr>
-                          <td>Rate</td>
-                          <td>Amount</td>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr></tr>
-                      </tbody>
-                      <tfoot>
-                        <tr>
-                          <td className="text-end">Total</td>
-                          <td className="text-center">a</td>
-                          <td className="text-center">b</td>
-                          <td className="text-center">b</td>
-                          <td className="text-center">b</td>
-                        </tr>
-                      </tfoot>
-                    </table>
+                    <div className="table-responsive">
+                      <table className="table table-striped table-bordered">
+                        <thead className="fs-6 text-center">
+                          <tr>
+                            <td rowSpan={2}>HSN/SAC</td>
+                            <td rowSpan={2}>Taxable Value</td>
+                            <td colSpan={2}>Integrated Tax</td>
+                            <td rowSpan={2}>Total Tax Amount</td>
+                          </tr>
+                          <tr>
+                            <td>Rate</td>
+                            <td>Amount</td>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr></tr>
+                        </tbody>
+                        <tfoot>
+                          <tr>
+                            <td className="text-end">Total</td>
+                            <td className="text-center">a</td>
+                            <td className="text-center">b</td>
+                            <td className="text-center">b</td>
+                            <td className="text-center">b</td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
                     <div className="text-start">
                       <span>Tax Amount (in words) :</span>&nbsp;&nbsp;&nbsp;
                       <span className="fw-bold">
-                        INR Two Lakh Sixty Eight Thousand Five Hundred Sixty
-                        Nine Only
+                        {IGSTAmount > 0 ? <>INR {IGSTAmountWord}</> : null}
                       </span>
                     </div>
-                    <div className="col-5">
-                      <table>
-                        <tbody>
-                          <tr>
-                            <td>
-                              <div>
-                                <span>Company’s PAN:</span>&nbsp;
-                                <span className="fw-bold">AWSPB3606K</span>
-                              </div>
-                              <div>
-                                <u>Declaration</u>
-                              </div>
-                              <div className="fw-normal">
-                                1.We declare that this invoice shows the actual
-                                price of the goods described and that all
-                                particulars are true and correct.2.On Overdue
-                                Payment Compensation @ 1.50 Percent Per Month
-                                Will Be Charged.
-                              </div>
-                              <div className="fw-normal">
-                                Sample collection:{" "}
-                                {/* {Patientdata.map((item) =>
-                                  item.sample_collected_from === "in"
-                                    ? "Inside"
-                                    : "Outside"
-                                )}
-                              </div>
-                              <div className="fw-normal">
-                                Billed By:{" "}
-                                {Patientdata.map((item) => item.billed_by)}
-                              </div>
-                              <div className="fw-light">
-                                Notes: {clinic_Billing} */}
-                              </div>
-                            </td>
-                          </tr>
-                        </tbody>
-                      </table>
+                    <div className="col">
+                      <div className="table-responsive">
+                        <table>
+                          <tbody>
+                            <tr>
+                              <td>
+                                <div>
+                                  <span>Company’s PAN:</span>&nbsp;
+                                  <span className="fw-bold">AATFJ769IR</span>
+                                </div>
+                                <div>
+                                  <u>Declaration</u>
+                                </div>
+                                <div className="fw-normal">
+                                  1. Goods once sold can't be taken back. <br />
+                                  2. Credit option not available.
+                                  <br />
+                                  3. Subject to Nadia District Judge Court
+                                  Jurisdiction.
+                                  <br />
+                                  4. We declare that this invoice shows the
+                                  actual price of the goods desscribed.
+                                  <br />
+                                </div>
+                                <div className="fw-normal">
+                                  Thank You For Purchasing. <br />
+                                  Visit Again.
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
-                    <div className="col-2">
-                      {/* <QRCode
-                        value={`/print-report/${PatientKey.patientId}`}
-                        size={150}
-                        type="svg"
-                      /> */}
+                    <div className="col">
+                      <div className="table-responsive">
+                        <table>
+                          <tbody>
+                            <tr>
+                              <td>
+                                <div>Company’s Bank Details</div>
+                                <div>
+                                  <span>A/c Holder’s Name:</span>&nbsp;
+                                  {/* <span className="fw-bold">MINA CREATION</span> */}
+                                </div>
+                                <div>
+                                  <span>Bank Name:</span>&nbsp;
+                                  {/* <span className="fw-bold">HDFC BANK LTD</span> */}
+                                </div>
+                                <div>
+                                  <span>A/c No.:</span>&nbsp;
+                                  {/* <span className="fw-bold">
+                                    50200068169809
+                                  </span> */}
+                                </div>
+                                <div>
+                                  <span>Branch & IFS Code:</span>&nbsp;
+                                  {/* <span className="fw-bold">
+                                    SACHIN,SURAT & HDFC0001706
+                                  </span> */}
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
-                    <div className="col-5">
-                      <table>
-                        <tbody>
-                          <tr>
-                            <td>
-                              <div>Company’s Bank Details</div>
-                              <div>
-                                <span>A/c Holder’s Name:</span>&nbsp;
-                                <span className="fw-bold">MINA CREATION</span>
-                              </div>
-                              <div>
-                                <span>Bank Name:</span>&nbsp;
-                                <span className="fw-bold">HDFC BANK LTD</span>
-                              </div>
-                              <div>
-                                <span>A/c No.:</span>&nbsp;
-                                <span className="fw-bold">50200068169809</span>
-                              </div>
-                              <div>
-                                <span>Branch & IFS Code:</span>&nbsp;
-                                <span className="fw-bold">
-                                  SACHIN,SURAT & HDFC0001706
-                                </span>
-                              </div>
-                            </td>
-                          </tr>
-                        </tbody>
-                      </table>
+                    <div className="col">
+                      <div>Authorized Signature</div>
+                      <div className="card">
+                        <div
+                          className="card-body"
+                          style={{ width: 100,height: 100 }}
+                        ></div>
+                      </div>
                     </div>
                   </div>
                 </main>

@@ -10,39 +10,46 @@ import { db } from "../Utils/Firebase/Firebase_config";
 export default function ProductEntry() {
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
-  const [details, setdetails] = useState([]);
   const searchInput = useRef(null);
-  const [isDetailsVisible, setIsDetailsVisible] = useState(false);
+  const [isUpdateVisible, setIsUpdateVisible] = useState(false);
   const [loadings, setLoadings] = useState(false);
   const [isAddVisible, setIsAddVisible] = useState(false);
 
+  const [Id, setId] = useState("");
   const [DescriptionofServices, setDescriptionofServices] = useState("");
   const [HSN, setHSN] = useState("");
   const [Quantity, setQuantity] = useState("");
   const [RATE, setRATE] = useState("");
 
   const showDetails = () => {
-    setIsDetailsVisible(true);
+    setIsUpdateVisible(true);
   };
 
-  const detailsOk = () => {
+  const updateOk = () => {
     setLoadings(true);
-    const id = details.id - 1;
+    let id = Id - 1;
+    let product = {
+      DescriptionofServices: DescriptionofServices,
+      HSN: HSN,
+      Quantity: Quantity,
+      RATE: RATE,
+    };
     setTimeout(async () => {
-      // await update(ref(db, "Private/ManageTestUnits/" + id + "/"), {
-      //   name: details.name,
-      // });
+      await update(ref(db, "Products/" + id + "/"), product);
       setLoadings(false);
-      setIsDetailsVisible(false);
+      setIsUpdateVisible(false);
     }, 2000);
   };
 
-  const detailsCancel = () => {
-    setIsDetailsVisible(false);
+  const updateCancel = () => {
+    setIsUpdateVisible(false);
   };
 
   const showAdd = () => {
     setDescriptionofServices("");
+    setHSN("");
+    setQuantity("");
+    setRATE("");
     setIsAddVisible(true);
   };
 
@@ -82,7 +89,6 @@ export default function ProductEntry() {
     clearFilters();
     setSearchText("");
   };
-
   const getColumnSearchProps = (dataIndex) => ({
     filterDropdown: ({
       setSelectedKeys,
@@ -222,13 +228,18 @@ export default function ProductEntry() {
       rowScope: "row",
       render: (text, record) => {
         const MenuClick = (e) => {
-          setdetails(record);
+          const { id,DescriptionofServices,HSN,Quantity,RATE } = record;
+          setId(id);
+          setDescriptionofServices(DescriptionofServices);
+          setHSN(HSN);
+          setQuantity(Quantity);
+          setRATE(RATE);
           showDetails();
         };
         const confirm = async () => {
-          const { id } = record;
+          const { id} = record;
           const key = id - 1;
-          // await remove(ref(db, "Private/ManageTestUnits/" + key + "/"));
+          await remove(ref(db, "Products/" + key + "/"));
           message.success("Unit Delete");
         };
         const cancel = () => {
@@ -243,7 +254,7 @@ export default function ProductEntry() {
                 style={{ color: "#9d670c" }}
               />
             </Button>
-            <Popconfirm
+            {/* <Popconfirm
               title="Delete the Unit"
               description="Are you sure to delete this Unit?"
               onConfirm={confirm}
@@ -258,7 +269,7 @@ export default function ProductEntry() {
                   style={{ color: "#a30000" }}
                 />
               </Button>
-            </Popconfirm>
+            </Popconfirm> */}
           </>
         );
         return (
@@ -320,10 +331,10 @@ export default function ProductEntry() {
       </div>
 
       <Modal
-        title="EDIT TEST UNITS"
-        open={isDetailsVisible}
-        onOk={detailsOk}
-        onCancel={detailsCancel}
+        title="EDIT Product Details"
+        open={isUpdateVisible}
+        onOk={updateOk}
+        onCancel={updateCancel}
         okText="Update"
         confirmLoading={loadings}
       >
