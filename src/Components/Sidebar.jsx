@@ -21,7 +21,8 @@ export default function Sidebar(props) {
 
   const routeMapping = {
     '2': '/billing',
-    default: '/admin/dashboard',
+    '9': '/productentry',
+    default: '/',
   };
   
   const navigateToRoute = (key) => {
@@ -77,12 +78,6 @@ export default function Sidebar(props) {
         }}
         breakpoint="lg"
         collapsedWidth="0"
-        // onBreakpoint={(broken) => {
-        //   console.log(broken);
-        // }}
-        // onCollapse={(collapsed, type) => {
-        //   console.log(collapsed, type);
-        // }}
       >
         <Menu
           theme="dark"

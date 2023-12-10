@@ -17,6 +17,53 @@ import NewFooter from "./Components/NewFooter";
 
 function App() {
 
+  useEffect(() => {
+    const handleContextMenu = (e) => {
+      e.preventDefault();
+    };
+
+    const handleKeyDown = (e) => {
+      // "I" key
+      if (e.ctrlKey && e.shiftKey && e.keyCode === 73) {
+        disabledEvent(e);
+      }
+      // "J" key
+      if (e.ctrlKey && e.shiftKey && e.keyCode === 74) {
+        disabledEvent(e);
+      }
+      // "S" key + macOS
+      if (e.keyCode === 83 && (navigator.platform.match('Mac') ? e.metaKey : e.ctrlKey)) {
+        disabledEvent(e);
+      }
+      // "U" key
+      if (e.ctrlKey && e.keyCode === 85) {
+        disabledEvent(e);
+      }
+      // "F12" key
+      if (e.keyCode === 123) {
+        disabledEvent(e);
+      }
+    };
+
+    const disabledEvent = (e) => {
+      if (e.stopPropagation) {
+        e.stopPropagation();
+      } else if (window.event) {
+        window.event.cancelBubble = true;
+      }
+      e.preventDefault();
+      return false;
+    };
+
+    document.addEventListener('contextmenu', handleContextMenu, false);
+    document.addEventListener('keydown', handleKeyDown, false);
+
+    return () => {
+      document.removeEventListener('contextmenu', handleContextMenu, false);
+      document.removeEventListener('keydown', handleKeyDown, false);
+    };
+  }, []);
+
   const [ProductsData, setProductsData] = useState([]);
   const Products = () => {
     onValue(ref(db, "Products"), (snapshot) => {
@@ -31,14 +78,29 @@ function App() {
 
   localStorage.setItem("ProductsData", JSON.stringify(ProductsData));
 
+  const [CustomersData, setCustomersData] = useState([]);
+  const Customers = () => {
+    onValue(ref(db, "Customer"), (snapshot) => {
+      const data = snapshot.val();
+      if (data === null) {
+        setCustomersData([]);
+      } else {
+        setCustomersData(data);
+      }
+    });
+  };
+
+  localStorage.setItem("CustomersData", JSON.stringify(CustomersData));
+
   useEffect(() => {
     const fetchData = async () => {
       await Promise.all([
         Products(),
+        Customers(),
       ]);
     };
     fetchData();
-  },[1]);
+  },[]);
 
   useEffect(() => {
     setInterval(() => {
@@ -52,10 +114,10 @@ function App() {
   return (
     <>
       <Routes>
-        <Route exact path="/" element={ <><Navbar number="4"/><Layout hasSider><Sidebar number='2'/><Dashboard/></Layout></> } />
+        <Route exact path="/" element={ <><Navbar number="1"/><Layout hasSider><Sidebar number='2'/><Dashboard/></Layout></> } />
         <Route exact path="/*" element={ <><Navbar /><Layout><Sidebar/><Error link="/"/></Layout><NewFooter/></> } />
         <Route exact path="/billing" element={ <><Navbar number="2"/><Layout><Sidebar number='2'/><Billing/></Layout><NewFooter/></> } />
-        <Route exact path="/productentry" element={ <><Navbar number="4"/><Layout hasSider><Sidebar number='2'/><ProductEntry/></Layout></> } />
+        <Route exact path="/productentry" element={ <><Navbar number="4"/><Layout hasSider><Sidebar number='9'/><ProductEntry/></Layout></> } />
         {/* <Route exact path="/signin" element={ <><Login/></> } /> */}
       </Routes>
     </>

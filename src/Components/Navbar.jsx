@@ -29,7 +29,7 @@ export default function Navbar(props) {
       // "7": "/admin/accounts/account-out",
       // "8": "/admin/settings/general-settings",
       "8": "/",
-      "default": "/admin/clinic/signin"
+      "default": "/"
     };
   
     setCurrent(e.key);

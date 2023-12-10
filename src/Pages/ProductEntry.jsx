@@ -1,10 +1,10 @@
 import { SearchOutlined } from "@ant-design/icons";
 import Highlighter from "react-highlight-words";
-import { Input, Space, Table, Button, Modal, message, Popconfirm } from "antd";
+import { Input, Space, Table, Button, Modal, message } from "antd";
 import React, { useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPenToSquare, faTrashCan } from "@fortawesome/free-regular-svg-icons";
-import { ref, remove, set, update } from "firebase/database";
+import { faPenToSquare } from "@fortawesome/free-regular-svg-icons";
+import { ref, set, update } from "firebase/database";
 import { db } from "../Utils/Firebase/Firebase_config";
 
 export default function ProductEntry() {
@@ -38,6 +38,7 @@ export default function ProductEntry() {
       await update(ref(db, "Products/" + id + "/"), product);
       setLoadings(false);
       setIsUpdateVisible(false);
+      message.success("Update Successfully");
     }, 2000);
   };
 
@@ -73,6 +74,7 @@ export default function ProductEntry() {
       setHSN("");
       setQuantity("");
       setRATE("");
+      message.info("Product Added Successfully");
     }, 2000);
   };
 
@@ -228,22 +230,13 @@ export default function ProductEntry() {
       rowScope: "row",
       render: (text, record) => {
         const MenuClick = (e) => {
-          const { id,DescriptionofServices,HSN,Quantity,RATE } = record;
+          const { id, DescriptionofServices, HSN, Quantity, RATE } = record;
           setId(id);
           setDescriptionofServices(DescriptionofServices);
           setHSN(HSN);
           setQuantity(Quantity);
           setRATE(RATE);
           showDetails();
-        };
-        const confirm = async () => {
-          const { id} = record;
-          const key = id - 1;
-          await remove(ref(db, "Products/" + key + "/"));
-          message.success("Unit Delete");
-        };
-        const cancel = () => {
-          message.error("Unit Not Delete");
         };
         const option = (
           <>
@@ -254,22 +247,6 @@ export default function ProductEntry() {
                 style={{ color: "#9d670c" }}
               />
             </Button>
-            {/* <Popconfirm
-              title="Delete the Unit"
-              description="Are you sure to delete this Unit?"
-              onConfirm={confirm}
-              onCancel={cancel}
-              okText="Yes"
-              cancelText="No"
-            >
-              <Button danger>
-                <FontAwesomeIcon
-                  icon={faTrashCan}
-                  size="xl"
-                  style={{ color: "#a30000" }}
-                />
-              </Button>
-            </Popconfirm> */}
           </>
         );
         return (

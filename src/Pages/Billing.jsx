@@ -13,29 +13,37 @@ import {
   Input,
   Space,
   Table,
+  message,
 } from "antd";
 import React, { useEffect, useRef, useState } from "react";
-import { PrinterOutlined, PlusCircleOutlined } from "@ant-design/icons";
+import {
+  PrinterOutlined,
+  PlusCircleOutlined,
+  SaveOutlined,
+} from "@ant-design/icons";
 
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import TextArea from "antd/es/input/TextArea";
 import { ToWords } from "to-words";
+import { push, ref, update } from "firebase/database";
+import { db } from "../Utils/Firebase/Firebase_config";
 
 export default function Billing() {
   const invoice = useRef();
 
-  const handlePrint = () => {
+  const handlePrint = (heading) => {
     html2canvas(invoice.current).then((canvas) => {
       const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF("p", "mm", "a4");
-      pdf.addImage(imgData, "PNG", 10, 10, 190, 0);
+      pdf.text(heading, 75, 5);
+      pdf.addImage(imgData, "PNG", 5, 10, 190, 0);
       const pdfBlob = pdf.output("blob");
       const blobUrl = URL.createObjectURL(pdfBlob);
       window.open(blobUrl);
     });
   };
-
+  
   const [Consignee_isModalOpen, setConsignee_isModalOpen] = useState(false);
   const [Consignee_Name, setConsignee_Name] = useState("");
   const [Consignee_Address, setConsignee_Address] = useState("");
@@ -83,15 +91,20 @@ export default function Billing() {
     }
   };
 
-  const InvoiceNumber = () => {
+  const [InvoiceNumber, setInvoiceNumber] = useState("");
+  const billNumber = () => {
     const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     let result = "";
     for (let i = 0; i < 6; i++) {
       const randomIndex = Math.floor(Math.random() * characters.length);
       result += characters.charAt(randomIndex);
     }
-    return result;
+    setInvoiceNumber(result);
   };
+  useEffect(() => {
+    billNumber();
+  }, []);
+
   const date = new Date();
   const day = String(date.getDate()).padStart(2, "0");
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -170,11 +183,11 @@ export default function Billing() {
         onChange={(e) => setSale(e)}
         options={[
           {
-            value: "State sale",
+            value: "State Sale",
             label: "State sale",
           },
           {
-            value: "Other state sale",
+            value: "Other State Sale",
             label: "Other state sale",
           },
         ]}
@@ -385,6 +398,8 @@ export default function Billing() {
 
   const [totalAmount, setTotalAmount] = useState(0);
   const [IGSTAmount, setIGSTAmount] = useState(0);
+  const [CGSTAmount, setCGSTAmount] = useState(0);
+  const [SGSTAmount, setSGSTAmount] = useState(0);
   const [totalProductQuantity, setTotalProductQuantity] = useState(0);
   const [NetAmount, setNetAmount] = useState(0);
   const [NetAmountWord, setNetAmountWord] = useState("");
@@ -398,6 +413,8 @@ export default function Billing() {
       0
     );
     const newIGSTAmount = (Number(newTotalAmount) * 18) / 100;
+    const newCGSTAmount = (Number(newTotalAmount) * 9) / 100;
+    const newSGSTAmount = (Number(newTotalAmount) * 9) / 100;
     const newtotalProductQuantity = SelectedCheckbox.reduce(
       (total, product) => total + product.userQyt,
       0
@@ -407,10 +424,67 @@ export default function Billing() {
     setTotalAmount(newTotalAmount);
     setTotalProductQuantity(newtotalProductQuantity);
     setIGSTAmount(newIGSTAmount);
+    setCGSTAmount(newCGSTAmount);
+    setSGSTAmount(newSGSTAmount);
     setNetAmount(newNetAmount);
     setNetAmountWord(toWords.convert(newNetAmount, { currency: true }));
     setIGSTAmountWord(toWords.convert(newIGSTAmount, { currency: true }));
   }, [SelectedCheckbox]);
+
+  const [SavePrintBtn, setSavePrintBtn] = useState(false);
+  const BillSave = async () => {
+    try {
+      let bill = {
+        Product: SelectedCheckbox,
+        BillId: InvoiceNumber,
+        BillDate: formattedDate,
+        Consignee: [
+          {
+            Name: Consignee_Name,
+            Address: Consignee_Address,
+            State: Consignee_State,
+            Code: Consignee_Code,
+            Contact: Consignee_Contact,
+            GSTIN: Consignee_GSTIN,
+          },
+        ],
+        Buyer: [
+          {
+            Name: Buyer_Name,
+            Address: Buyer_Address,
+            State: Buyer_State,
+            Code: Buyer_Code,
+            Contact: Buyer_Contact,
+            GSTIN: Buyer_GSTIN,
+          },
+        ],
+        Vehicle: Vehicle,
+        Payment: Payment,
+        Reference_No: Reference_No,
+        Other_References: Other_References,
+        Sale: Sale,
+        EWayBill: EWayBill,
+        IGSTAmount: IGSTAmount,
+        CGSTAmount: CGSTAmount,
+        SGSTAmount: SGSTAmount,
+        NetAmount: NetAmount,
+      };
+      let newtotalQuantity = SelectedCheckbox.map((item) => ({
+        ...item,
+        Quantity: item.Quantity - item.userQyt,
+      }));
+      const updates = {};
+      newtotalQuantity.forEach((item) => {
+        updates[`Products/${item.id - 1}/Quantity`] = item.Quantity;
+      });
+      await push(ref(db, "Customer/"), bill);
+      await update(ref(db), updates);
+      message.success("Bill Saved successfully");
+      setSavePrintBtn(false)
+    } catch (error) {
+      alert("Error saving bill:", error.message);
+    }
+  };
 
   return (
     <>
@@ -466,7 +540,9 @@ export default function Billing() {
                                   Consignee (Ship to)
                                 </Popover>
                               </div>
-                              <div className="fs-2">{Consignee_Name}</div>
+                              <div className="fs-6 fw-bold">
+                                {Consignee_Name}
+                              </div>
                               <div>{Consignee_Address}</div>
                               <div>
                                 State: {Consignee_State} Code: {Consignee_Code}
@@ -491,7 +567,7 @@ export default function Billing() {
                                   Buyer (Bill to)
                                 </Popover>
                               </div>
-                              <div className="fs-2">{Buyer_Name}</div>
+                              <div className="fs-6 fw-bold">{Buyer_Name}</div>
                               <div>{Buyer_Address}</div>
                               <div>
                                 State: {Buyer_State} Code: {Buyer_Code}
@@ -510,7 +586,7 @@ export default function Billing() {
                             <td>
                               <div>Invoice No.</div>
                               <div>
-                                {InvoiceNumber()}/{year}
+                                {InvoiceNumber}/{year}
                               </div>
                             </td>
                             <td>
@@ -618,14 +694,16 @@ export default function Billing() {
                             <th className="text-start">Sl No.</th>
                             <th className="text-center">
                               Description of Services{" "}
-                              <Button
-                                onClick={Services_showModal}
-                                danger
-                                type="primary"
-                                shape="circle"
-                                icon={<PlusCircleOutlined />}
-                                size="small"
-                              />
+                              {Sale !== undefined && Sale !== "" ? (
+                                <Button
+                                  onClick={Services_showModal}
+                                  danger
+                                  type="primary"
+                                  shape="circle"
+                                  icon={<PlusCircleOutlined />}
+                                  size="small"
+                                />
+                              ) : null}
                             </th>
                             <th className="text-center">HSN/SAC</th>
                             <th className="text-center">Quantity</th>
@@ -676,17 +754,44 @@ export default function Billing() {
                               {totalAmount}
                             </td>
                           </tr>
-                          <tr>
-                            <td></td>
-                            <td>
-                              <div className="text-end">IGST 18%</div>
-                            </td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td className="text-end">{IGSTAmount}</td>
-                          </tr>
+                          {Sale === "Other State Sale" ? (
+                            <tr>
+                              <td></td>
+                              <td>
+                                <div className="text-end">IGST 18%</div>
+                              </td>
+                              <td></td>
+                              <td></td>
+                              <td></td>
+                              <td></td>
+                              <td className="text-end">{IGSTAmount}</td>
+                            </tr>
+                          ) : Sale === "State Sale" ? (
+                            <>
+                              <tr>
+                                <td></td>
+                                <td>
+                                  <div className="text-end">CGST 9%</div>
+                                </td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td className="text-end">{CGSTAmount}</td>
+                              </tr>
+                              <tr>
+                                <td></td>
+                                <td>
+                                  <div className="text-end">SGST 9%</div>
+                                </td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td className="text-end">{SGSTAmount}</td>
+                              </tr>
+                            </>
+                          ) : null}
                         </tbody>
                         <tfoot className="table-bordered">
                           <tr>
@@ -713,40 +818,84 @@ export default function Billing() {
                       </span>
                       <span className="text-end">E. & O.E</span>
                     </div>
-                    <div className="text-start fs-5 fw-bold">
+                    <div className="text-start fs-6 fw-bold">
                       {NetAmount > 0 ? <>INR {NetAmountWord}</> : null}
                     </div>
-                    <div className="table-responsive">
-                      <table className="table table-striped table-bordered">
-                        <thead className="fs-6 text-center">
-                          <tr>
-                            <td rowSpan={2}>HSN/SAC</td>
-                            <td rowSpan={2}>Taxable Value</td>
-                            <td colSpan={2}>Integrated Tax</td>
-                            <td rowSpan={2}>Total Tax Amount</td>
-                          </tr>
-                          <tr>
-                            <td>Rate</td>
-                            <td>Amount</td>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <tr></tr>
-                        </tbody>
-                        <tfoot>
-                          <tr>
-                            <td className="text-end">Total</td>
-                            <td className="text-center">a</td>
-                            <td className="text-center">b</td>
-                            <td className="text-center">b</td>
-                            <td className="text-center">b</td>
-                          </tr>
-                        </tfoot>
-                      </table>
-                    </div>
+                    {Sale === "Other State Sale" ? (
+                      <>
+                        <div className="table-responsive">
+                          <table className="table table-bordered">
+                            <thead className="fs-6 text-center">
+                              <tr>
+                                <td rowSpan={2}>HSN/SAC</td>
+                                <td rowSpan={2}>Taxable Value</td>
+                                <td colSpan={2}>Integrated Tax</td>
+                                <td rowSpan={2}>Total Tax Amount</td>
+                              </tr>
+                              <tr>
+                                <td>Rate</td>
+                                <td>Amount</td>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr>
+                                <td className="text-start"></td>
+                              </tr>
+                            </tbody>
+                            <tfoot>
+                              <tr>
+                                <td className="text-end">Total</td>
+                                <td className="text-center">{totalAmount}</td>
+                                <td className="text-center">18%</td>
+                                <td className="text-center">{IGSTAmount}</td>
+                                <td className="text-center">{NetAmount}</td>
+                              </tr>
+                            </tfoot>
+                          </table>
+                        </div>
+                      </>
+                    ) : Sale === "State Sale" ? (
+                      <>
+                        <div className="table-responsive">
+                          <table className="table table-bordered">
+                            <thead className="fs-6 text-center">
+                              <tr>
+                                <td rowSpan={2}>HSN/SAC</td>
+                                <td rowSpan={2}>Taxable Value</td>
+                                <td colSpan={2}>Central Tax</td>
+                                <td colSpan={2}>State Tax</td>
+                                <td rowSpan={2}>Total Tax Amount</td>
+                              </tr>
+                              <tr>
+                                <td>Rate</td>
+                                <td>Amount</td>
+                                <td>Rate</td>
+                                <td>Amount</td>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr>
+                                <td className="text-start"></td>
+                              </tr>
+                            </tbody>
+                            <tfoot>
+                              <tr>
+                                <td className="text-end">Total</td>
+                                <td className="text-center">{totalAmount}</td>
+                                <td className="text-center">9%</td>
+                                <td className="text-center">{CGSTAmount}</td>
+                                <td className="text-center">9%</td>
+                                <td className="text-center">{SGSTAmount}</td>
+                                <td className="text-center">{NetAmount}</td>
+                              </tr>
+                            </tfoot>
+                          </table>
+                        </div>
+                      </>
+                    ) : null}
                     <div className="text-start">
                       <span>Tax Amount (in words) :</span>&nbsp;&nbsp;&nbsp;
-                      <span className="fw-bold">
+                      <span className="fs-6 fw-bold">
                         {IGSTAmount > 0 ? <>INR {IGSTAmountWord}</> : null}
                       </span>
                     </div>
@@ -822,12 +971,24 @@ export default function Billing() {
                       <div className="card">
                         <div
                           className="card-body"
-                          style={{ width: 100,height: 100 }}
+                          style={{ width: 100, height: 100 }}
                         ></div>
                       </div>
                     </div>
                   </div>
                 </main>
+                {SavePrintBtn ? (
+                  <>
+                    <footer className="text-end">
+                      <Button
+                        type="primary"
+                        shape="circle"
+                        icon={<SaveOutlined />}
+                        onClick={BillSave}
+                      />
+                    </footer>
+                  </>
+                ) : null}
               </Watermark>
             </div>
           </div>
@@ -1028,11 +1189,34 @@ export default function Billing() {
           </Modal>
         </div>
       </div>
-      <FloatButton
-        onClick={handlePrint}
-        tooltip={<div>Print</div>}
-        icon={<PrinterOutlined />}
-      />
+
+      {!SavePrintBtn ? (
+        <>
+          <FloatButton.Group
+            trigger="hover"
+            type="primary"
+            style={{
+              right: 94,
+            }}
+          >
+            <FloatButton
+              onClick={() => handlePrint("Original for Recipient")}
+              tooltip={<div>Original for Recipient</div>}
+              icon={<PrinterOutlined />}
+            />
+            <FloatButton
+              onClick={() => handlePrint("Duplicate for Transporter")}
+              tooltip={<div>Duplicate for Transporter</div>}
+              icon={<PrinterOutlined />}
+            />
+            <FloatButton
+              onClick={() => handlePrint("Triplicate for Supplier")}
+              tooltip={<div>Triplicate for Supplier</div>}
+              icon={<PrinterOutlined />}
+            />
+          </FloatButton.Group>
+        </>
+      ) : null}
     </>
   );
 }
