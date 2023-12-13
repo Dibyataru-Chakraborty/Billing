@@ -22,7 +22,7 @@ export default function Sidebar(props) {
   const routeMapping = {
     '2': '/billing',
     '9': '/productentry',
-    default: '/',
+    default: '/dashboard',
   };
   
   const navigateToRoute = (key) => {

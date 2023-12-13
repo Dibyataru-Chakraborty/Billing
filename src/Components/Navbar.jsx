@@ -20,7 +20,7 @@ export default function Navbar(props) {
   const [current, setCurrent] = useState(props.number);
   const onClick = (e) => {
     const routes = {
-      "1": "/",
+      "1": "/dashboard",
       "2": "/billing",
       // "3": "/admin/opd/new-opd-billing",
       "4": "/productentry",
@@ -29,7 +29,7 @@ export default function Navbar(props) {
       // "7": "/admin/accounts/account-out",
       // "8": "/admin/settings/general-settings",
       "8": "/",
-      "default": "/"
+      "default": "/dashboard"
     };
   
     setCurrent(e.key);

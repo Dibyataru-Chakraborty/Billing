@@ -44,16 +44,16 @@ export default function Login() {
     })
   }
 
-  const getowner = (event) => {
-    const getowner = event;
-    setOwner(
-      getowner === "Admin"
-        ? "(Admin)"
-        : getowner === "Employee"
-        ? "(Employee)"
-        : ""
-    );
-  };
+  // const getowner = (event) => {
+  //   const getowner = event;
+  //   setOwner(
+  //     getowner === "Admin"
+  //       ? "(Admin)"
+  //       : getowner === "Employee"
+  //       ? "(Employee)"
+  //       : ""
+  //   );
+  // };
 
   const checked = () => {
     setRemember(!remeber);
@@ -79,11 +79,11 @@ export default function Login() {
                           style={{ color: "#d10000" }}
                         />
                         <span className="h1 fw-bold mb-0">
-                          Your Billing
+                          FORBIDDEN 403
                         </span>
                       </div>
                       <form className={Validation}>
-                        <select
+                        {/* <select
                           className="btn btn-warning mb-2 btn-sm form-select"
                           style={{ width: "50%" }}
                           required
@@ -94,12 +94,13 @@ export default function Login() {
                           <option value="">Select</option>
                           <option value="Admin">Admin</option>
                           <option value="Employee">Employee</option>
-                        </select>
+                        </select> */}
                         <h5
                           className="fw-normal mb-3 pb-3"
                           style={{ letterSpacing: 1 }}
                         >
-                          Sign into your account {owner}
+                          Sign into your account
+                           {/* {owner} */}
                         </h5>
                         <div className="form-outline">
                           <label className="form-label" htmlFor="email">

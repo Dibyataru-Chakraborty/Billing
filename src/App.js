@@ -75,7 +75,6 @@ function App() {
       }
     });
   };
-
   localStorage.setItem("ProductsData", JSON.stringify(ProductsData));
 
   const [CustomersData, setCustomersData] = useState([]);
@@ -89,7 +88,6 @@ function App() {
       }
     });
   };
-
   localStorage.setItem("CustomersData", JSON.stringify(CustomersData));
 
   useEffect(() => {
@@ -114,11 +112,11 @@ function App() {
   return (
     <>
       <Routes>
-        <Route exact path="/" element={ <><Navbar number="1"/><Layout hasSider><Sidebar number='2'/><Dashboard/></Layout></> } />
+        <Route exact path="/" element={ <><Login/></> } />
         <Route exact path="/*" element={ <><Navbar /><Layout><Sidebar/><Error link="/"/></Layout><NewFooter/></> } />
+        <Route exact path="/dashboard" element={ <><Navbar number="1"/><Layout hasSider><Sidebar number='2'/><Dashboard/></Layout></> } />
         <Route exact path="/billing" element={ <><Navbar number="2"/><Layout><Sidebar number='2'/><Billing/></Layout><NewFooter/></> } />
         <Route exact path="/productentry" element={ <><Navbar number="4"/><Layout hasSider><Sidebar number='9'/><ProductEntry/></Layout></> } />
-        {/* <Route exact path="/signin" element={ <><Login/></> } /> */}
       </Routes>
     </>
   );
