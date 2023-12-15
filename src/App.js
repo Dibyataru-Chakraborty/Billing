@@ -10,9 +10,11 @@ import Error from "./Utils/Authentication/Error";
 import Dashboard from "./Pages/Dashboard";
 import Billing from "./Pages/Billing";
 import Navbar from "./Components/Navbar";
-import Sidebar from "./Components/Sidebar";
+// import Sidebar from "./Components/Sidebar";
 import ProductEntry from "./Pages/ProductEntry";
 import NewFooter from "./Components/NewFooter";
+import Updates from "./Pages/Updates";
+import Config from "./Pages/Config";
 
 
 function App() {
@@ -77,6 +79,20 @@ function App() {
   };
   localStorage.setItem("ProductsData", JSON.stringify(ProductsData));
 
+  const [UpdatesData, setUpdatesData] = useState([]);
+  const Update = () => {
+    onValue(ref(db, "Updates"), (snapshot) => {
+      snapshot.forEach((child) => {
+        if (child.val() === null) {
+        setUpdatesData([]);
+      } else {
+        setUpdatesData([child.val()]);
+      }
+      });
+    });
+  };
+  localStorage.setItem("UpdatesData", JSON.stringify(UpdatesData));
+
   const [CustomersData, setCustomersData] = useState([]);
   const Customers = () => {
     onValue(ref(db, "Customer"), (snapshot) => {
@@ -90,11 +106,23 @@ function App() {
   };
   localStorage.setItem("CustomersData", JSON.stringify(CustomersData));
 
+  const [Settings_Config, setSettings_Config] = useState([])
+  const SettingsConfig = () => {
+    const setting = []
+    onValue(ref(db, "Settings"), (snapshot) => {
+      setting.push(snapshot.val())
+    });
+    setSettings_Config(setting);
+  };
+  localStorage.setItem("SettingsConfig", JSON.stringify(Settings_Config));
+
   useEffect(() => {
     const fetchData = async () => {
       await Promise.all([
         Products(),
         Customers(),
+        Update(),
+        SettingsConfig(),
       ]);
     };
     fetchData();
@@ -113,10 +141,12 @@ function App() {
     <>
       <Routes>
         <Route exact path="/" element={ <><Login/></> } />
-        <Route exact path="/*" element={ <><Navbar /><Layout><Sidebar/><Error link="/"/></Layout><NewFooter/></> } />
-        <Route exact path="/dashboard" element={ <><Navbar number="1"/><Layout hasSider><Sidebar number='2'/><Dashboard/></Layout></> } />
-        <Route exact path="/billing" element={ <><Navbar number="2"/><Layout><Sidebar number='2'/><Billing/></Layout><NewFooter/></> } />
-        <Route exact path="/productentry" element={ <><Navbar number="4"/><Layout hasSider><Sidebar number='9'/><ProductEntry/></Layout></> } />
+        <Route exact path="/*" element={ <><Navbar /><Layout hasSider><Error link="/"/></Layout><NewFooter/></> } />
+        <Route exact path="/dashboard" element={ <><Navbar number="1"/><Layout hasSider><Dashboard/></Layout></> } />
+        <Route exact path="/billing" element={ <><Navbar number="2"/><Layout hasSider><Billing/></Layout><NewFooter/></> } />
+        <Route exact path="/productentry" element={ <><Navbar number="4"/><Layout hasSider><ProductEntry/></Layout></> } />
+        <Route exact path="/updates" element={ <><Navbar number="5"/><Layout hasSider><Updates/></Layout></> } />
+        <Route exact path="/settings" element={ <><Navbar number="5"/><Layout hasSider><Config/></Layout></> } />
       </Routes>
     </>
   );

@@ -26,7 +26,7 @@ import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import TextArea from "antd/es/input/TextArea";
 import { ToWords } from "to-words";
-import { push, ref, update } from "firebase/database";
+import { onValue, push, ref, update } from "firebase/database";
 import { db } from "../Utils/Firebase/Firebase_config";
 
 export default function Billing() {
@@ -36,14 +36,15 @@ export default function Billing() {
     html2canvas(invoice.current).then((canvas) => {
       const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF("p", "mm", "a4");
-      pdf.text(heading, 75, 5);
-      pdf.addImage(imgData, "PNG", 5, 10, 190, 0);
+      pdf.setFontSize(8);
+      pdf.text(heading, 170, 5);
+      pdf.addImage(imgData, "PNG", 10, 10, 190, 0);
       const pdfBlob = pdf.output("blob");
       const blobUrl = URL.createObjectURL(pdfBlob);
       window.open(blobUrl);
     });
   };
-  
+
   const [Consignee_isModalOpen, setConsignee_isModalOpen] = useState(false);
   const [Consignee_Name, setConsignee_Name] = useState("");
   const [Consignee_Address, setConsignee_Address] = useState("");
@@ -91,18 +92,11 @@ export default function Billing() {
     }
   };
 
-  const [InvoiceNumber, setInvoiceNumber] = useState("");
-  const billNumber = () => {
-    const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    let result = "";
-    for (let i = 0; i < 6; i++) {
-      const randomIndex = Math.floor(Math.random() * characters.length);
-      result += characters.charAt(randomIndex);
-    }
-    setInvoiceNumber(result);
-  };
+  const [InvoiceNumber, setInvoiceNumber] = useState("0");
   useEffect(() => {
-    billNumber();
+    onValue(ref(db, "Customer"), (snapshot) => {
+      setInvoiceNumber(snapshot.size + 1);
+    });
   }, []);
 
   const date = new Date();
@@ -347,7 +341,7 @@ export default function Billing() {
     {
       title: "Quantity",
       dataIndex: "Quantity",
-      width: 150,
+      width: 100,
       sorter: (a, b) => a.Quantity - b.Quantity,
       ...getColumnSearchProps("Quantity"),
       sortDirections: ["descend", "ascend"],
@@ -355,9 +349,17 @@ export default function Billing() {
     {
       title: "Rate",
       dataIndex: "RATE",
-      width: 150,
+      width: 100,
       sorter: (a, b) => a.RATE - b.RATE,
       ...getColumnSearchProps("RATE"),
+      sortDirections: ["descend", "ascend"],
+    },
+    {
+      title: "Per",
+      dataIndex: "Per",
+      width: 100,
+      sorter: (a, b) => a.Per.length - b.Per.length,
+      ...getColumnSearchProps("Per"),
       sortDirections: ["descend", "ascend"],
     },
   ];
@@ -374,6 +376,8 @@ export default function Billing() {
         RATE: element.RATE,
         Amount: 0,
         userQyt: 0,
+        userRate: 0,
+        Per: element.Per,
       });
     }
   });
@@ -382,6 +386,18 @@ export default function Billing() {
   const handleQuantityChange = (e, productId) => {
     const newQuantity = parseInt(e.target.value, 10) || 0;
 
+    const maxQuantity = Math.max(
+      ...SelectedCheckbox
+        .filter(item => item.id === productId)
+        .map(item => item.Quantity)
+    );
+    
+    if (newQuantity > maxQuantity) {
+      // Display an alert if the entered value exceeds maxQuantity
+      alert(`Maximum allowed quantity is ${maxQuantity}`);
+      e.target.value = maxQuantity;
+    }
+
     // Update the state with the new quantity
     setSelectedCheckbox((prevProducts) =>
       prevProducts.map((product) =>
@@ -389,7 +405,34 @@ export default function Billing() {
           ? {
               ...product,
               userQyt: newQuantity,
-              Amount: product.RATE * newQuantity,
+              Amount: product.userRate * newQuantity,
+            }
+          : product
+      )
+    );
+  };
+  const handleRateChange = (e, productId) => {
+    const newRate = parseInt(e.target.value, 10) || 0;
+
+    const maxRate = Math.max(
+      ...SelectedCheckbox
+        .filter(item => item.id === productId)
+        .map(item => item.RATE)
+    );
+    
+    if (newRate > maxRate) {
+      // Display an alert if the entered value exceeds maxRate
+      alert(`Maximum Rate is ${maxRate}`);
+    }
+
+    // Update the state with the new Rate
+    setSelectedCheckbox((prevProducts) =>
+      prevProducts.map((product) =>
+        product.id === productId
+          ? {
+              ...product,
+              userRate: newRate,
+              Amount: newRate * product.userQyt,
             }
           : product
       )
@@ -404,8 +447,12 @@ export default function Billing() {
   const [NetAmount, setNetAmount] = useState(0);
   const [NetAmountWord, setNetAmountWord] = useState("");
   const [IGSTAmountWord, setIGSTAmountWord] = useState("");
+  const [uHSN, setuHSN] = useState("");
 
   useEffect(() => {
+    const uniqueHsns = [
+      ...new Set(SelectedCheckbox.map((item) => item.HSN)),
+    ].join(", ");
     // Calculate the total amount whenever selectedProducts change
     const toWords = new ToWords();
     const newTotalAmount = SelectedCheckbox.reduce(
@@ -419,8 +466,11 @@ export default function Billing() {
       (total, product) => total + product.userQyt,
       0
     );
-    const newNetAmount = Number(newTotalAmount) + Number(newIGSTAmount);
+    const newNetAmount = Math.round(
+      Number(newTotalAmount) + Number(newIGSTAmount)
+    );
 
+    setuHSN(uniqueHsns);
     setTotalAmount(newTotalAmount);
     setTotalProductQuantity(newtotalProductQuantity);
     setIGSTAmount(newIGSTAmount);
@@ -431,7 +481,7 @@ export default function Billing() {
     setIGSTAmountWord(toWords.convert(newIGSTAmount, { currency: true }));
   }, [SelectedCheckbox]);
 
-  const [SavePrintBtn, setSavePrintBtn] = useState(true);
+  const [SavePrintBtn, setSavePrintBtn] = useState(false);
   const BillSave = async () => {
     try {
       let bill = {
@@ -480,24 +530,44 @@ export default function Billing() {
       await push(ref(db, "Customer/"), bill);
       await update(ref(db), updates);
       message.success("Bill Saved successfully");
-      setSavePrintBtn(false)
+      setSavePrintBtn(false);
     } catch (error) {
       alert("Error saving bill:", error.message);
     }
   };
 
+  const [accountHolderName, setAccountHolderName] = useState("");
+  const [bankName, setBankName] = useState("");
+  const [accountNumber, setAccountNumber] = useState("");
+  const [branchAndIFSC, setBranchAndIFSC] = useState("");
+
+  const clinic = JSON.parse(localStorage.getItem("SettingsConfig"))[0]?.Center;
+
+  useEffect(() => {
+    setAccountHolderName(clinic?.accountHolderName || "");
+    setBankName(clinic?.bankName || "");
+    setAccountNumber(clinic?.accountNumber || "");
+    setBranchAndIFSC(clinic?.branchAndIFSC || "");
+  }, [
+    clinic?.accountHolderName,
+    clinic?.bankName,
+    clinic?.accountNumber,
+    clinic?.branchAndIFSC,
+  ]);
+
   return (
     <>
       <div className="container my-2">
         <div className="card">
-          <div className="card-body">
-            <div ref={invoice}>
-              <Watermark
-                fontSize={16}
-                zIndex={11}
-                rotate={-26}
-                content={"JALANGI POLYMER ENTERPRISE"}
-              >
+          <div ref={invoice}>
+            <Watermark
+              fontSize={16}
+              zIndex={11}
+              rotate={-26}
+              content={"JALANGI POLYMER ENTERPRISE"}
+            >
+              <div className="card-header text-center fw-bold fs-4">Invoice</div>
+              <div className="card-body">
                 <header>
                   <div className="row">
                     <div className="col">
@@ -514,12 +584,12 @@ export default function Billing() {
                                   <br />
                                   Dwipchandrapur, Dhubulia,
                                   <br />
-                                  Nadia, West Bengal,
+                                  Nadia, West Bengal, 19
                                   <br />
                                   741125
                                 </p>
                               </div>
-                              <div>GSTIN: I9AATFJ769IR1ZV</div>
+                              <div>GSTIN: 19AATFJ769IR1ZV</div>
                               <div>Contact No.: 9002630036 / 9563414242</div>
                               <div>E-Mail : jpedhubulia@gmail.com</div>
                             </td>
@@ -586,7 +656,7 @@ export default function Billing() {
                             <td>
                               <div>Invoice No.</div>
                               <div>
-                                {InvoiceNumber}/{year}
+                                JPE/{year}/{InvoiceNumber}
                               </div>
                             </td>
                             <td>
@@ -693,7 +763,7 @@ export default function Billing() {
                           <tr>
                             <th className="text-start">Sl No.</th>
                             <th className="text-center">
-                              Description of Services{" "}
+                              Description of Goods{" "}
                               {Sale !== undefined && Sale !== "" ? (
                                 <Button
                                   onClick={Services_showModal}
@@ -708,7 +778,7 @@ export default function Billing() {
                             <th className="text-center">HSN/SAC</th>
                             <th className="text-center">Quantity</th>
                             <th className="text-center">Rate</th>
-                            <th className="text-center">per</th>
+                            <th className="text-center">Per</th>
                             <th className="text-end">Amount</th>
                           </tr>
                         </thead>
@@ -738,8 +808,16 @@ export default function Billing() {
                                   }
                                 />
                               </td>
-                              <td className="text-center">{item.RATE}</td>
-                              <td className="text-center">PCS</td>
+                              <td className="text-center">
+                                <input
+                                  className="form-control"
+                                  type={"number"}
+                                  min={1}
+                                  defaultValue={0}
+                                  onChange={(e) => handleRateChange(e, item.id)}
+                                />
+                              </td>
+                              <td className="text-center">{item.Per}</td>
                               <td className="text-end">{item.Amount}</td>
                             </tr>
                           ))}
@@ -839,16 +917,26 @@ export default function Billing() {
                             </thead>
                             <tbody>
                               <tr>
-                                <td className="text-start"></td>
-                              </tr>
-                            </tbody>
-                            <tfoot>
-                              <tr>
-                                <td className="text-end">Total</td>
+                                <td className="text-start">{uHSN}</td>
                                 <td className="text-center">{totalAmount}</td>
                                 <td className="text-center">18%</td>
                                 <td className="text-center">{IGSTAmount}</td>
                                 <td className="text-center">{NetAmount}</td>
+                              </tr>
+                            </tbody>
+                            <tfoot>
+                              <tr>
+                                <td className="text-end fw-bold">Total</td>
+                                <td className="text-center fw-bold">
+                                  {totalAmount}
+                                </td>
+                                <td className="text-center fw-bold"></td>
+                                <td className="text-center fw-bold">
+                                  {IGSTAmount}
+                                </td>
+                                <td className="text-center fw-bold">
+                                  {NetAmount}
+                                </td>
                               </tr>
                             </tfoot>
                           </table>
@@ -875,18 +963,32 @@ export default function Billing() {
                             </thead>
                             <tbody>
                               <tr>
-                                <td className="text-start"></td>
-                              </tr>
-                            </tbody>
-                            <tfoot>
-                              <tr>
-                                <td className="text-end">Total</td>
+                                <td className="text-start">{uHSN}</td>
                                 <td className="text-center">{totalAmount}</td>
                                 <td className="text-center">9%</td>
                                 <td className="text-center">{CGSTAmount}</td>
                                 <td className="text-center">9%</td>
                                 <td className="text-center">{SGSTAmount}</td>
                                 <td className="text-center">{NetAmount}</td>
+                              </tr>
+                            </tbody>
+                            <tfoot>
+                              <tr>
+                                <td className="text-end fw-bold">Total</td>
+                                <td className="text-center fw-bold">
+                                  {totalAmount}
+                                </td>
+                                <td className="text-center fw-bold"></td>
+                                <td className="text-center fw-bold">
+                                  {CGSTAmount}
+                                </td>
+                                <td className="text-center fw-bold"></td>
+                                <td className="text-center fw-bold">
+                                  {SGSTAmount}
+                                </td>
+                                <td className="text-center fw-bold">
+                                  {NetAmount}
+                                </td>
                               </tr>
                             </tfoot>
                           </table>
@@ -923,10 +1025,6 @@ export default function Billing() {
                                   actual price of the goods desscribed.
                                   <br />
                                 </div>
-                                <div className="fw-normal">
-                                  Thank You For Purchasing. <br />
-                                  Visit Again.
-                                </div>
                               </td>
                             </tr>
                           </tbody>
@@ -942,23 +1040,23 @@ export default function Billing() {
                                 <div>Company’s Bank Details</div>
                                 <div>
                                   <span>A/c Holder’s Name:</span>&nbsp;
-                                  {/* <span className="fw-bold">MINA CREATION</span> */}
+                                  <span className="fw-bold">{accountHolderName}</span>
                                 </div>
                                 <div>
                                   <span>Bank Name:</span>&nbsp;
-                                  {/* <span className="fw-bold">HDFC BANK LTD</span> */}
+                                  <span className="fw-bold">{bankName}</span>
                                 </div>
                                 <div>
                                   <span>A/c No.:</span>&nbsp;
-                                  {/* <span className="fw-bold">
-                                    50200068169809
-                                  </span> */}
+                                  <span className="fw-bold">
+                                    {accountNumber}
+                                  </span>
                                 </div>
                                 <div>
                                   <span>Branch & IFS Code:</span>&nbsp;
-                                  {/* <span className="fw-bold">
-                                    SACHIN,SURAT & HDFC0001706
-                                  </span> */}
+                                  <span className="fw-bold">
+                                    {branchAndIFSC}
+                                  </span>
                                 </div>
                               </td>
                             </tr>
@@ -967,30 +1065,35 @@ export default function Billing() {
                       </div>
                     </div>
                     <div className="col">
-                      <div>Authorized Signature</div>
                       <div className="card">
+                        <div className="card-header text-end">for JALANGI POLYMER ENTERPRISE</div>
                         <div
                           className="card-body"
-                          style={{ width: 100, height: 100 }}
+                          style={{ minWidth: 100, minHeight: 100 }}
                         ></div>
+                        <div className="card-footer">Authorised Signatory</div>
                       </div>
                     </div>
                   </div>
                 </main>
-                {SavePrintBtn ? (
-                  <>
-                    <footer className="text-end">
-                      <Button
-                        type="primary"
-                        shape="circle"
-                        icon={<SaveOutlined />}
-                        onClick={BillSave}
-                      />
-                    </footer>
-                  </>
-                ) : null}
-              </Watermark>
-            </div>
+              </div>
+              {SavePrintBtn && Sale!=="" && Sale!==undefined ? (
+                <>
+                  <footer className="text-end">
+                    <button
+                      type="button"
+                      className="btn btn-primary btn-sm rounded-circle"
+                      onClick={BillSave}
+                    >
+                      <SaveOutlined />
+                    </button>
+                  </footer>
+                </>
+              ) : null}
+              <div className="card-footer text-center fw-bold">
+                Thank You For Purchasing. Visit Again.
+              </div>
+            </Watermark>
           </div>
 
           {/* Consignee */}
@@ -1173,7 +1276,7 @@ export default function Billing() {
             open={Services_isModalOpen}
             okButtonProps={{ hidden: true }}
             onCancel={Services_handleCancel}
-            width={700}
+            width={1000}
           >
             <Table
               rowSelection={{

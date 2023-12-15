@@ -30,42 +30,36 @@ export default function Login() {
     );
   };
 
-  const [PasswordType, setPasswordType] = useState({type: "password", passowrd: true});
+  const [PasswordType, setPasswordType] = useState({
+    type: "password",
+    passowrd: true,
+  });
   const showPassword = () => {
     setPasswordType({
       type: "text",
-      passowrd: false
-    })
-  }
+      passowrd: false,
+    });
+  };
   const hidePassword = () => {
     setPasswordType({
       type: "password",
-      passowrd: true
-    })
-  }
-
-  // const getowner = (event) => {
-  //   const getowner = event;
-  //   setOwner(
-  //     getowner === "Admin"
-  //       ? "(Admin)"
-  //       : getowner === "Employee"
-  //       ? "(Employee)"
-  //       : ""
-  //   );
-  // };
+      passowrd: true,
+    });
+  };
 
   const checked = () => {
     setRemember(!remeber);
   };
-  
 
   return (
     <>
       <section className="vh-100">
         <div className="container py-5 h-100">
           <div className="row d-flex justify-content-center align-items-center h-100">
-            <div className="col" style={{width:'fit-content',flex: '0 0 auto'}}>
+            <div
+              className="col"
+              style={{ width: "fit-content", flex: "0 0 auto" }}
+            >
               <div className="card" style={{ borderRadius: "1rem" }}>
                 <div
                   className="row g-0 rounded"
@@ -78,29 +72,14 @@ export default function Login() {
                           className="fa fa-2x me-3 fa-solid fa-receipt"
                           style={{ color: "#d10000" }}
                         />
-                        <span className="h1 fw-bold mb-0">
-                          FORBIDDEN 403
-                        </span>
+                        <span className="h1 fw-bold mb-0">FORBIDDEN 403</span>
                       </div>
                       <form className={Validation}>
-                        {/* <select
-                          className="btn btn-warning mb-2 btn-sm form-select"
-                          style={{ width: "50%" }}
-                          required
-                          onChange={(event) => {
-                            getowner(event.target.value);
-                          }}
-                        >
-                          <option value="">Select</option>
-                          <option value="Admin">Admin</option>
-                          <option value="Employee">Employee</option>
-                        </select> */}
                         <h5
                           className="fw-normal mb-3 pb-3"
                           style={{ letterSpacing: 1 }}
                         >
                           Sign into your account
-                           {/* {owner} */}
                         </h5>
                         <div className="form-outline">
                           <label className="form-label" htmlFor="email">
@@ -124,11 +103,17 @@ export default function Login() {
                           <label className="form-label" htmlFor="password">
                             Password
                           </label>{" "}
-                          {
-                            PasswordType.passowrd ? 
-                            <FontAwesomeIcon icon={faEye} onClick={showPassword}/>
-                            : <FontAwesomeIcon icon={faEyeSlash} onClick={hidePassword}/>
-                          }
+                          {PasswordType.passowrd ? (
+                            <FontAwesomeIcon
+                              icon={faEye}
+                              onClick={showPassword}
+                            />
+                          ) : (
+                            <FontAwesomeIcon
+                              icon={faEyeSlash}
+                              onClick={hidePassword}
+                            />
+                          )}
                           <input
                             type={PasswordType.type}
                             minLength={8}
@@ -171,7 +156,7 @@ export default function Login() {
                         </div>
                         <Link
                           className="small text-muted"
-                          to="/forget"
+                          // to="/forget"
                           style={{ textDecoration: "None" }}
                         >
                           Forgot password?

@@ -1,13 +1,14 @@
 import { Layout, Menu, Button, Drawer, Row, Col } from "antd";
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { MenuOutlined } from "@ant-design/icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faBook,
-  faCircleUser,
+  faBookBible,
   faLock,
   faPlus,
+  faScrewdriverWrench,
   faShare,
   faSquarePlus,
   faWifi,
@@ -24,11 +25,11 @@ export default function Navbar(props) {
       "2": "/billing",
       // "3": "/admin/opd/new-opd-billing",
       "4": "/productentry",
-      // "5": "/admin/reporting/test-result-entry",
+      "5": "/updates",
       // "6": "/admin/accounts/account-in",
       // "7": "/admin/accounts/account-out",
-      // "8": "/admin/settings/general-settings",
-      "8": "/",
+      "8": "/settings",
+      "9": "/",
       "default": "/dashboard"
     };
   
@@ -58,30 +59,17 @@ export default function Navbar(props) {
 
   const items1 = [
     getItem("Dashboard", "1", null, null, null),
-    getItem(
-      "Billing",
-      "2",
-      <FontAwesomeIcon icon={faPlus} style={{ color: "#07ab38" }} />,
-      null,
-      null
-    ),
-    getItem(
-      "Manage Bills",
-      "3",
-      <FontAwesomeIcon icon={faBook} style={{ color: "#f04f0a" }} />,
-      null,
-      null
-    ),
-    getItem(
-      "Product Entry",
-      "4",
-      <FontAwesomeIcon icon={faSquarePlus} style={{ color: "#f04f0a" }} />,
-      null,
-      null
-    ),
+    getItem('Billing', null, <FontAwesomeIcon icon={faBookBible} style={{ color: "#10cb14" }} />,[
+      getItem('New','2',<FontAwesomeIcon icon={faPlus} style={{ color: "#07ab38" }} />),
+      getItem('Manage Bill','3',<FontAwesomeIcon icon={faBook} style={{ color: "#f04f0a" }} />),
+    ]),
+    getItem('Stock',null,<FontAwesomeIcon icon={faSquarePlus} style={{ color: "#f04f0a" }} />,[
+      getItem('Products','4',<FontAwesomeIcon icon={faBookBible} style={{ color: "#10cb14" }}  />),
+      getItem('Updates','5',<FontAwesomeIcon icon={faBookBible} style={{ color: "#10cb14" }}  />),
+    ]),
     getItem(
       "Account In",
-      "5",
+      "6",
       <FontAwesomeIcon
         icon={faShare}
         flip="horizontal"
@@ -92,7 +80,7 @@ export default function Navbar(props) {
     ),
     getItem(
       "Account Out",
-      "6",
+      "7",
       <FontAwesomeIcon icon={faShare} style={{ color: "#f22602" }} />,
       null,
       null
@@ -100,9 +88,35 @@ export default function Navbar(props) {
   ];
 
   const items2 = [
-    getItem("username AD/EMP", "7", <FontAwesomeIcon icon={faCircleUser} />),
+    getItem("Seetings", "8", <FontAwesomeIcon icon={faScrewdriverWrench} style={{ color: "#f22602" }}/>),
     getItem(null, null, <FontAwesomeIcon icon={faWifi} />),
-    getItem(null, "8", <FontAwesomeIcon icon={faLock} />),
+    getItem(null, "9", <FontAwesomeIcon icon={faLock} />),
+  ];
+
+  const items3 = [
+    getItem("Dashboard", "1", null, null, null),
+    getItem('New','2',<FontAwesomeIcon icon={faPlus} style={{ color: "#07ab38" }} />),
+    getItem('Manage Bill','3',<FontAwesomeIcon icon={faBook} style={{ color: "#f04f0a" }} />),
+    getItem('Products','4',<FontAwesomeIcon icon={faBookBible} style={{ color: "#10cb14" }}  />),
+    getItem('Updates','5',<FontAwesomeIcon icon={faBookBible} style={{ color: "#10cb14" }}  />),
+    getItem(
+      "Account In",
+      "6",
+      <FontAwesomeIcon
+        icon={faShare}
+        flip="horizontal"
+        style={{ color: "#10cb14" }}
+      />,
+      null,
+      null
+    ),
+    getItem(
+      "Account Out",
+      "7",
+      <FontAwesomeIcon icon={faShare} style={{ color: "#f22602" }} />,
+      null,
+      null
+    ),
   ];
 
   return (
@@ -146,7 +160,7 @@ export default function Navbar(props) {
               mode="vertical"
               onClick={onClick}
               selectedKeys={[current]}
-              items={items1}
+              items={items3}
             ></Menu>
           </Drawer>
         </Header>

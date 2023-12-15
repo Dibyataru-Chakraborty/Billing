@@ -4,7 +4,7 @@ import { Input, Space, Table, Button, Modal, message } from "antd";
 import React, { useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPenToSquare } from "@fortawesome/free-regular-svg-icons";
-import { ref, set, update } from "firebase/database";
+import { push, ref, set, update } from "firebase/database";
 import { db } from "../Utils/Firebase/Firebase_config";
 
 export default function ProductEntry() {
@@ -20,28 +20,50 @@ export default function ProductEntry() {
   const [HSN, setHSN] = useState("");
   const [Quantity, setQuantity] = useState("");
   const [RATE, setRATE] = useState("");
+  const [per, setPer] = useState("");
+  const [date, setDate] = useState("");
+
+  let dates = new Date();
+  const day = String(dates.getDate()).padStart(2, "0");
+  const month = String(dates.getMonth() + 1).padStart(2, "0");
+  const year = dates.getFullYear();
+  const formattedDate = `${year}-${month}-${day}`;
 
   const showDetails = () => {
     setIsUpdateVisible(true);
   };
 
-  const updateOk = () => {
-    setLoadings(true);
-    let id = Id - 1;
-    let product = {
-      DescriptionofServices: DescriptionofServices,
-      HSN: HSN,
-      Quantity: Quantity,
-      RATE: RATE,
-    };
-    setTimeout(async () => {
+  const updateOk = async () => {
+    try {
+      setLoadings(true);
+  
+      let id = Id - 1;
+      let product = {
+        DescriptionofServices: DescriptionofServices,
+        HSN: HSN,
+        Quantity: Quantity,
+        RATE: RATE,
+        Per: per,
+        Date: date
+      };
+  
+      // Simulating an asynchronous operation (e.g., API call or database update)
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+  
       await update(ref(db, "Products/" + id + "/"), product);
+      await push(ref(db, "Updates/"), product);
+  
       setLoadings(false);
       setIsUpdateVisible(false);
       message.success("Update Successfully");
-    }, 2000);
+    } catch (error) {
+      console.error("Error while updating product:", error.message);
+      // Handle the error, e.g., show an error message to the user
+      message.error("Failed to update product. Please try again.");
+      setLoadings(false);
+    }
   };
-
+  
   const updateCancel = () => {
     setIsUpdateVisible(false);
   };
@@ -51,31 +73,46 @@ export default function ProductEntry() {
     setHSN("");
     setQuantity("");
     setRATE("");
+    setPer("");
     setIsAddVisible(true);
   };
 
-  const addOk = () => {
-    const count = data.reduce((max, current) => {
-      return current.id > max ? current.id : max;
-    }, 0);
-    let product = {
-      id: count + 1,
-      DescriptionofServices: DescriptionofServices,
-      HSN: HSN,
-      Quantity: Quantity,
-      RATE: RATE,
-    };
-    setLoadings(true);
-    setTimeout(async () => {
+  const addOk = async () => {
+    try {
+      const count = data.reduce((max, current) => {
+        return current.id > max ? current.id : max;
+      }, 0);
+  
+      let product = {
+        DescriptionofServices: DescriptionofServices,
+        HSN: HSN,
+        Quantity: Quantity,
+        RATE: RATE,
+        Per: per,
+        Date: date,
+        id: count+1
+      };
+  
+      setLoadings(true);
+  
+      // Simulating an asynchronous operation (e.g., API call or database update)
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+  
       await set(ref(db, "Products/" + count + "/"), product);
+      await push(ref(db, "Updates/"), product);
+  
       setLoadings(false);
       setIsAddVisible(false);
       setDescriptionofServices("");
       setHSN("");
       setQuantity("");
-      setRATE("");
+      setRATE();
       message.info("Product Added Successfully");
-    }, 2000);
+    } catch (error) {
+      // Handle the error, e.g., show an error message to the user
+      message.error("Failed to add product. Please try again.");
+      setLoadings(false);
+    }
   };
 
   const addCancel = () => {
@@ -224,18 +261,36 @@ export default function ProductEntry() {
       sortDirections: ["descend", "ascend"],
     },
     {
+      title: "Per",
+      dataIndex: "Per",
+      width: 150,
+      sorter: (a, b) => a.Per.length - b.Per.length,
+      ...getColumnSearchProps("Per"),
+      sortDirections: ["descend", "ascend"],
+    },
+    {
+      title: "Date",
+      dataIndex: "Date",
+      width: 150,
+      sorter: (a, b) => a.Date - b.Date,
+      ...getColumnSearchProps("Date"),
+      sortDirections: ["descend", "ascend"],
+    },
+    {
       title: "Options",
       dataIndex: "Options",
       width: 150,
       rowScope: "row",
       render: (text, record) => {
         const MenuClick = (e) => {
-          const { id, DescriptionofServices, HSN, Quantity, RATE } = record;
+          const { id, DescriptionofServices, HSN, Quantity, RATE, Per, Date } = record;
           setId(id);
           setDescriptionofServices(DescriptionofServices);
           setHSN(HSN);
           setQuantity(Quantity);
           setRATE(RATE);
+          setPer(Per);
+          setDate(Date || formattedDate);
           showDetails();
         };
         const option = (
@@ -269,6 +324,8 @@ export default function ProductEntry() {
         HSN: element.HSN,
         Quantity: element.Quantity,
         RATE: element.RATE,
+        Per: element.Per,
+        Date: element.Date,
       });
     }
   });
@@ -316,6 +373,30 @@ export default function ProductEntry() {
         confirmLoading={loadings}
       >
         <form className="row g-3">
+          <div className="col-md-6">
+            <label htmlFor="Date" className="form-label">
+              Date
+            </label>
+            <input
+              type="date"
+              className="form-control"
+              id="Date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+            />
+          </div>
+          <div className="col-md-6">
+            <label htmlFor="Per" className="form-label">
+              Per
+            </label>
+            <input
+              type="text"
+              className="form-control"
+              id="Per"
+              value={per}
+              onChange={(e) => setPer(e.target.value)}
+            />
+          </div>
           <div className="col-md-6">
             <label htmlFor="Description_of_Services" className="form-label">
               Description of Services
@@ -378,10 +459,34 @@ export default function ProductEntry() {
         okButtonProps={{
           disabled:
             DescriptionofServices === null ||
-            DescriptionofServices.trim() === "",
+            DescriptionofServices.trim() === "" || date === ""
         }}
       >
         <form className="row g-3">
+          <div className="col-md-6">
+            <label htmlFor="Date" className="form-label">
+              Date
+            </label>
+            <input
+              type="date"
+              className="form-control"
+              id="Date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+            />
+          </div>
+          <div className="col-md-6">
+            <label htmlFor="Per" className="form-label">
+              Per
+            </label>
+            <input
+              type="text"
+              className="form-control"
+              id="Per"
+              value={per}
+              onChange={(e) => setPer(e.target.value)}
+            />
+          </div>
           <div className="col-md-6">
             <label htmlFor="Description_of_Services" className="form-label">
               Description of Services
