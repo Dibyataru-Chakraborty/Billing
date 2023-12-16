@@ -19,6 +19,7 @@ export default function ProductEntry() {
   const [DescriptionofServices, setDescriptionofServices] = useState("");
   const [HSN, setHSN] = useState("");
   const [Quantity, setQuantity] = useState("");
+  const [AddQuantity, setAddQuantity] = useState(0);
   const [RATE, setRATE] = useState("");
   const [per, setPer] = useState("");
   const [date, setDate] = useState("");
@@ -30,18 +31,25 @@ export default function ProductEntry() {
   const formattedDate = `${year}-${month}-${day}`;
 
   const showDetails = () => {
+    setAddQuantity(0)
     setIsUpdateVisible(true);
   };
 
   const updateOk = async () => {
     try {
       setLoadings(true);
-  
       let id = Id - 1;
       let product = {
         DescriptionofServices: DescriptionofServices,
         HSN: HSN,
-        Quantity: Quantity,
+        Quantity: Number(Quantity) + Number(AddQuantity),
+        RATE: RATE,
+        Per: per,
+      };
+      let Updateproduct = {
+        DescriptionofServices: DescriptionofServices,
+        HSN: HSN,
+        Quantity: Number(AddQuantity),
         RATE: RATE,
         Per: per,
         Date: date
@@ -51,7 +59,7 @@ export default function ProductEntry() {
       await new Promise((resolve) => setTimeout(resolve, 2000));
   
       await update(ref(db, "Products/" + id + "/"), product);
-      await push(ref(db, "Updates/"), product);
+      await push(ref(db, "Updates/"), Updateproduct);
   
       setLoadings(false);
       setIsUpdateVisible(false);
@@ -422,16 +430,16 @@ export default function ProductEntry() {
             />
           </div>
           <div className="col-md-6">
-            <label htmlFor="Quantity" className="form-label">
-              Quantity
+            <label htmlFor="AddQuantity" className="form-label">
+              AddQuantity
             </label>
             <input
               type="number"
               className="form-control"
-              id="Quantity"
+              id="AddQuantity"
               min={0}
-              value={Quantity}
-              onChange={(e) => setQuantity(e.target.value)}
+              value={AddQuantity}
+              onChange={(e) => setAddQuantity(e.target.value)}
             />
           </div>
           <div className="col-md-6">

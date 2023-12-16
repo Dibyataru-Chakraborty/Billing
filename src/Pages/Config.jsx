@@ -54,7 +54,7 @@ export default function Config() {
     setActiveTabKey(key);
   };
   return (
-    <div className="container">
+    <div className="container my-3">
         <Card
           style={{
             width: "100%",

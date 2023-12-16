@@ -30,6 +30,16 @@ import { onValue, push, ref, update } from "firebase/database";
 import { db } from "../Utils/Firebase/Firebase_config";
 
 export default function Billing() {
+  const date = new Date();
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  const seconds = String(date.getSeconds()).padStart(2, "0");
+  const formattedDate = `${day}/${month}/${year}`;
+  const formattedTime = `${hours}:${minutes}:${seconds}`;
+
   const invoice = useRef();
 
   const handlePrint = (heading) => {
@@ -95,19 +105,9 @@ export default function Billing() {
   const [InvoiceNumber, setInvoiceNumber] = useState("0");
   useEffect(() => {
     onValue(ref(db, "Customer"), (snapshot) => {
-      setInvoiceNumber(snapshot.size + 1);
+      setInvoiceNumber(`JPE/${year}/${snapshot.size + 1}`);
     });
-  }, []);
-
-  const date = new Date();
-  const day = String(date.getDate()).padStart(2, "0");
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const year = date.getFullYear();
-  const hours = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-  const seconds = String(date.getSeconds()).padStart(2, "0");
-  const formattedDate = `${day}/${month}/${year}`;
-  const formattedTime = `${hours}:${minutes}:${seconds}`;
+  }, [year]);
 
   const [Vehicle, setVehicle] = useState("");
   const Vehicleno = (
@@ -377,21 +377,21 @@ export default function Billing() {
         Amount: 0,
         userQyt: 0,
         userRate: 0,
-        Per: element.Per,
+        Per: element.Per || "",
       });
     }
   });
   localStorage.setItem("SelectedCheckbox", JSON.stringify(SelectedCheckbox));
 
   const handleQuantityChange = (e, productId) => {
-    const newQuantity = parseInt(e.target.value, 10) || 0;
+    const newQuantity = parseFloat(e.target.value) || 0;
 
     const maxQuantity = Math.max(
-      ...SelectedCheckbox
-        .filter(item => item.id === productId)
-        .map(item => item.Quantity)
+      ...SelectedCheckbox.filter((item) => item.id === productId).map(
+        (item) => item.Quantity
+      )
     );
-    
+
     if (newQuantity > maxQuantity) {
       // Display an alert if the entered value exceeds maxQuantity
       alert(`Maximum allowed quantity is ${maxQuantity}`);
@@ -405,21 +405,21 @@ export default function Billing() {
           ? {
               ...product,
               userQyt: newQuantity,
-              Amount: product.userRate * newQuantity,
+              Amount: +(product.userRate * newQuantity).toFixed(2),
             }
           : product
       )
     );
   };
   const handleRateChange = (e, productId) => {
-    const newRate = parseInt(e.target.value, 10) || 0;
+    const newRate = parseFloat(e.target.value) || 0;
 
     const maxRate = Math.max(
-      ...SelectedCheckbox
-        .filter(item => item.id === productId)
-        .map(item => item.RATE)
+      ...SelectedCheckbox.filter((item) => item.id === productId).map(
+        (item) => item.RATE
+      )
     );
-    
+
     if (newRate > maxRate) {
       // Display an alert if the entered value exceeds maxRate
       alert(`Maximum Rate is ${maxRate}`);
@@ -432,7 +432,7 @@ export default function Billing() {
           ? {
               ...product,
               userRate: newRate,
-              Amount: newRate * product.userQyt,
+              Amount: +(newRate * product.userQyt).toFixed(2),
             }
           : product
       )
@@ -456,14 +456,14 @@ export default function Billing() {
     // Calculate the total amount whenever selectedProducts change
     const toWords = new ToWords();
     const newTotalAmount = SelectedCheckbox.reduce(
-      (total, product) => total + product.Amount,
+      (total, product) => +(total + product.Amount).toFixed(2),
       0
     );
-    const newIGSTAmount = (Number(newTotalAmount) * 18) / 100;
-    const newCGSTAmount = (Number(newTotalAmount) * 9) / 100;
-    const newSGSTAmount = (Number(newTotalAmount) * 9) / 100;
+    const newIGSTAmount = Math.round(Number(newTotalAmount) * 18) / 100;
+    const newCGSTAmount = Math.round(Number(newTotalAmount) * 9) / 100;
+    const newSGSTAmount = Math.round(Number(newTotalAmount) * 9) / 100;
     const newtotalProductQuantity = SelectedCheckbox.reduce(
-      (total, product) => total + product.userQyt,
+      (total, product) => +(total + product.userQyt).toFixed(2),
       0
     );
     const newNetAmount = Math.round(
@@ -521,7 +521,7 @@ export default function Billing() {
       };
       let newtotalQuantity = SelectedCheckbox.map((item) => ({
         ...item,
-        Quantity: item.Quantity - item.userQyt,
+        Quantity: +(item.Quantity - item.userQyt).toFixed(2),
       }));
       const updates = {};
       newtotalQuantity.forEach((item) => {
@@ -533,6 +533,7 @@ export default function Billing() {
       setSavePrintBtn(false);
     } catch (error) {
       alert("Error saving bill:", error.message);
+      console.log(error.message);
     }
   };
 
@@ -566,7 +567,9 @@ export default function Billing() {
               rotate={-26}
               content={"JALANGI POLYMER ENTERPRISE"}
             >
-              <div className="card-header text-center fw-bold fs-4">Invoice</div>
+              <div className="card-header text-center fw-bold fs-4">
+                Invoice
+              </div>
               <div className="card-body">
                 <header>
                   <div className="row">
@@ -655,9 +658,7 @@ export default function Billing() {
                           <tr>
                             <td>
                               <div>Invoice No.</div>
-                              <div>
-                                JPE/{year}/{InvoiceNumber}
-                              </div>
+                              <div>{InvoiceNumber}</div>
                             </td>
                             <td>
                               <div>Dated</div>
@@ -1040,7 +1041,9 @@ export default function Billing() {
                                 <div>Company’s Bank Details</div>
                                 <div>
                                   <span>A/c Holder’s Name:</span>&nbsp;
-                                  <span className="fw-bold">{accountHolderName}</span>
+                                  <span className="fw-bold">
+                                    {accountHolderName}
+                                  </span>
                                 </div>
                                 <div>
                                   <span>Bank Name:</span>&nbsp;
@@ -1066,7 +1069,9 @@ export default function Billing() {
                     </div>
                     <div className="col">
                       <div className="card">
-                        <div className="card-header text-end">for JALANGI POLYMER ENTERPRISE</div>
+                        <div className="card-header text-end">
+                          for JALANGI POLYMER ENTERPRISE
+                        </div>
                         <div
                           className="card-body"
                           style={{ minWidth: 100, minHeight: 100 }}
@@ -1077,7 +1082,7 @@ export default function Billing() {
                   </div>
                 </main>
               </div>
-              {SavePrintBtn && Sale!=="" && Sale!==undefined ? (
+              {SavePrintBtn && Sale !== "" && Sale !== undefined ? (
                 <>
                   <footer className="text-end">
                     <button

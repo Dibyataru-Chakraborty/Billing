@@ -2,8 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { message } from "antd";
 import { AuthErrorCodes, signInWithEmailAndPassword } from "firebase/auth";
-import { auth, db } from "../Utils/Firebase/Firebase_config";
-import { get, ref } from "firebase/database";
+import { auth } from "../Utils/Firebase/Firebase_config";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-regular-svg-icons";
 
@@ -13,7 +12,6 @@ export default function Login() {
   const [Validation, setValidation] = useState("");
   const [Email, setEmail] = useState("");
   const [Password, setPassword] = useState("");
-  const [remeber, setRemember] = useState(false);
   const [wrong, setWrong] = useState("btn btn-danger btn-lg btn-block");
   const validationcheck = () => {
     setValidation("was-validated");
@@ -45,8 +43,46 @@ export default function Login() {
     });
   };
 
-  const checked = () => {
-    setRemember(!remeber);
+  const login = async (e) => {
+    e.preventDefault();
+
+    try {
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        Email,
+        Password
+      );
+      const currentUser = userCredential.user;
+
+      const Signup = {
+        email: currentUser.email,
+        uid: currentUser.uid,
+        lastSignInTime: currentUser.metadata.lastSignInTime,
+        creationTime: currentUser.metadata.creationTime,
+        refreshToken: currentUser.refreshToken,
+        expirationTime: currentUser.toJSON().stsTokenManager.expirationTime,
+        accessToken: currentUser.toJSON().stsTokenManager.accessToken,
+      };
+
+      localStorage.setItem("user", JSON.stringify(Signup));
+
+      message.success("Successfully Login", 1.5);
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 2000);
+    } catch (error) {
+      const errorMessage = error.message.includes(AuthErrorCodes.USER_DELETED)
+        ? "User not found"
+        : error.message.includes(AuthErrorCodes.INVALID_PASSWORD)
+        ? "Wrong Password"
+        : error.message.includes(AuthErrorCodes.NETWORK_REQUEST_FAILED)
+        ? "Check your connection"
+        : error.message.includes(AuthErrorCodes.TOO_MANY_ATTEMPTS_TRY_LATER)
+        ? "Access to this account has been temporarily disabled due to many failed login attempts"
+        : console.log(error.message);
+
+      message.error(errorMessage || "An error occurred", 2.5);
+    }
   };
 
   return (
@@ -72,7 +108,7 @@ export default function Login() {
                         />
                         <span className="h1 fw-bold mb-0">FORBIDDEN 403</span>
                       </div>
-                      <form className={Validation}>
+                      <form className={Validation} onSubmit={login}>
                         <h5
                           className="fw-normal mb-3 pb-3"
                           style={{ letterSpacing: 1 }}
@@ -130,18 +166,6 @@ export default function Login() {
                           <div className="invalid-feedback">
                             Please enter valid passowrd.
                           </div>
-                        </div>
-                        <div className="form-check mb-4">
-                          <input
-                            className="form-check-input"
-                            type="checkbox"
-                            id="checked"
-                            checked={remeber}
-                            onChange={checked}
-                          />
-                          <label className="form-check-label" htmlFor="checked">
-                            Remember me
-                          </label>
                         </div>
                         <div className="pt-1 mb-4">
                           <button

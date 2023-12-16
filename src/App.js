@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useNavigate } from "react-router-dom";
 import Login from "./LFC/Login";
 import { Layout } from "antd";
 import { useEffect } from "react";
@@ -10,12 +10,12 @@ import Error from "./Utils/Authentication/Error";
 import Dashboard from "./Pages/Dashboard";
 import Billing from "./Pages/Billing";
 import Navbar from "./Components/Navbar";
-// import Sidebar from "./Components/Sidebar";
 import ProductEntry from "./Pages/ProductEntry";
 import NewFooter from "./Components/NewFooter";
 import Updates from "./Pages/Updates";
 import Config from "./Pages/Config";
 import Forget from "./LFC/Forget";
+import BillManage from "./Pages/BillManage";
 
 
 function App() {
@@ -82,27 +82,24 @@ function App() {
 
   const [UpdatesData, setUpdatesData] = useState([]);
   const Update = () => {
-    onValue(ref(db, "Updates"), (snapshot) => {
+    let data = []
+    onValue(ref(db, "Updates/"), (snapshot) => {
       snapshot.forEach((child) => {
-        if (child.val() === null) {
-        setUpdatesData([]);
-      } else {
-        setUpdatesData([child.val()]);
-      }
+        data.push(child.val())
       });
+      setUpdatesData(data);
     });
   };
   localStorage.setItem("UpdatesData", JSON.stringify(UpdatesData));
 
   const [CustomersData, setCustomersData] = useState([]);
   const Customers = () => {
+    let data = []
     onValue(ref(db, "Customer"), (snapshot) => {
-      const data = snapshot.val();
-      if (data === null) {
-        setCustomersData([]);
-      } else {
-        setCustomersData(data);
-      }
+      snapshot.forEach((child) => {
+        data.push(child.val())
+      });
+      setCustomersData(data)
     });
   };
   localStorage.setItem("CustomersData", JSON.stringify(CustomersData));
@@ -129,6 +126,20 @@ function App() {
     fetchData();
   },[]);
 
+  let uid,email;
+
+  const users = localStorage.getItem("user");
+  if (users) {
+    // Parse user data
+    const user = JSON.parse(users);
+    ({
+      uid,
+      email,
+    } = user);
+  } else {
+    console.log("No user data in local storage");
+  }
+
   useEffect(() => {
     setInterval(() => {
       document.title= "FORBIDDEN 403"
@@ -137,18 +148,31 @@ function App() {
       document.title= "JALANGI POLYMER ENTERPRISE"
     }, 8000);
   })
+
+  const navigate = useNavigate();
+
+  function RequireAuth({ children }) {
+    if (uid === "" && email === "") {
+      return navigate('/');
+    }
+    
+    return children;
+  }
+  
+  
   
   return (
     <>
       <Routes>
         <Route exact path="/" element={ <><Login/></> } />
         <Route exact path="/forget" element={ <><Forget/></> } />
-        <Route exact path="/*" element={ <><Navbar /><Layout hasSider><Error link="/"/></Layout><NewFooter/></> } />
-        <Route exact path="/dashboard" element={ <><Navbar number="1"/><Layout hasSider><Dashboard/></Layout></> } />
-        <Route exact path="/billing" element={ <><Navbar number="2"/><Layout hasSider><Billing/></Layout><NewFooter/></> } />
-        <Route exact path="/productentry" element={ <><Navbar number="4"/><Layout hasSider><ProductEntry/></Layout></> } />
-        <Route exact path="/updates" element={ <><Navbar number="5"/><Layout hasSider><Updates/></Layout></> } />
-        <Route exact path="/settings" element={ <><Navbar number="5"/><Layout hasSider><Config/></Layout></> } />
+        <Route exact path="/*" element={ <RequireAuth><Navbar /><Error link="/"/><NewFooter/></RequireAuth> } />
+        <Route exact path="/dashboard" element={ <RequireAuth><Navbar number="1"/><Layout hasSider><Dashboard/></Layout><NewFooter/></RequireAuth> } />
+        <Route exact path="/billing" element={ <RequireAuth><Navbar number="2"/><Billing/><NewFooter/></RequireAuth> } />
+        <Route exact path="/billing-manage" element={ <RequireAuth><Navbar number="3"/><BillManage/><NewFooter/></RequireAuth> } />
+        <Route exact path="/productentry" element={ <RequireAuth><Navbar number="4"/><ProductEntry/><NewFooter/></RequireAuth> } />
+        <Route exact path="/updates" element={ <RequireAuth><Navbar number="5"/><Updates/><NewFooter/></RequireAuth> } />
+        <Route exact path="/settings" element={ <RequireAuth><Navbar number="5"/><Config/><NewFooter/></RequireAuth> } />
       </Routes>
     </>
   );

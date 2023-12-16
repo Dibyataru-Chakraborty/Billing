@@ -1,9 +1,8 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { message } from "antd";
-import { auth, db } from "../Utils/Firebase/Firebase_config";
+import { auth } from "../Utils/Firebase/Firebase_config";
 import { sendPasswordResetEmail } from "firebase/auth";
-import { onValue, ref } from "firebase/database";
 
 export default function Forget() {
   const navigate = useNavigate();
@@ -16,35 +15,25 @@ export default function Forget() {
     setValidation("was-validated");
   };
 
-  // const checkUser = (e) => {
-  //   e.preventDefault();
-  //   var User = owner.replace("(", "").replace(")", "");
-  //   const get_users = [];
-  //   onValue(ref(db, "Users/" + User + "/Public/"), (snapshot) => {
-  //     snapshot.val().forEach((e) => get_users.push(e));
-  //     const valid =
-  //       get_users.filter((item) => item.email === Email).length === 1;
-  //     valid ? Succeccful() : Wrong();
-  //     async function Succeccful() {
-  //       await messageApi.open({
-  //         type: "loading",
-  //         content: "Checking...",
-  //         duration: 1,
-  //       });
-  //       await message.success("Successful", 1.5);
-  //       await sendPasswordResetEmail(auth, Email);
-  //       return navigate("/clinic/signin");
-  //     }
-  //     async function Wrong() {
-  //       await messageApi.open({
-  //         type: "loading",
-  //         content: "Checking...",
-  //         duration: 1,
-  //       });
-  //       await message.error("Wrong User", 1.5);
-  //     }
-  //   });
-  // };
+  const checkUser = async () => {
+    try {
+      await messageApi.open({
+        type: "loading",
+        content: "Checking...",
+        duration: 1,
+      });
+      await message.success("Successful", 1.5);
+      await sendPasswordResetEmail(auth, Email);
+      navigate("/");
+    } catch (error) {
+      await messageApi.open({
+        type: "loading",
+        content: "Checking...",
+        duration: 1,
+      });
+      await message.error("Something Wrong: "+error, 1.5);
+    }
+  };
 
   return (
     <>
@@ -66,14 +55,13 @@ export default function Forget() {
                         />
                         <span className="h1 fw-bold mb-0">FORBIDDEN 403</span>
                       </div>
-                      <form className={Validation}>
-                        {" "}
-                        {/* onSubmit={checkUser} */}
+                      <form className={Validation} onSubmit={checkUser}>
                         <h5
                           className="fw-normal mb-3 pb-3"
                           style={{ letterSpacing: 1 }}
                         >
                           Send reset email for your account
+                          {contextHolder}
                         </h5>
                         <div className="form-outline">
                           <label className="form-label" htmlFor="email">
