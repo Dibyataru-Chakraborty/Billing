@@ -1,9 +1,8 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { message } from "antd";
-
 import { AuthErrorCodes, signInWithEmailAndPassword } from "firebase/auth";
-// import { auth, db } from "../Utils/Firebase/Firebase_config";
+import { auth, db } from "../Utils/Firebase/Firebase_config";
 import { get, ref } from "firebase/database";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-regular-svg-icons";
@@ -12,7 +11,6 @@ export default function Login() {
   const navigate = useNavigate();
 
   const [Validation, setValidation] = useState("");
-  const [owner, setOwner] = useState("");
   const [Email, setEmail] = useState("");
   const [Password, setPassword] = useState("");
   const [remeber, setRemember] = useState(false);
@@ -156,7 +154,7 @@ export default function Login() {
                         </div>
                         <Link
                           className="small text-muted"
-                          // to="/forget"
+                          to="/forget"
                           style={{ textDecoration: "None" }}
                         >
                           Forgot password?

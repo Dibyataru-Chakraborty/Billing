@@ -1,0 +1,123 @@
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { message } from "antd";
+import { auth, db } from "../Utils/Firebase/Firebase_config";
+import { sendPasswordResetEmail } from "firebase/auth";
+import { onValue, ref } from "firebase/database";
+
+export default function Forget() {
+  const navigate = useNavigate();
+
+  const [Validation, setValidation] = useState("");
+  const [Email, setEmail] = useState("");
+  const [messageApi, contextHolder] = message.useMessage();
+
+  const validationcheck = () => {
+    setValidation("was-validated");
+  };
+
+  // const checkUser = (e) => {
+  //   e.preventDefault();
+  //   var User = owner.replace("(", "").replace(")", "");
+  //   const get_users = [];
+  //   onValue(ref(db, "Users/" + User + "/Public/"), (snapshot) => {
+  //     snapshot.val().forEach((e) => get_users.push(e));
+  //     const valid =
+  //       get_users.filter((item) => item.email === Email).length === 1;
+  //     valid ? Succeccful() : Wrong();
+  //     async function Succeccful() {
+  //       await messageApi.open({
+  //         type: "loading",
+  //         content: "Checking...",
+  //         duration: 1,
+  //       });
+  //       await message.success("Successful", 1.5);
+  //       await sendPasswordResetEmail(auth, Email);
+  //       return navigate("/clinic/signin");
+  //     }
+  //     async function Wrong() {
+  //       await messageApi.open({
+  //         type: "loading",
+  //         content: "Checking...",
+  //         duration: 1,
+  //       });
+  //       await message.error("Wrong User", 1.5);
+  //     }
+  //   });
+  // };
+
+  return (
+    <>
+      <section className="vh-100">
+        <div className="container py-5 h-100">
+          <div className="row d-flex justify-content-center align-items-center h-100">
+            <div className="col" style={{ width: "fit-content", flex: "0 0 auto" }}>
+              <div className="card" style={{ borderRadius: "1rem" }}>
+                <div
+                  className="row g-0 rounded"
+                  style={{ boxShadow: "20px 2rem 3em rgba(121, 115, 115, 1)" }}
+                >
+                  <div className="ccol d-flex align-items-center">
+                    <div className="card-body p-4 p-lg-5 text-black">
+                      <div className="d-flex align-items-center mb-3 pb-1">
+                        <i
+                          className="fa fa-2x me-3 fa-solid fa-receipt"
+                          style={{ color: "#d10000" }}
+                        />
+                        <span className="h1 fw-bold mb-0">FORBIDDEN 403</span>
+                      </div>
+                      <form className={Validation}>
+                        {" "}
+                        {/* onSubmit={checkUser} */}
+                        <h5
+                          className="fw-normal mb-3 pb-3"
+                          style={{ letterSpacing: 1 }}
+                        >
+                          Send reset email for your account
+                        </h5>
+                        <div className="form-outline">
+                          <label className="form-label" htmlFor="email">
+                            Email address
+                          </label>
+                          <input
+                            type="email"
+                            id="email"
+                            className="form-control form-control-lg"
+                            placeholder="Email Address"
+                            onChange={(event) => {
+                              setEmail(event.target.value);
+                            }}
+                            required
+                          />
+                          <div className="invalid-feedback">
+                            Please enter valid Email address.
+                          </div>
+                        </div>
+                        <div className="pt-1 mb-4">
+                          <button
+                            className="btn btn-danger btn-lg btn-block"
+                            onClick={validationcheck}
+                            type="submit"
+                          >
+                            Validate
+                          </button>
+                        </div>
+                        <Link
+                          className="small text-muted"
+                          to="/"
+                          style={{ textDecoration: "None" }}
+                        >
+                          Sign In
+                        </Link>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </>
+  );
+}

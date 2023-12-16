@@ -15,6 +15,7 @@ import ProductEntry from "./Pages/ProductEntry";
 import NewFooter from "./Components/NewFooter";
 import Updates from "./Pages/Updates";
 import Config from "./Pages/Config";
+import Forget from "./LFC/Forget";
 
 
 function App() {
@@ -141,6 +142,7 @@ function App() {
     <>
       <Routes>
         <Route exact path="/" element={ <><Login/></> } />
+        <Route exact path="/forget" element={ <><Forget/></> } />
         <Route exact path="/*" element={ <><Navbar /><Layout hasSider><Error link="/"/></Layout><NewFooter/></> } />
         <Route exact path="/dashboard" element={ <><Navbar number="1"/><Layout hasSider><Dashboard/></Layout></> } />
         <Route exact path="/billing" element={ <><Navbar number="2"/><Layout hasSider><Billing/></Layout><NewFooter/></> } />

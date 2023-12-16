@@ -239,7 +239,7 @@ export default function ProductEntry() {
     {
       title: "HSN",
       dataIndex: "HSN",
-      width: 150,
+      width: 100,
       sorter: (a, b) => a.HSN.length - b.HSN.length,
       ...getColumnSearchProps("HSN"),
       sortDirections: ["descend", "ascend"],
@@ -247,7 +247,7 @@ export default function ProductEntry() {
     {
       title: "Quantity",
       dataIndex: "Quantity",
-      width: 150,
+      width: 100,
       sorter: (a, b) => a.Quantity - b.Quantity,
       ...getColumnSearchProps("Quantity"),
       sortDirections: ["descend", "ascend"],
@@ -255,7 +255,7 @@ export default function ProductEntry() {
     {
       title: "Rate",
       dataIndex: "RATE",
-      width: 150,
+      width: 100,
       sorter: (a, b) => a.RATE - b.RATE,
       ...getColumnSearchProps("RATE"),
       sortDirections: ["descend", "ascend"],
@@ -263,7 +263,7 @@ export default function ProductEntry() {
     {
       title: "Per",
       dataIndex: "Per",
-      width: 150,
+      width: 100,
       sorter: (a, b) => a.Per.length - b.Per.length,
       ...getColumnSearchProps("Per"),
       sortDirections: ["descend", "ascend"],
