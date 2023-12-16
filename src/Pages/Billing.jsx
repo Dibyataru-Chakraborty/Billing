@@ -481,7 +481,7 @@ export default function Billing() {
     setIGSTAmountWord(toWords.convert(newIGSTAmount, { currency: true }));
   }, [SelectedCheckbox]);
 
-  const [SavePrintBtn, setSavePrintBtn] = useState(false);
+  const [SavePrintBtn, setSavePrintBtn] = useState(true);
   const BillSave = async () => {
     try {
       let bill = {
