@@ -158,15 +158,13 @@ function App() {
     
     return children;
   }
-  
-  
-  
+    
   return (
     <>
       <Routes>
         <Route exact path="/" element={ <><Login/></> } />
         <Route exact path="/forget" element={ <><Forget/></> } />
-        <Route exact path="/*" element={ <RequireAuth><Navbar /><Error link="/"/><NewFooter/></RequireAuth> } />
+        <Route exact path="/*" element={ <RequireAuth><Navbar /><Error link="/dashboard"/><NewFooter/></RequireAuth> } />
         <Route exact path="/dashboard" element={ <RequireAuth><Navbar number="1"/><Layout hasSider><Dashboard/></Layout><NewFooter/></RequireAuth> } />
         <Route exact path="/billing" element={ <RequireAuth><Navbar number="2"/><Billing/><NewFooter/></RequireAuth> } />
         <Route exact path="/billing-manage" element={ <RequireAuth><Navbar number="3"/><BillManage/><NewFooter/></RequireAuth> } />

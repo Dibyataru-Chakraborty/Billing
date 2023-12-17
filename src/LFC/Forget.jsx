@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { message } from "antd";
 import { auth } from "../Utils/Firebase/Firebase_config";
-import { sendPasswordResetEmail } from "firebase/auth";
+import { AuthErrorCodes, sendPasswordResetEmail } from "firebase/auth";
 
 export default function Forget() {
   const navigate = useNavigate();
@@ -15,23 +15,26 @@ export default function Forget() {
     setValidation("was-validated");
   };
 
-  const checkUser = async () => {
+  const checkUser = async(e) => {
+    e.preventDefault();
+    await messageApi.open({
+      type: "loading",
+      content: "Checking...",
+      duration: 1,
+    });
     try {
-      await messageApi.open({
-        type: "loading",
-        content: "Checking...",
-        duration: 1,
-      });
-      await message.success("Successful", 1.5);
       await sendPasswordResetEmail(auth, Email);
+      await message.success("Successful", 1.5);
       navigate("/");
     } catch (error) {
-      await messageApi.open({
-        type: "loading",
-        content: "Checking...",
-        duration: 1,
-      });
-      await message.error("Something Wrong: "+error, 1.5);
+      const errorMessage = error.message.includes(AuthErrorCodes.USER_DELETED)
+        ? "User not found"
+        : error.message.includes(AuthErrorCodes.NETWORK_REQUEST_FAILED)
+        ? "Check your connection"
+        : error.message.includes(AuthErrorCodes.TOO_MANY_ATTEMPTS_TRY_LATER)
+        ? "Access to this account has been temporarily disabled due to many failed login attempts"
+        : console.log(error.message);
+      message.error(errorMessage || "An error occurred", 2.5);
     }
   };
 
@@ -85,7 +88,7 @@ export default function Forget() {
                           <button
                             className="btn btn-danger btn-lg btn-block"
                             onClick={validationcheck}
-                            type="submit"
+                            type={"submit"}
                           >
                             Validate
                           </button>

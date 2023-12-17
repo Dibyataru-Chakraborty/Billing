@@ -1,5 +1,5 @@
 import { Layout, Menu, Button, Drawer, Row, Col } from "antd";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MenuOutlined } from "@ant-design/icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -21,15 +21,32 @@ import { signOut } from "firebase/auth";
 export default function Navbar(props) {
   const navigate = useNavigate();
 
-  const connectedRef = ref(db, ".info/connected");
-  onValue(connectedRef, (snap) => {
-    console.log(snap.val());
-  });
-  const connectedIcon = connectedRef ? (
+  const [connectedIcon, setConnectedIcon] = useState(
     <FontAwesomeIcon icon={faWifi} style={{ color: "#06c767" }} />
-  ) : (
-    <FontAwesomeIcon icon={faEarthAmericas} style={{ color: "#f22602" }} />
   );
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const handleChange = (snap) => {
+      if (isMounted) {
+        setConnectedIcon(
+          snap.val() ? (
+            <FontAwesomeIcon icon={faWifi} style={{ color: "#06c767" }} />
+          ) : (
+            <FontAwesomeIcon
+              icon={faEarthAmericas}
+              style={{ color: "#f22602" }}
+            />
+          )
+        );
+      }
+    };
+    onValue(ref(db, ".info/connected"), handleChange);
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const { Header } = Layout;
   const [current, setCurrent] = useState(props.number);
