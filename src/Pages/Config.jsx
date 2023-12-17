@@ -59,7 +59,7 @@ export default function Config() {
           style={{
             width: "100%",
           }}
-          title="KANIKA DIAGNOSTIC & POLYCLINIC Settings"
+          title="JALANGI POLYMER ENTERPRISE Settings"
           tabList={tabList}
           activeTabKey={activeTabKey}
           onTabChange={onTabChange}
