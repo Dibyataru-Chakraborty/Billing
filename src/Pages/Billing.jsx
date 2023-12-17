@@ -384,7 +384,7 @@ export default function Billing() {
   localStorage.setItem("SelectedCheckbox", JSON.stringify(SelectedCheckbox));
 
   const handleQuantityChange = (e, productId) => {
-    const newQuantity = parseFloat(e.target.value) || 0;
+    let newQuantity = parseFloat(e.target.value) || 0;
 
     const maxQuantity = Math.max(
       ...SelectedCheckbox.filter((item) => item.id === productId).map(
@@ -396,6 +396,7 @@ export default function Billing() {
       // Display an alert if the entered value exceeds maxQuantity
       alert(`Maximum allowed quantity is ${maxQuantity}`);
       e.target.value = maxQuantity;
+      newQuantity = maxQuantity;
     }
 
     // Update the state with the new quantity

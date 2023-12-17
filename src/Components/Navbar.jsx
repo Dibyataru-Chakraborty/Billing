@@ -15,7 +15,8 @@ import {
   faWifi,
 } from "@fortawesome/free-solid-svg-icons";
 import { onValue, ref } from "firebase/database";
-import { db } from "../Utils/Firebase/Firebase_config";
+import { auth, db } from "../Utils/Firebase/Firebase_config";
+import { signOut } from "firebase/auth";
 
 export default function Navbar(props) {
   const navigate = useNavigate();
@@ -60,8 +61,10 @@ export default function Navbar(props) {
     log_out();
     function log_out() {
       if (e.key === "9") {
-        localStorage.setItem("user", JSON.stringify(logout));
-        navigate("/");
+        signOut(auth).then(() => {
+          localStorage.setItem("user", JSON.stringify(logout));
+          navigate("/");
+        });
       } else {
         navigate(routes[e.key] || routes["default"]);
       }
