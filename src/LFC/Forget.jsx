@@ -24,7 +24,7 @@ export default function Forget() {
     });
     try {
       await sendPasswordResetEmail(auth, Email);
-      await message.success("Successful", 1.5);
+      await message.success("Check your email", 1.5);
       navigate("/");
     } catch (error) {
       const errorMessage = error.message.includes(AuthErrorCodes.USER_DELETED)

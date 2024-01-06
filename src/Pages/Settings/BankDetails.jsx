@@ -11,7 +11,7 @@ export default function BankDetails() {
   const [branchAndIFSC, setBranchAndIFSC] = useState("");
 
   const save = async () => {
-    const center = {
+    const client = {
       accountHolderName: accountHolderName,
       bankName: bankName,
       accountNumber: accountNumber,
@@ -19,26 +19,31 @@ export default function BankDetails() {
     };
 
     try {
-      await update(ref(db, "Settings/"), center);
+      await update(ref(db, "Settings/"), client);
       message.success("Details Update");
     } catch (e) {
       message.error("Something Wrong");
     }
   };
 
-  const clinic = JSON.parse(localStorage.getItem("SettingsConfig"))[0]?.Center;
-
   useEffect(() => {
-    setAccountHolderName(clinic?.accountHolderName || "");
-    setBankName(clinic?.bankName || "");
-    setAccountNumber(clinic?.accountNumber || "");
-    setBranchAndIFSC(clinic?.branchAndIFSC || "");
-  }, [
-    clinic?.accountHolderName,
-    clinic?.bankName,
-    clinic?.accountNumber,
-    clinic?.branchAndIFSC,
-  ]);
+    // Retrieve data from localStorage
+    const storedData = JSON.parse(localStorage.getItem("SettingsConfig")) || {};
+
+    // Extract values from the stored data
+    const {
+      accountHolderName: storedAccountHolderName,
+      accountNumber: storedAccountNumber,
+      bankName: storedBankName,
+      branchAndIFSC: storedBranchAndIFSC,
+    } = storedData;
+
+    // Set state variables using the extracted values
+    setAccountHolderName(storedAccountHolderName || "");
+    setAccountNumber(storedAccountNumber || "");
+    setBankName(storedBankName || "");
+    setBranchAndIFSC(storedBranchAndIFSC || "");
+  }, []);
 
   return (
     <>

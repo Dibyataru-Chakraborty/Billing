@@ -2,6 +2,7 @@ import { SearchOutlined } from "@ant-design/icons";
 import Highlighter from "react-highlight-words";
 import { Input, Space, Table, Button } from "antd";
 import React, { useRef, useState } from "react";
+import { SaveOutlined } from "@ant-design/icons";
 
 export default function BillManage() {
   const [searchText, setSearchText] = useState("");
@@ -155,6 +156,26 @@ export default function BillManage() {
       ...getColumnSearchProps("NetAmount"),
       sortDirections: ["descend", "ascend"],
     },
+    {
+      title: "Print",
+      dataIndex: "Print",
+      width: 150,
+      render: () => {
+        return (
+          <>
+            <div className="text-center">
+              <button
+                type="button"
+                className="btn btn-success btn-sm rounded-circle"
+                // onClick={BillSave}
+              >
+                <SaveOutlined />
+              </button>
+            </div>
+          </>
+        );
+      },
+    },
   ];
 
   const expandedRowRender = (record) => {
@@ -211,15 +232,15 @@ export default function BillManage() {
     ];
 
     return (
-        <Table
-          columns={expandcolumn}
-          dataSource={record.Product.map((product, index) => ({
-            ...product,
-            key: index,
-          }))}
-          pagination={false}
-          size="small"
-        />
+      <Table
+        columns={expandcolumn}
+        dataSource={record.Product.map((product, index) => ({
+          ...product,
+          key: index,
+        }))}
+        pagination={false}
+        size="small"
+      />
     );
   };
 
@@ -229,6 +250,7 @@ export default function BillManage() {
     if (element !== null) {
       data.push({
         key: count++,
+        id: element.id,
         BillDate: element.BillDate,
         BillId: element.BillId,
         Buyer: element.Buyer,

@@ -64,7 +64,7 @@ export default function Login() {
         accessToken: currentUser.toJSON().stsTokenManager.accessToken,
       };
 
-      localStorage.setItem("user", JSON.stringify(Signup));
+      sessionStorage.setItem("user", JSON.stringify(Signup));
 
       message.success("Successfully Login", 1.5);
       setTimeout(() => {

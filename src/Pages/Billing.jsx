@@ -17,7 +17,7 @@ import {
 } from "antd";
 import React, { useEffect, useRef, useState } from "react";
 import {
-  PrinterOutlined,
+  // PrinterOutlined,
   PlusCircleOutlined,
   SaveOutlined,
 } from "@ant-design/icons";
@@ -444,7 +444,7 @@ export default function Billing() {
   const [IGSTAmount, setIGSTAmount] = useState(0);
   const [CGSTAmount, setCGSTAmount] = useState(0);
   const [SGSTAmount, setSGSTAmount] = useState(0);
-  const [totalProductQuantity, setTotalProductQuantity] = useState(0);
+  // const [totalProductQuantity, setTotalProductQuantity] = useState(0);
   const [NetAmount, setNetAmount] = useState(0);
   const [NetAmountWord, setNetAmountWord] = useState("");
   const [IGSTAmountWord, setIGSTAmountWord] = useState("");
@@ -463,29 +463,32 @@ export default function Billing() {
     const newIGSTAmount = Math.round(Number(newTotalAmount) * 18) / 100;
     const newCGSTAmount = Math.round(Number(newTotalAmount) * 9) / 100;
     const newSGSTAmount = Math.round(Number(newTotalAmount) * 9) / 100;
-    const newtotalProductQuantity = SelectedCheckbox.reduce(
-      (total, product) => +(total + product.userQyt).toFixed(2),
-      0
-    );
+    // const newtotalProductQuantity = SelectedCheckbox.reduce(
+    //   (total, product) => +(total + product.userQyt).toFixed(2),
+    //   0
+    // );
     const newNetAmount = Math.round(
       Number(newTotalAmount) + Number(newIGSTAmount)
     );
 
     setuHSN(uniqueHsns);
     setTotalAmount(newTotalAmount);
-    setTotalProductQuantity(newtotalProductQuantity);
+    // setTotalProductQuantity(newtotalProductQuantity);
     setIGSTAmount(newIGSTAmount);
     setCGSTAmount(newCGSTAmount);
     setSGSTAmount(newSGSTAmount);
     setNetAmount(newNetAmount);
     setNetAmountWord(toWords.convert(newNetAmount, { currency: true }));
     setIGSTAmountWord(toWords.convert(newIGSTAmount, { currency: true }));
+    newNetAmount !== "" && newNetAmount!== 0? setSavePrintBtn(true) : setSavePrintBtn(false);
   }, [SelectedCheckbox]);
 
-  const [SavePrintBtn, setSavePrintBtn] = useState(true);
-  const BillSave = async () => {
+  const [SavePrintBtn, setSavePrintBtn] = useState(false);
+
+  const BillSave = async (e) => {
+    e.preventDefault();
     try {
-      let bill = {
+      const bill = {
         Product: SelectedCheckbox,
         BillId: InvoiceNumber,
         BillDate: formattedDate,
@@ -520,18 +523,24 @@ export default function Billing() {
         SGSTAmount: SGSTAmount,
         NetAmount: NetAmount,
       };
-      let newtotalQuantity = SelectedCheckbox.map((item) => ({
+
+      const updatedProducts = SelectedCheckbox.map((item) => ({
         ...item,
         Quantity: +(item.Quantity - item.userQyt).toFixed(2),
       }));
       const updates = {};
-      newtotalQuantity.forEach((item) => {
-        updates[`Products/${item.id - 1}/Quantity`] = item.Quantity;
+      updatedProducts.forEach((item) => {
+        const productIndex = item.id - 1;
+        updates[`Products/${productIndex}/Quantity`] = item.Quantity;
       });
+
+      message.success("Please don't reload the page");
+      handlePrint("Original for Recipient");
+      handlePrint("Duplicate for Transporter");
+      handlePrint("Triplicate for Supplier");
       await push(ref(db, "Customer/"), bill);
       await update(ref(db), updates);
       message.success("Bill Saved successfully");
-      setSavePrintBtn(false);
     } catch (error) {
       alert("Error saving bill:", error.message);
       console.log(error.message);
@@ -543,19 +552,24 @@ export default function Billing() {
   const [accountNumber, setAccountNumber] = useState("");
   const [branchAndIFSC, setBranchAndIFSC] = useState("");
 
-  const clinic = JSON.parse(localStorage.getItem("SettingsConfig"))[0]?.Center;
-
   useEffect(() => {
-    setAccountHolderName(clinic?.accountHolderName || "");
-    setBankName(clinic?.bankName || "");
-    setAccountNumber(clinic?.accountNumber || "");
-    setBranchAndIFSC(clinic?.branchAndIFSC || "");
-  }, [
-    clinic?.accountHolderName,
-    clinic?.bankName,
-    clinic?.accountNumber,
-    clinic?.branchAndIFSC,
-  ]);
+    // Retrieve data from localStorage
+    const storedData = JSON.parse(localStorage.getItem("SettingsConfig")) || {};
+
+    // Extract values from the stored data
+    const {
+      accountHolderName: storedAccountHolderName,
+      accountNumber: storedAccountNumber,
+      bankName: storedBankName,
+      branchAndIFSC: storedBranchAndIFSC,
+    } = storedData;
+
+    // Set state variables using the extracted values
+    setAccountHolderName(storedAccountHolderName || "");
+    setAccountNumber(storedAccountNumber || "");
+    setBankName(storedBankName || "");
+    setBranchAndIFSC(storedBranchAndIFSC || "");
+  }, []);
 
   return (
     <>
@@ -569,7 +583,7 @@ export default function Billing() {
               content={"JALANGI POLYMER ENTERPRISE"}
             >
               <div className="card-header text-center fw-bold fs-4">
-                Invoice
+                Tax Invoice
               </div>
               <div className="card-body">
                 <header>
@@ -588,7 +602,7 @@ export default function Billing() {
                                   <br />
                                   Dwipchandrapur, Dhubulia,
                                   <br />
-                                  Nadia, West Bengal, 19
+                                  Nadia, 19 - West Bengal,
                                   <br />
                                   741125
                                 </p>
@@ -880,7 +894,8 @@ export default function Billing() {
                               <div className="text-end">Total</div>
                             </td>
                             <td></td>
-                            <td>{totalProductQuantity}</td>
+                            {/* <td>{totalProductQuantity}</td> */}
+                            <td></td>
                             <td></td>
                             <td></td>
                             <td className="text-end">
@@ -937,7 +952,7 @@ export default function Billing() {
                                   {IGSTAmount}
                                 </td>
                                 <td className="text-center fw-bold">
-                                  {NetAmount}
+                                  {IGSTAmount}
                                 </td>
                               </tr>
                             </tfoot>
@@ -971,7 +986,7 @@ export default function Billing() {
                                 <td className="text-center">{CGSTAmount}</td>
                                 <td className="text-center">9%</td>
                                 <td className="text-center">{SGSTAmount}</td>
-                                <td className="text-center">{NetAmount}</td>
+                                <td className="text-center">{IGSTAmount}</td>
                               </tr>
                             </tbody>
                             <tfoot>
@@ -989,7 +1004,7 @@ export default function Billing() {
                                   {SGSTAmount}
                                 </td>
                                 <td className="text-center fw-bold">
-                                  {NetAmount}
+                                  {IGSTAmount}
                                 </td>
                               </tr>
                             </tfoot>
@@ -1035,7 +1050,7 @@ export default function Billing() {
                     </div>
                     <div className="col">
                       <div className="table-responsive">
-                        <table>
+                        <table className="table table-bordered" border={2}>
                           <tbody>
                             <tr>
                               <td>
@@ -1083,7 +1098,8 @@ export default function Billing() {
                   </div>
                 </main>
               </div>
-              {SavePrintBtn && Sale !== "" && Sale !== undefined ? (
+
+              {/* {SavePrintBtn ? (
                 <>
                   <footer className="text-end">
                     <button
@@ -1095,7 +1111,8 @@ export default function Billing() {
                     </button>
                   </footer>
                 </>
-              ) : null}
+              ) : null} */}
+
               <div className="card-footer text-center fw-bold">
                 Thank You For Purchasing. Visit Again.
               </div>
@@ -1299,7 +1316,15 @@ export default function Billing() {
         </div>
       </div>
 
-      {!SavePrintBtn ? (
+      {SavePrintBtn ? (
+        <FloatButton
+          onClick={BillSave}
+          tooltip={<div>Bill Save</div>}
+          icon={<SaveOutlined />}
+        />
+      ) : null}
+
+      {/* {!SavePrintBtn ? (
         <>
           <FloatButton.Group
             trigger="hover"
@@ -1325,7 +1350,7 @@ export default function Billing() {
             />
           </FloatButton.Group>
         </>
-      ) : null}
+      ) : null} */}
     </>
   );
 }
