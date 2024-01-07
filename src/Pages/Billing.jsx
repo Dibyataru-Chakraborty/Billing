@@ -365,7 +365,7 @@ export default function Billing() {
   ];
   const data = [];
   var count = "0";
-  JSON.parse(localStorage.getItem("ProductsData")).forEach((element) => {
+  JSON.parse(sessionStorage.getItem("ProductsData")).forEach((element) => {
     if (element !== null && element.RATE > 0) {
       data.push({
         key: count++,
@@ -381,7 +381,7 @@ export default function Billing() {
       });
     }
   });
-  localStorage.setItem("SelectedCheckbox", JSON.stringify(SelectedCheckbox));
+  sessionStorage.setItem("SelectedCheckbox", JSON.stringify(SelectedCheckbox));
 
   const handleQuantityChange = (e, productId) => {
     let newQuantity = parseFloat(e.target.value) || 0;
@@ -492,6 +492,7 @@ export default function Billing() {
         Product: SelectedCheckbox,
         BillId: InvoiceNumber,
         BillDate: formattedDate,
+        BillTime: formattedTime,
         Consignee: [
           {
             Name: Consignee_Name,
@@ -522,6 +523,7 @@ export default function Billing() {
         CGSTAmount: CGSTAmount,
         SGSTAmount: SGSTAmount,
         NetAmount: NetAmount,
+        TotalAmount: totalAmount
       };
 
       const updatedProducts = SelectedCheckbox.map((item) => ({
@@ -553,8 +555,8 @@ export default function Billing() {
   const [branchAndIFSC, setBranchAndIFSC] = useState("");
 
   useEffect(() => {
-    // Retrieve data from localStorage
-    const storedData = JSON.parse(localStorage.getItem("SettingsConfig")) || {};
+    // Retrieve data from sessionStorage
+    const storedData = JSON.parse(sessionStorage.getItem("SettingsConfig")) || {};
 
     // Extract values from the stored data
     const {

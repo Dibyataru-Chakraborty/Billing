@@ -1,69 +1,75 @@
 import { Routes, Route, useNavigate } from "react-router-dom";
-import Login from "./LFC/Login";
 import { Layout, Spin } from "antd";
-import { Suspense, useEffect } from "react";
+import { Suspense, lazy, useEffect } from "react";
 import { onValue, ref } from "firebase/database";
 import { db } from "./Utils/Firebase/Firebase_config";
 import { useState } from "react";
 
 import Error from "./Pages/Error";
-import Dashboard from "./Pages/Dashboard";
-import Billing from "./Pages/Billing";
-import Navbar from "./Components/Navbar";
-import ProductEntry from "./Pages/ProductEntry";
-import NewFooter from "./Components/NewFooter";
-import Updates from "./Pages/Updates";
-import Config from "./Pages/Config";
-import Forget from "./LFC/Forget";
-import BillManage from "./Pages/BillManage";
+import Offline from "./Pages/Offline";
+
+const Dashboard = lazy(() => import("./Pages/Dashboard"));
+const Billing = lazy(() => import("./Pages/Billing"));
+const Navbar = lazy(() => import("./Components/Navbar"));
+const ProductEntry = lazy(() => import("./Pages/ProductEntry"));
+const NewFooter = lazy(() => import("./Components/NewFooter"));
+const Updates = lazy(() => import("./Pages/Updates"));
+const Config = lazy(() => import("./Pages/Config"));
+const Forget = lazy(() => import("./LFC/Forget"));
+const Login = lazy(() => import("./LFC/Login"));
+const BillManage = lazy(() => import("./Pages/BillManage"));
+const PrintBill = lazy(() => import("./Pages/Pdf/PrintBill"));
 
 function App() {
-  // useEffect(() => {
-  //   const handleContextMenu = (e) => {
-  //     e.preventDefault();
-  //   };
+  useEffect(() => {
+    const handleContextMenu = (e) => {
+      e.preventDefault();
+    };
 
-  //   const handleKeyDown = (e) => {
-  //     // "I" key
-  //     if (e.ctrlKey && e.shiftKey && e.keyCode === 73) {
-  //       disabledEvent(e);
-  //     }
-  //     // "J" key
-  //     if (e.ctrlKey && e.shiftKey && e.keyCode === 74) {
-  //       disabledEvent(e);
-  //     }
-  //     // "S" key + macOS
-  //     if (e.keyCode === 83 && (navigator.platform.match('Mac') ? e.metaKey : e.ctrlKey)) {
-  //       disabledEvent(e);
-  //     }
-  //     // "U" key
-  //     if (e.ctrlKey && e.keyCode === 85) {
-  //       disabledEvent(e);
-  //     }
-  //     // "F12" key
-  //     if (e.keyCode === 123) {
-  //       disabledEvent(e);
-  //     }
-  //   };
+    const handleKeyDown = (e) => {
+      // "I" key
+      if (e.ctrlKey && e.shiftKey && e.keyCode === 73) {
+        disabledEvent(e);
+      }
+      // "J" key
+      if (e.ctrlKey && e.shiftKey && e.keyCode === 74) {
+        disabledEvent(e);
+      }
+      // "S" key + macOS
+      if (
+        e.keyCode === 83 &&
+        (navigator.platform.match("Mac") ? e.metaKey : e.ctrlKey)
+      ) {
+        disabledEvent(e);
+      }
+      // "U" key
+      if (e.ctrlKey && e.keyCode === 85) {
+        disabledEvent(e);
+      }
+      // "F12" key
+      if (e.keyCode === 123) {
+        disabledEvent(e);
+      }
+    };
 
-  //   const disabledEvent = (e) => {
-  //     if (e.stopPropagation) {
-  //       e.stopPropagation();
-  //     } else if (window.event) {
-  //       window.event.cancelBubble = true;
-  //     }
-  //     e.preventDefault();
-  //     return false;
-  //   };
+    const disabledEvent = (e) => {
+      if (e.stopPropagation) {
+        e.stopPropagation();
+      } else if (window.event) {
+        window.event.cancelBubble = true;
+      }
+      e.preventDefault();
+      return false;
+    };
 
-  //   document.addEventListener('contextmenu', handleContextMenu, false);
-  //   document.addEventListener('keydown', handleKeyDown, false);
+    document.addEventListener("contextmenu", handleContextMenu, false);
+    document.addEventListener("keydown", handleKeyDown, false);
 
-  //   return () => {
-  //     document.removeEventListener('contextmenu', handleContextMenu, false);
-  //     document.removeEventListener('keydown', handleKeyDown, false);
-  //   };
-  // }, []);
+    return () => {
+      document.removeEventListener("contextmenu", handleContextMenu, false);
+      document.removeEventListener("keydown", handleKeyDown, false);
+    };
+  }, []);
 
   const [ProductsData, setProductsData] = useState([]);
   const Products = () => {
@@ -76,7 +82,7 @@ function App() {
       }
     });
   };
-  localStorage.setItem("ProductsData", JSON.stringify(ProductsData));
+  sessionStorage.setItem("ProductsData", JSON.stringify(ProductsData));
 
   const [UpdatesData, setUpdatesData] = useState([]);
   const Update = () => {
@@ -96,7 +102,7 @@ function App() {
       }
     });
   };
-  localStorage.setItem("UpdatesData", JSON.stringify(UpdatesData));
+  sessionStorage.setItem("UpdatesData", JSON.stringify(UpdatesData));
 
   const [CustomersData, setCustomersData] = useState([]);
   const Customers = () => {
@@ -116,7 +122,37 @@ function App() {
       }
     });
   };
-  localStorage.setItem("CustomersData", JSON.stringify(CustomersData));
+  //month count
+  sessionStorage.setItem("CustomersData", JSON.stringify(CustomersData));
+  const monthCounts = Object.values(CustomersData).reduce((acc, entry) => {
+    const { BillDate } = entry;
+    const monthYear = BillDate.slice(3); // Extract month and year (excluding day)
+    acc[monthYear] = (acc[monthYear] || 0) + 1;
+    return acc;
+  }, {});
+  // Convert the object values to an array of counts
+  const resultArrayMonth = Object.values(monthCounts);
+  sessionStorage.setItem(
+    "billDateCountMonth",
+    JSON.stringify(resultArrayMonth)
+  );
+  //day count
+  const dayCounts = Object.values(CustomersData).reduce((acc, entry) => {
+    const { BillDate } = entry;
+    const today = new Date().toLocaleDateString();
+
+    // Check if the BillDate is until today
+    if (new Date(BillDate) <= new Date(today)) {
+      acc[BillDate] = (acc[BillDate] || 0) + 1;
+    }
+    return acc;
+  }, {});
+  // Convert the object entries to an array of objects with date and count
+  const resultArrayDay = Object.entries(dayCounts).map(([date, count]) => ({
+    date,
+    count,
+  }));
+  sessionStorage.setItem("billDateCount", JSON.stringify(resultArrayDay));
 
   const [Settings_Config, setSettings_Config] = useState([]);
   const SettingsConfig = () => {
@@ -128,17 +164,7 @@ function App() {
       }
     });
   };
-  localStorage.setItem("SettingsConfig", JSON.stringify(Settings_Config));
-
-  // let uid, email;
-  // const users = sessionStorage.getItem("user");
-  // if (users) {
-  //   // Parse user data
-  //   const user = JSON.parse(users);
-  //   ({ uid, email } = user);
-  // } else {
-  //   console.log("No user data in local storage");
-  // }
+  sessionStorage.setItem("SettingsConfig", JSON.stringify(Settings_Config));
 
   useEffect(() => {
     setInterval(() => {
@@ -152,14 +178,20 @@ function App() {
   const navigate = useNavigate();
 
   const [check, setcheck] = useState(false);
-  function RequireAuth({ children }) {
-    if (sessionStorage.getItem("user")===null) {
-      return navigate("/");
-    }
 
-    setcheck(true);
+  function RequireAuth({ children }) {
+    useEffect(() => {
+      if (sessionStorage.getItem("user") === null) {
+        navigate("/");
+      } else {
+        setcheck(true);
+      }
+    }, []);
+
     return children;
   }
+
+  const [isSessionStorageLoaded, setSessionStorageLoaded] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -167,21 +199,243 @@ function App() {
     };
     if (check) {
       fetchData();
+      const CustomersDatasessionData = sessionStorage.getItem("CustomersData");
+      if (CustomersDatasessionData) {
+        setSessionStorageLoaded(true);
+      }
     }
   }, [check]);
+
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+
+  useEffect(() => {
+    const updateOnlineStatus = () => {
+      setIsOnline(navigator.onLine);
+    };
+
+    window.addEventListener("online", updateOnlineStatus);
+    window.addEventListener("offline", updateOnlineStatus);
+
+    return () => {
+      window.removeEventListener("online", updateOnlineStatus);
+      window.removeEventListener("offline", updateOnlineStatus);
+    };
+  }, []);
+
+  if (!isOnline) {
+    return (
+      <>
+        <Offline />
+      </>
+    );
+  }
 
   return (
     <>
       <Routes>
-        <Route exact path="/" element={ <Suspense fallback={<Spin tip="Loading" size="large"><div className="content" /></Spin>}> <Login /> </Suspense> } />
-        <Route exact path="/forget"  element={ <> <Forget /> </> } />
-        <Route exact path="/*" element={ <RequireAuth> <Navbar /> <Error link="/dashboard" /> <NewFooter /> </RequireAuth>  }/>
-        <Route exact path="/dashboard" element={ <RequireAuth> <Navbar number="1" /> <Layout hasSider> <Dashboard /> </Layout> <NewFooter /> </RequireAuth> } />
-        <Route exact path="/billing"  element={  <RequireAuth>  <Navbar number="2" />  <Billing />  <NewFooter />  </RequireAuth>  }  />
-        <Route exact path="/billing-manage" element={ <RequireAuth> <Navbar number="3" /> <BillManage /> <NewFooter /> </RequireAuth> } />
-        <Route exact path="/productentry" element={ <RequireAuth> <Navbar number="4" /> <ProductEntry /> <NewFooter /> </RequireAuth> } />
-        <Route exact path="/updates" element={ <RequireAuth> <Navbar number="5" /> <Updates /> <NewFooter /> </RequireAuth> } />
-        <Route exact path="/settings" element={ <RequireAuth> <Navbar number="5" /> <Config /> <NewFooter /> </RequireAuth> } />
+        <Route
+          exact
+          path="/"
+          element={
+            <Suspense
+              fallback={
+                <div className="container py-5 h-100">
+                  <Spin tip="Loading" size="large">
+                    <div className="content" />
+                  </Spin>
+                </div>
+              }
+            >
+              {" "}
+              <Login />{" "}
+            </Suspense>
+          }
+        />
+        <Route
+          exact
+          path="/forget"
+          element={
+            <Suspense
+              fallback={
+                <div className="container py-5 h-100">
+                  <Spin tip="Loading" size="large">
+                    <div className="content" />
+                  </Spin>
+                </div>
+              }
+            >
+              {" "}
+              <Forget />{" "}
+            </Suspense>
+          }
+        />
+        <Route
+          exact
+          path="/*"
+          element={
+            <>
+              <RequireAuth>
+                {" "}
+                <Navbar /> <Error link="/dashboard" /> <NewFooter />{" "}
+              </RequireAuth>{" "}
+            </>
+          }
+        />
+        <Route
+          exact
+          path="/dashboard"
+          element={
+            <Suspense
+              fallback={
+                <div className="container py-5 h-100">
+                  <Spin tip="Loading" size="large">
+                    <div className="content" />
+                  </Spin>
+                </div>
+              }
+            >
+              <RequireAuth>
+                {" "}
+                <Navbar number="1" />{" "}
+                <Layout hasSider>
+                  {" "}
+                  <Dashboard />{" "}
+                </Layout>{" "}
+                <NewFooter />{" "}
+              </RequireAuth>{" "}
+            </Suspense>
+          }
+        />
+        <Route
+          exact
+          path="/billing"
+          element={
+            <Suspense
+              fallback={
+                <div className="container py-5 h-100">
+                  <Spin tip="Loading" size="large">
+                    <div className="content" />
+                  </Spin>
+                </div>
+              }
+            >
+              <RequireAuth>
+                {" "}
+                <Navbar number="2" /> <Billing /> <NewFooter />{" "}
+              </RequireAuth>{" "}
+            </Suspense>
+          }
+        />
+        <Route
+          exact
+          path="/billing-manage"
+          element={
+            <Suspense
+              fallback={
+                <div className="container py-5 h-100">
+                  <Spin tip="Loading" size="large">
+                    <div className="content" />
+                  </Spin>
+                </div>
+              }
+            >
+              <RequireAuth>
+                {" "}
+                <Navbar number="3" /> <BillManage /> <NewFooter />{" "}
+              </RequireAuth>{" "}
+            </Suspense>
+          }
+        />
+        <Route
+          exact
+          path="/billing-manage/:billid"
+          element={
+            <Suspense
+              fallback={
+                <div className="container py-5 h-100">
+                  <Spin tip="Loading" size="large">
+                    <div className="content" />
+                  </Spin>
+                </div>
+              }
+            >
+              <RequireAuth>
+                {" "}
+                <Navbar number="3" />{" "}
+                {isSessionStorageLoaded ? (
+                  <PrintBill />
+                ) : (
+                  <>
+                    <div className="container py-5 h-100">
+                      <Spin tip="Loading" size="large">
+                        <div className="content" />
+                      </Spin>
+                    </div>
+                  </>
+                )}
+                <NewFooter />{" "}
+              </RequireAuth>
+            </Suspense>
+          }
+        />
+        <Route
+          exact
+          path="/productentry"
+          element={
+            <Suspense
+              fallback={
+                <div className="container py-5 h-100">
+                  <Spin tip="Loading" size="large">
+                    <div className="content" />
+                  </Spin>
+                </div>
+              }
+            >
+              <RequireAuth>
+                {" "}
+                <Navbar number="4" /> <ProductEntry /> <NewFooter />{" "}
+              </RequireAuth>
+            </Suspense>
+          }
+        />
+        <Route
+          exact
+          path="/updates"
+          element={
+            <Suspense
+              fallback={
+                <div className="container py-5 h-100">
+                  <Spin tip="Loading" size="large">
+                    <div className="content" />
+                  </Spin>
+                </div>
+              }
+            >
+              <RequireAuth>
+                <Navbar number="5" /> <Updates /> <NewFooter />{" "}
+              </RequireAuth>
+            </Suspense>
+          }
+        />
+        <Route
+          exact
+          path="/settings"
+          element={
+            <Suspense
+              fallback={
+                <div className="container py-5 h-100">
+                  <Spin tip="Loading" size="large">
+                    <div className="content" />
+                  </Spin>
+                </div>
+              }
+            >
+              <RequireAuth>
+                <Navbar number="5" /> <Config /> <NewFooter />
+              </RequireAuth>
+            </Suspense>
+          }
+        />
       </Routes>
     </>
   );

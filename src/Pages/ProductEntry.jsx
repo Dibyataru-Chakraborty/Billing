@@ -323,7 +323,7 @@ export default function ProductEntry() {
 
   const data = [];
   var count = "0";
-  JSON.parse(localStorage.getItem("ProductsData")).forEach((element) => {
+  JSON.parse(sessionStorage.getItem("ProductsData")).forEach((element) => {
     if (element !== null) {
       data.push({
         key: count++,

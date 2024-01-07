@@ -160,7 +160,7 @@ export default function Updates() {
 
   const data = [];
   var count = "0";
-  JSON.parse(localStorage.getItem("UpdatesData")).forEach((element) => {
+  JSON.parse(sessionStorage.getItem("UpdatesData")).forEach((element) => {
     if (element !== null) {
       data.push({
         key: count++,

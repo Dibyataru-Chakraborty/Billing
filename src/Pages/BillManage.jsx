@@ -3,6 +3,7 @@ import Highlighter from "react-highlight-words";
 import { Input, Space, Table, Button } from "antd";
 import React, { useRef, useState } from "react";
 import { SaveOutlined } from "@ant-design/icons";
+import { Link } from "react-router-dom";
 
 export default function BillManage() {
   const [searchText, setSearchText] = useState("");
@@ -125,6 +126,14 @@ export default function BillManage() {
       sortDirections: ["descend", "ascend"],
     },
     {
+      title: "Total Amount",
+      dataIndex: "Totalamount",
+      width: 150,
+      sorter: (a, b) => a.Totalamount - b.Totalamount,
+      ...getColumnSearchProps("Totalamount"),
+      sortDirections: ["descend", "ascend"],
+    },
+    {
       title: "IGSTAmount",
       dataIndex: "IGSTAmount",
       width: 150,
@@ -160,17 +169,19 @@ export default function BillManage() {
       title: "Print",
       dataIndex: "Print",
       width: 150,
-      render: () => {
+      render: (text,record) => {
+        const {id} = record;
         return (
           <>
             <div className="text-center">
-              <button
-                type="button"
-                className="btn btn-success btn-sm rounded-circle"
-                // onClick={BillSave}
-              >
-                <SaveOutlined />
-              </button>
+              <Link to={id}>
+                <button
+                  type="button"
+                  className="btn btn-success btn-sm rounded-circle"
+                >
+                  <SaveOutlined />
+                </button>
+              </Link>
             </div>
           </>
         );
@@ -246,7 +257,7 @@ export default function BillManage() {
 
   const data = [];
   let count = 0;
-  JSON.parse(localStorage.getItem("CustomersData")).forEach((element) => {
+  JSON.parse(sessionStorage.getItem("CustomersData")).forEach((element) => {
     if (element !== null) {
       data.push({
         key: count++,
@@ -266,6 +277,7 @@ export default function BillManage() {
         SGSTAmount: element.SGSTAmount,
         Sale: element.Sale,
         Vehicle: element.Vehicle,
+        Totalamount: element.TotalAmount
       });
     }
   });

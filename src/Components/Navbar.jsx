@@ -1,52 +1,21 @@
 import { Layout, Menu, Button, Drawer, Row, Col } from "antd";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MenuOutlined } from "@ant-design/icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faBook,
   faBookBible,
-  faEarthAmericas,
   faLock,
   faPlus,
   faScrewdriverWrench,
-  // faShare,
   faSquarePlus,
-  faWifi,
 } from "@fortawesome/free-solid-svg-icons";
-import { onValue, ref } from "firebase/database";
-import { auth, db } from "../Utils/Firebase/Firebase_config";
+import { auth } from "../Utils/Firebase/Firebase_config";
 import { signOut } from "firebase/auth";
 
 export default function Navbar(props) {
   const navigate = useNavigate();
-
-  const [connectedIcon, setConnectedIcon] = useState(
-    <FontAwesomeIcon icon={faWifi} style={{ color: "#06c767" }} />
-  );
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const handleChange = (snap) => {
-      if (isMounted) {
-        setConnectedIcon(
-          snap.val() ? (
-            <FontAwesomeIcon icon={faWifi} style={{ color: "#06c767" }} />
-          ) : (
-            <FontAwesomeIcon
-              icon={faEarthAmericas}
-              style={{ color: "#f22602" }}
-            />
-          )
-        );
-      }
-    };
-    onValue(ref(db, ".info/connected"), handleChange);
-    return () => {
-      isMounted = false;
-    };
-  }, []);
 
   const { Header } = Layout;
   const [current, setCurrent] = useState(props.number);
@@ -173,7 +142,6 @@ export default function Navbar(props) {
         style={{ color: "#f22602" }}
       />
     ),
-    getItem(null, null, connectedIcon),
     getItem(null, "9", <FontAwesomeIcon icon={faLock} />),
   ];
 
