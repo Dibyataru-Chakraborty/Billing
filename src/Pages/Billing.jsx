@@ -16,11 +16,7 @@ import {
   message,
 } from "antd";
 import React, { useEffect, useRef, useState } from "react";
-import {
-  // PrinterOutlined,
-  PlusCircleOutlined,
-  SaveOutlined,
-} from "@ant-design/icons";
+import { PlusCircleOutlined, SaveOutlined } from "@ant-design/icons";
 
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
@@ -28,6 +24,7 @@ import TextArea from "antd/es/input/TextArea";
 import { ToWords } from "to-words";
 import { onValue, push, ref, update } from "firebase/database";
 import { db } from "../Utils/Firebase/Firebase_config";
+import { useNavigate } from "react-router-dom";
 
 export default function Billing() {
   const date = new Date();
@@ -40,19 +37,33 @@ export default function Billing() {
   const formattedDate = `${day}/${month}/${year}`;
   const formattedTime = `${hours}:${minutes}:${seconds}`;
 
+  const navigate = useNavigate();
+
   const invoice = useRef();
 
+  const [StyleW, setStyleW] = useState("100%");
+
   const handlePrint = (heading) => {
+    setStyleW(1296);
     html2canvas(invoice.current).then((canvas) => {
       const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF("p", "mm", "a4");
-      pdf.setFontSize(8);
+      pdf.setFontSize(10);
       pdf.text(heading, 170, 5);
-      pdf.addImage(imgData, "PNG", 10, 10, 190, 0);
+      pdf.addImage(imgData, "PNG", 5, 10, 199, 0);
       const pdfBlob = pdf.output("blob");
       const blobUrl = URL.createObjectURL(pdfBlob);
       window.open(blobUrl);
+    }).then(()=>{
+      navigate("/billing-manage");
     });
+    // html2pdf(invoice.current, {
+    //   margin: 10,
+    //   filename: 'invoice.pdf',
+    //   image: { type: 'png', quality: 1 },
+    //   html2canvas: { scale: 1},
+    //   jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    // });
   };
 
   const [Consignee_isModalOpen, setConsignee_isModalOpen] = useState(false);
@@ -480,13 +491,16 @@ export default function Billing() {
     setNetAmount(newNetAmount);
     setNetAmountWord(toWords.convert(newNetAmount, { currency: true }));
     setIGSTAmountWord(toWords.convert(newIGSTAmount, { currency: true }));
-    newNetAmount !== "" && newNetAmount!== 0? setSavePrintBtn(true) : setSavePrintBtn(false);
+    newNetAmount !== "" && newNetAmount !== 0
+      ? setSavePrintBtn(true)
+      : setSavePrintBtn(false);
   }, [SelectedCheckbox]);
 
   const [SavePrintBtn, setSavePrintBtn] = useState(false);
 
   const BillSave = async (e) => {
     e.preventDefault();
+
     try {
       const bill = {
         Product: SelectedCheckbox,
@@ -513,23 +527,24 @@ export default function Billing() {
             GSTIN: Buyer_GSTIN,
           },
         ],
-        Vehicle: Vehicle,
-        Payment: Payment,
-        Reference_No: Reference_No,
-        Other_References: Other_References,
-        Sale: Sale,
-        EWayBill: EWayBill,
-        IGSTAmount: IGSTAmount,
-        CGSTAmount: CGSTAmount,
-        SGSTAmount: SGSTAmount,
-        NetAmount: NetAmount,
-        TotalAmount: totalAmount
+        Vehicle,
+        Payment,
+        Reference_No,
+        Other_References,
+        Sale,
+        EWayBill,
+        IGSTAmount,
+        CGSTAmount,
+        SGSTAmount,
+        NetAmount,
+        TotalAmount: totalAmount,
       };
 
       const updatedProducts = SelectedCheckbox.map((item) => ({
         ...item,
         Quantity: +(item.Quantity - item.userQyt).toFixed(2),
       }));
+
       const updates = {};
       updatedProducts.forEach((item) => {
         const productIndex = item.id - 1;
@@ -537,15 +552,17 @@ export default function Billing() {
       });
 
       message.success("Please don't reload the page");
+
       handlePrint("Original for Recipient");
       handlePrint("Duplicate for Transporter");
       handlePrint("Triplicate for Supplier");
+
       await push(ref(db, "Customer/"), bill);
       await update(ref(db), updates);
+
       message.success("Bill Saved successfully");
     } catch (error) {
-      alert("Error saving bill:", error.message);
-      console.log(error.message);
+      alert("Error saving bill: " + error.message);
     }
   };
 
@@ -556,7 +573,8 @@ export default function Billing() {
 
   useEffect(() => {
     // Retrieve data from sessionStorage
-    const storedData = JSON.parse(sessionStorage.getItem("SettingsConfig")) || {};
+    const storedData =
+      JSON.parse(sessionStorage.getItem("SettingsConfig")) || {};
 
     // Extract values from the stored data
     const {
@@ -577,7 +595,7 @@ export default function Billing() {
     <>
       <div className="container my-2">
         <div className="card">
-          <div ref={invoice}>
+          <div ref={invoice} style={{ width: StyleW }}>
             <Watermark
               fontSize={16}
               zIndex={11}

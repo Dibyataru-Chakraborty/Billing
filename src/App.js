@@ -192,6 +192,7 @@ function App() {
   const Logs = () => {
     onValue(ref(db, "Log"), (snapshot) => {
       const data = snapshot.val();
+      console.log(data);
       if (data === null) {
         setLogData([]);
       } else {
@@ -243,7 +244,7 @@ function App() {
         Update(),
         SettingsConfig(),
         Users(),
-        Logs,
+        Logs(),
       ]);
     };
     if (check) {

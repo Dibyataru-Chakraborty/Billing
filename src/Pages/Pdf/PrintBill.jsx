@@ -7,24 +7,43 @@ import { SaveOutlined } from "@ant-design/icons";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { ToWords } from "to-words";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+// import html2pdf from "html2pdf.js";
 
 export default function PrintBill() {
   const BillId = useParams();
 
   const invoice = useRef();
 
+  const [StyleW, setStyleW] = useState("100%");
+
+  const navigate = useNavigate();
+
   const handlePrint = (heading) => {
-    html2canvas(invoice.current).then((canvas) => {
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF("p", "mm", "a4");
-      pdf.setFontSize(8);
-      pdf.text(heading, 170, 5);
-      pdf.addImage(imgData, "PNG", 10, 10, 190, 0);
-      const pdfBlob = pdf.output("blob");
-      const blobUrl = URL.createObjectURL(pdfBlob);
-      window.open(blobUrl);
-    });
+    setStyleW(1296);
+    setTimeout(() => {
+      html2canvas(invoice.current)
+        .then((canvas) => {
+          const imgData = canvas.toDataURL("image/png");
+          const pdf = new jsPDF("p", "mm", "a4");
+          pdf.setFontSize(10);
+          pdf.text(heading, 170, 5);
+          pdf.addImage(imgData, "PNG", 5, 10, 199, 0);
+          const pdfBlob = pdf.output("blob");
+          const blobUrl = URL.createObjectURL(pdfBlob);
+          window.open(blobUrl);
+        })
+        .then(() => {
+          navigate("/billing-manage");
+        });
+    }, 2000);
+    // html2pdf(invoice.current, {
+    //   margin: 10,
+    //   filename: 'invoice.pdf',
+    //   image: { type: 'png', quality: 1 },
+    //   html2canvas: { scale: 1},
+    //   jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    // });
   };
 
   const [Consignee_Name, setConsignee_Name] = useState("");
@@ -153,7 +172,7 @@ export default function PrintBill() {
     <>
       <div className="container my-2">
         <div className="card">
-          <div ref={invoice}>
+          <div ref={invoice} style={{ width: StyleW }}>
             {load ? (
               <>
                 <div className="container py-5 h-100">
