@@ -2,9 +2,10 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { message } from "antd";
 import { AuthErrorCodes, signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../Utils/Firebase/Firebase_config";
+import { auth, db } from "../Utils/Firebase/Firebase_config";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-regular-svg-icons";
+import { push, ref } from "firebase/database";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -57,7 +58,7 @@ export default function Login() {
       const Signup = {
         email: currentUser.email,
         uid: currentUser.uid,
-        lastSignInTime: currentUser.metadata.lastSignInTime,
+        lastLoginAt: currentUser.metadata.lastLoginAt,
         creationTime: currentUser.metadata.creationTime,
         refreshToken: currentUser.refreshToken,
         expirationTime: currentUser.toJSON().stsTokenManager.expirationTime,
@@ -67,6 +68,15 @@ export default function Login() {
       sessionStorage.setItem("user", JSON.stringify(Signup));
 
       message.success("Successfully Login", 1.5);
+      await fetch("https://api.ipify.org/?format=json")
+      .then(response => response.json())
+      .then(async json => 
+        await push(ref(db, "Log/"), ({
+          user: currentUser.email,
+          lastSignInTime: currentUser.metadata.lastLoginAt,
+          ip: json.ip
+        }))
+      )
       setTimeout(() => {
         navigate("/dashboard");
       }, 2000);
@@ -150,11 +160,11 @@ export default function Login() {
                           )}
                           <input
                             type={PasswordType.type}
-                            minLength={8}
+                            minLength={6}
                             onKeyUp={checkPassword}
                             placeholder="Password"
-                            pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"
-                            title="Must contain at least one number and one uppercase and lowercase letter, and at least 8 or more characters"
+                            pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,}"
+                            title="Must contain at least one number and one uppercase and lowercase letter, and at least 6 or more characters"
                             required
                             autoComplete="True"
                             id="password"

@@ -1,7 +1,7 @@
 import { Button, Result } from "antd";
 import React from "react";
 
-export default function Offline(props) {
+export default function Offline() {
   return (
     <div className="container my-2">
       <Result

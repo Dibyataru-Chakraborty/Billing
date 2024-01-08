@@ -19,6 +19,8 @@ const Forget = lazy(() => import("./LFC/Forget"));
 const Login = lazy(() => import("./LFC/Login"));
 const BillManage = lazy(() => import("./Pages/BillManage"));
 const PrintBill = lazy(() => import("./Pages/Pdf/PrintBill"));
+const Agents = lazy(() => import("./Pages/Agents"));
+const Log = lazy(() => import("./Pages/Log"));
 
 function App() {
   useEffect(() => {
@@ -166,6 +168,46 @@ function App() {
   };
   sessionStorage.setItem("SettingsConfig", JSON.stringify(Settings_Config));
 
+  const [UserData, setUserData] = useState([]);
+  const Users = () => {
+    onValue(ref(db, "Users"), (snapshot) => {
+      const data = snapshot.val();
+      if (data === null) {
+        setUserData([]);
+      } else {
+        // Convert the object into an array of customer objects
+        const customerArray = Object.keys(data).map((Id) => ({
+          id: Id,
+          ...data[Id],
+        }));
+
+        // Update the state with the array of customer objects
+        setUserData(customerArray);
+      }
+    });
+  };
+  sessionStorage.setItem("UserData", JSON.stringify(UserData));
+
+  const [LogData, setLogData] = useState([]);
+  const Logs = () => {
+    onValue(ref(db, "Log"), (snapshot) => {
+      const data = snapshot.val();
+      if (data === null) {
+        setLogData([]);
+      } else {
+        // Convert the object into an array of customer objects
+        const customerArray = Object.keys(data).map((Id) => ({
+          id: Id,
+          ...data[Id],
+        }));
+
+        // Update the state with the array of customer objects
+        setLogData(customerArray);
+      }
+    });
+  };
+  sessionStorage.setItem("LogData", JSON.stringify(LogData));
+
   useEffect(() => {
     setInterval(() => {
       document.title = "FORBIDDEN 403";
@@ -195,7 +237,14 @@ function App() {
 
   useEffect(() => {
     const fetchData = async () => {
-      await Promise.all([Products(), Customers(), Update(), SettingsConfig()]);
+      await Promise.all([
+        Products(),
+        Customers(),
+        Update(),
+        SettingsConfig(),
+        Users(),
+        Logs,
+      ]);
     };
     if (check) {
       fetchData();
@@ -221,14 +270,6 @@ function App() {
       window.removeEventListener("offline", updateOnlineStatus);
     };
   }, []);
-
-  if (!isOnline) {
-    return (
-      <>
-        <Offline />
-      </>
-    );
-  }
 
   return (
     <>
@@ -272,12 +313,21 @@ function App() {
           exact
           path="/*"
           element={
-            <>
+            <Suspense
+              fallback={
+                <div className="container py-5 h-100">
+                  <Spin tip="Loading" size="large">
+                    <div className="content" />
+                  </Spin>
+                </div>
+              }
+            >
               <RequireAuth>
-                {" "}
-                <Navbar /> <Error link="/dashboard" /> <NewFooter />{" "}
-              </RequireAuth>{" "}
-            </>
+                <Navbar />{" "}
+                {!isOnline ? <Offline /> : <Error link="/dashboard" />}
+                <NewFooter />
+              </RequireAuth>
+            </Suspense>
           }
         />
         <Route
@@ -294,14 +344,16 @@ function App() {
               }
             >
               <RequireAuth>
-                {" "}
-                <Navbar number="1" />{" "}
-                <Layout hasSider>
-                  {" "}
-                  <Dashboard />{" "}
-                </Layout>{" "}
-                <NewFooter />{" "}
-              </RequireAuth>{" "}
+                <Navbar number="1" />
+                {!isOnline ? (
+                  <Offline />
+                ) : (
+                  <Layout hasSider>
+                    <Dashboard />
+                  </Layout>
+                )}
+                <NewFooter />
+              </RequireAuth>
             </Suspense>
           }
         />
@@ -319,9 +371,10 @@ function App() {
               }
             >
               <RequireAuth>
-                {" "}
-                <Navbar number="2" /> <Billing /> <NewFooter />{" "}
-              </RequireAuth>{" "}
+                <Navbar number="2" />
+                {!isOnline ? <Offline /> : <Billing />}
+                <NewFooter />
+              </RequireAuth>
             </Suspense>
           }
         />
@@ -339,9 +392,9 @@ function App() {
               }
             >
               <RequireAuth>
-                {" "}
-                <Navbar number="3" /> <BillManage /> <NewFooter />{" "}
-              </RequireAuth>{" "}
+                <Navbar number="3" /> {!isOnline ? <Offline /> : <BillManage />}
+                <NewFooter />
+              </RequireAuth>
             </Suspense>
           }
         />
@@ -351,15 +404,21 @@ function App() {
           element={
             <RequireAuth>
               <Navbar number="3" />
-              {isSessionStorageLoaded ? (
-                <PrintBill />
+              {!isOnline ? (
+                <Offline />
               ) : (
                 <>
-                  <div className="container py-5 h-100">
-                    <Spin tip="Loading" size="large">
-                      <div className="content" />
-                    </Spin>
-                  </div>
+                  {isSessionStorageLoaded ? (
+                    <PrintBill />
+                  ) : (
+                    <>
+                      <div className="container py-5 h-100">
+                        <Spin tip="Loading" size="large">
+                          <div className="content" />
+                        </Spin>
+                      </div>
+                    </>
+                  )}
                 </>
               )}
               <NewFooter />
@@ -380,8 +439,9 @@ function App() {
               }
             >
               <RequireAuth>
-                {" "}
-                <Navbar number="4" /> <ProductEntry /> <NewFooter />{" "}
+                <Navbar number="4" />{" "}
+                {!isOnline ? <Offline /> : <ProductEntry />}
+                <NewFooter />
               </RequireAuth>
             </Suspense>
           }
@@ -400,7 +460,8 @@ function App() {
               }
             >
               <RequireAuth>
-                <Navbar number="5" /> <Updates /> <NewFooter />{" "}
+                <Navbar number="5" />
+                {!isOnline ? <Offline /> : <Updates />} <NewFooter />{" "}
               </RequireAuth>
             </Suspense>
           }
@@ -419,7 +480,48 @@ function App() {
               }
             >
               <RequireAuth>
-                <Navbar number="5" /> <Config /> <NewFooter />
+                <Navbar number="5" /> {!isOnline ? <Offline /> : <Config />}{" "}
+                <NewFooter />
+              </RequireAuth>
+            </Suspense>
+          }
+        />
+        <Route
+          exact
+          path="/manage-user"
+          element={
+            <Suspense
+              fallback={
+                <div className="container py-5 h-100">
+                  <Spin tip="Loading" size="large">
+                    <div className="content" />
+                  </Spin>
+                </div>
+              }
+            >
+              <RequireAuth>
+                <Navbar number="6" />
+                {!isOnline ? <Offline /> : <Agents />} <NewFooter />
+              </RequireAuth>
+            </Suspense>
+          }
+        />
+        <Route
+          exact
+          path="/log"
+          element={
+            <Suspense
+              fallback={
+                <div className="container py-5 h-100">
+                  <Spin tip="Loading" size="large">
+                    <div className="content" />
+                  </Spin>
+                </div>
+              }
+            >
+              <RequireAuth>
+                <Navbar number="7" /> {!isOnline ? <Offline /> : <Log />}{" "}
+                <NewFooter />
               </RequireAuth>
             </Suspense>
           }

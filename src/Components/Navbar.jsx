@@ -6,10 +6,12 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faBook,
   faBookBible,
+  faChartSimple,
   faLock,
   faPlus,
   faScrewdriverWrench,
   faSquarePlus,
+  faUser,
 } from "@fortawesome/free-solid-svg-icons";
 import { auth } from "../Utils/Firebase/Firebase_config";
 import { signOut } from "firebase/auth";
@@ -27,6 +29,8 @@ export default function Navbar(props) {
       3: "/billing-manage",
       4: "/productentry",
       5: "/updates",
+      6: "/manage-user",
+      7: "/log",
       8: "/settings",
       default: "/dashboard",
     };
@@ -37,7 +41,7 @@ export default function Navbar(props) {
       if (e.key === "9") {
         message.success("Successfully Logout").then(() => {
           signOut(auth).then(() => {
-            sessionStorage.removeItem("user");
+            sessionStorage.clear()
           });
         });
       } else {
@@ -67,7 +71,13 @@ export default function Navbar(props) {
   }
 
   const items1 = [
-    getItem("Dashboard", "1", null, null, null),
+    getItem(
+      "Dashboard",
+      "1",
+      <FontAwesomeIcon icon={faChartSimple} style={{ color: "#d20f49" }} />,
+      null,
+      null
+    ),
     getItem(
       "Billing",
       null,
@@ -102,6 +112,23 @@ export default function Navbar(props) {
         ),
       ]
     ),
+    getItem(
+      "Users",
+      null,
+      <FontAwesomeIcon icon={faUser} style={{ color: "#1db4bf" }} />,
+      [
+        getItem(
+          "Manage Users",
+          "6",
+          <FontAwesomeIcon icon={faPlus} style={{ color: "#07ab38" }} />
+        ),
+        getItem(
+          "Log",
+          "7",
+          <FontAwesomeIcon icon={faBook} style={{ color: "#f04f0a" }} />
+        ),
+      ]
+    ),
   ];
 
   const items2 = [
@@ -117,7 +144,13 @@ export default function Navbar(props) {
   ];
 
   const items3 = [
-    getItem("Dashboard", "1", null, null, null),
+    getItem(
+      "Dashboard",
+      "1",
+      <FontAwesomeIcon icon={faChartSimple} style={{ color: "#d20f49" }} />,
+      null,
+      null
+    ),
     getItem(
       "New",
       "2",
@@ -138,6 +171,25 @@ export default function Navbar(props) {
       "5",
       <FontAwesomeIcon icon={faBookBible} style={{ color: "#10cb14" }} />
     ),
+    getItem(
+      "Manage Users",
+      "6",
+      <FontAwesomeIcon icon={faPlus} style={{ color: "#07ab38" }} />
+    ),
+    getItem(
+      "Log",
+      "7",
+      <FontAwesomeIcon icon={faBook} style={{ color: "#f04f0a" }} />
+    ),
+    getItem(
+      "Setings",
+      "8",
+      <FontAwesomeIcon
+        icon={faScrewdriverWrench}
+        style={{ color: "#f22602" }}
+      />
+    ),
+    getItem("Logout", "9", <FontAwesomeIcon icon={faLock} />),
   ];
 
   return (
