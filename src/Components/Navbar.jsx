@@ -1,4 +1,4 @@
-import { Layout, Menu, Button, Drawer, Row, Col } from "antd";
+import { Layout, Menu, Button, Drawer, Row, Col, message } from "antd";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MenuOutlined } from "@ant-design/icons";
@@ -19,16 +19,7 @@ export default function Navbar(props) {
 
   const { Header } = Layout;
   const [current, setCurrent] = useState(props.number);
-  const logout = {
-    user: "",
-    email: "",
-    uid: "",
-    lastSignInTime: "",
-    creationTime: "",
-    refreshToken: "",
-    expirationTime: "",
-    accessToken: "",
-  };
+
   const onClick = (e) => {
     const routes = {
       1: "/dashboard",
@@ -36,10 +27,7 @@ export default function Navbar(props) {
       3: "/billing-manage",
       4: "/productentry",
       5: "/updates",
-      // "6": "/admin/accounts/account-in",
-      // "7": "/admin/accounts/account-out",
       8: "/settings",
-      9: "/",
       default: "/dashboard",
     };
 
@@ -47,9 +35,10 @@ export default function Navbar(props) {
     log_out();
     function log_out() {
       if (e.key === "9") {
-        signOut(auth).then(() => {
-          localStorage.setItem("user", JSON.stringify(logout));
-          navigate("/");
+        message.success("Successfully Logout").then(() => {
+          signOut(auth).then(() => {
+            sessionStorage.removeItem("user");
+          });
         });
       } else {
         navigate(routes[e.key] || routes["default"]);
@@ -113,24 +102,6 @@ export default function Navbar(props) {
         ),
       ]
     ),
-    // getItem(
-    //   "Account In",
-    //   "6",
-    //   <FontAwesomeIcon
-    //     icon={faShare}
-    //     flip="horizontal"
-    //     style={{ color: "#10cb14" }}
-    //   />,
-    //   null,
-    //   null
-    // ),
-    // getItem(
-    //   "Account Out",
-    //   "7",
-    //   <FontAwesomeIcon icon={faShare} style={{ color: "#f22602" }} />,
-    //   null,
-    //   null
-    // ),
   ];
 
   const items2 = [
@@ -142,7 +113,7 @@ export default function Navbar(props) {
         style={{ color: "#f22602" }}
       />
     ),
-    getItem(null, "9", <FontAwesomeIcon icon={faLock} />),
+    getItem("Logout", "9", <FontAwesomeIcon icon={faLock} />),
   ];
 
   const items3 = [
@@ -167,24 +138,6 @@ export default function Navbar(props) {
       "5",
       <FontAwesomeIcon icon={faBookBible} style={{ color: "#10cb14" }} />
     ),
-    // getItem(
-    //   "Account In",
-    //   "6",
-    //   <FontAwesomeIcon
-    //     icon={faShare}
-    //     flip="horizontal"
-    //     style={{ color: "#10cb14" }}
-    //   />,
-    //   null,
-    //   null
-    // ),
-    // getItem(
-    //   "Account Out",
-    //   "7",
-    //   <FontAwesomeIcon icon={faShare} style={{ color: "#f22602" }} />,
-    //   null,
-    //   null
-    // ),
   ];
 
   return (

@@ -186,7 +186,7 @@ function App() {
       } else {
         setcheck(true);
       }
-    }, []);
+    });
 
     return children;
   }
@@ -246,8 +246,7 @@ function App() {
                 </div>
               }
             >
-              {" "}
-              <Login />{" "}
+              <Login />
             </Suspense>
           }
         />
@@ -350,32 +349,21 @@ function App() {
           exact
           path="/billing-manage/:billid"
           element={
-            <Suspense
-              fallback={
-                <div className="container py-5 h-100">
-                  <Spin tip="Loading" size="large">
-                    <div className="content" />
-                  </Spin>
-                </div>
-              }
-            >
-              <RequireAuth>
-                {" "}
-                <Navbar number="3" />{" "}
-                {isSessionStorageLoaded ? (
-                  <PrintBill />
-                ) : (
-                  <>
-                    <div className="container py-5 h-100">
-                      <Spin tip="Loading" size="large">
-                        <div className="content" />
-                      </Spin>
-                    </div>
-                  </>
-                )}
-                <NewFooter />{" "}
-              </RequireAuth>
-            </Suspense>
+            <RequireAuth>
+              <Navbar number="3" />
+              {isSessionStorageLoaded ? (
+                <PrintBill />
+              ) : (
+                <>
+                  <div className="container py-5 h-100">
+                    <Spin tip="Loading" size="large">
+                      <div className="content" />
+                    </Spin>
+                  </div>
+                </>
+              )}
+              <NewFooter />
+            </RequireAuth>
           }
         />
         <Route
