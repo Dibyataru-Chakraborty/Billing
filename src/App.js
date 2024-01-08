@@ -404,21 +404,15 @@ function App() {
           element={
             <RequireAuth>
               <Navbar number="3" />
-              {!isOnline ? (
-                <Offline />
+              {isSessionStorageLoaded ? (
+                <PrintBill />
               ) : (
                 <>
-                  {isSessionStorageLoaded ? (
-                    <PrintBill />
-                  ) : (
-                    <>
-                      <div className="container py-5 h-100">
-                        <Spin tip="Loading" size="large">
-                          <div className="content" />
-                        </Spin>
-                      </div>
-                    </>
-                  )}
+                  <div className="container py-5 h-100">
+                    <Spin tip="Loading" size="large">
+                      <div className="content" />
+                    </Spin>
+                  </div>
                 </>
               )}
               <NewFooter />
