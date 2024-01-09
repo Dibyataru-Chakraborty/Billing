@@ -28,7 +28,7 @@ export default function BankDetails() {
 
   useEffect(() => {
     // Retrieve data from localStorage
-    const storedData = JSON.parse(localStorage.getItem("SettingsConfig")) || {};
+    const storedData = JSON.parse(sessionStorage.getItem("SettingsConfig")) || {};
 
     // Extract values from the stored data
     const {
