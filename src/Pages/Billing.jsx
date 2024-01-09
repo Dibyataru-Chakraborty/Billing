@@ -377,7 +377,7 @@ export default function Billing() {
   const data = [];
   var count = "0";
   JSON.parse(sessionStorage.getItem("ProductsData")).forEach((element) => {
-    if (element !== null && element.RATE > 0) {
+    if (element !== null && element.Quantity > 0) {
       data.push({
         key: count++,
         id: element.id,
