@@ -475,7 +475,7 @@ function App() {
               }
             >
               <RequireAuth>
-                <Navbar number="5" /> {!isOnline ? <Offline /> : <Config />}{" "}
+                <Navbar number="8" /> {!isOnline ? <Offline /> : <Config />}{" "}
                 <NewFooter />
               </RequireAuth>
             </Suspense>
