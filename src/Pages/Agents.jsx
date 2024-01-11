@@ -307,7 +307,7 @@ export default function Agents() {
       </div>
 
       <Modal
-        title="ADD PRODUCTS"
+        title="ADD USER"
         open={isAddVisible}
         onOk={addOk}
         onCancel={addCancel}
