@@ -192,7 +192,6 @@ function App() {
   const Logs = () => {
     onValue(ref(db, "Log"), (snapshot) => {
       const data = snapshot.val();
-      console.log(data);
       if (data === null) {
         setLogData([]);
       } else {
@@ -219,9 +218,7 @@ function App() {
   });
 
   const navigate = useNavigate();
-
   const [check, setcheck] = useState(false);
-
   function RequireAuth({ children }) {
     useEffect(() => {
       if (sessionStorage.getItem("user") === null) {
@@ -254,7 +251,7 @@ function App() {
         setSessionStorageLoaded(true);
       }
     }
-  }, [check]);
+  }, [ check]);
 
   const [isOnline, setIsOnline] = useState(navigator.onLine);
 
@@ -475,7 +472,7 @@ function App() {
               }
             >
               <RequireAuth>
-                <Navbar number="8" /> {!isOnline ? <Offline /> : <Config />}{" "}
+                <Navbar number="8" /> {!isOnline ? <Offline /> : <Config />}
                 <NewFooter />
               </RequireAuth>
             </Suspense>

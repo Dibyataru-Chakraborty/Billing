@@ -1,7 +1,7 @@
 import { SearchOutlined } from "@ant-design/icons";
 import Highlighter from "react-highlight-words";
 import { Input, Space, Table, Button, Modal, message } from "antd";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { push, ref } from "firebase/database";
 import { auth, db } from "../Utils/Firebase/Firebase_config";
 import { AuthErrorCodes, createUserWithEmailAndPassword } from "firebase/auth";
@@ -258,6 +258,7 @@ export default function Agents() {
     // },
   ];
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const data = [];
   var count = "0";
   JSON.parse(sessionStorage.getItem("UserData")).forEach((element) => {
@@ -272,84 +273,103 @@ export default function Agents() {
     }
   });
 
+  const [Permission, setPermission] = useState(true);
+
+  useEffect(() => {
+    const storedData = JSON.parse(sessionStorage.getItem("user")) || {};
+
+    const { email } = storedData;
+
+    const isUserInData = data.some((item) => item.Email === email);
+    setPermission(isUserInData);
+  }, [data]);
+
   return (
     <>
-      <div
-        className="container"
-        style={{
-          overflow: "auto",
-        }}
-      >
-        <div className="row my-3">
-          <div className="card">
+      {!Permission ? (
+        <>
+          <Modal
+            title="ADD USER"
+            open={isAddVisible}
+            onOk={addOk}
+            onCancel={addCancel}
+            okText="Add Record"
+            confirmLoading={loadings}
+            okButtonProps={{
+              disabled:
+                Email === null || Email.trim() === "" || Password.trim() === "",
+            }}
+          >
+            <form className="row g-3">
+              <div className="col-md-6">
+                <label htmlFor="Email" className="form-label">
+                  Email
+                </label>
+                <input
+                  type="Email"
+                  className="form-control"
+                  id="Email"
+                  required
+                  value={Email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+              <div className="col-md-6">
+                <label htmlFor="password" className="form-label">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  className="form-control"
+                  id="password"
+                  placeholder="Password"
+                  pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,}"
+                  title="Must contain at least one number and one uppercase and lowercase letter, and at least 6 or more characters"
+                  required
+                  value={Password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </div>
+            </form>
+          </Modal>
+
+          <div
+            className="container"
+            style={{
+              overflow: "auto",
+            }}
+          >
             <div className="row my-3">
-              <Table
-                title={() => (
-                  <Button
-                    onClick={showAdd}
-                    type="primary"
-                    style={{
-                      marginBottom: 16,
+              <div className="card">
+                <div className="row my-3">
+                  <Table
+                    title={() => (
+                      <Button
+                        onClick={showAdd}
+                        type="primary"
+                        style={{
+                          marginBottom: 16,
+                        }}
+                      >
+                        Add Users
+                      </Button>
+                    )}
+                    columns={columns}
+                    dataSource={data}
+                    scroll={{
+                      y: 1000,
                     }}
-                  >
-                    Add Product
-                  </Button>
-                )}
-                columns={columns}
-                dataSource={data}
-                scroll={{
-                  y: 1000,
-                }}
-              />
+                  />
+                </div>
+              </div>
             </div>
           </div>
+        </>
+      ) : (
+        <div className="alert alert-danger" role="alert">
+          <strong>You have no permission</strong>
         </div>
-      </div>
-
-      <Modal
-        title="ADD USER"
-        open={isAddVisible}
-        onOk={addOk}
-        onCancel={addCancel}
-        okText="Add Record"
-        confirmLoading={loadings}
-        okButtonProps={{
-          disabled:
-            Email === null || Email.trim() === "" || Password.trim() === "",
-        }}
-      >
-        <form className="row g-3">
-          <div className="col-md-6">
-            <label htmlFor="Email" className="form-label">
-              Email
-            </label>
-            <input
-              type="Email"
-              className="form-control"
-              id="Email"
-              required
-              value={Email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </div>
-          <div className="col-md-6">
-            <label htmlFor="password" className="form-label">
-              Password
-            </label>
-            <input
-              type="password"
-              className="form-control"
-              id="password"
-              placeholder="Password"
-              pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,}"
-              title="Must contain at least one number and one uppercase and lowercase letter, and at least 6 or more characters"
-              required
-              value={Password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
-        </form>
-      </Modal>
+      )}
     </>
   );
 }
