@@ -164,7 +164,7 @@ class PDF extends React.Component {
             <div className="col">
               <div className="table-responsive">
                 <table className="table">
-                  <thead className="table-secondary fs-6">
+                  <thead className="fs-6 table-group-divider">
                     <tr>
                       <th className="text-start">Sl No.</th>
                       <th className="text-center">Description of Goods</th>
