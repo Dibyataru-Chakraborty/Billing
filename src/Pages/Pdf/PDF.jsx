@@ -48,10 +48,10 @@ class PDF extends React.Component {
             <div className="text-center">
             <div className="row justify-content-end">
               <div className="text-center fw-bold fs-4 text-decoration-underline col">
-                INVOICE
+                TAX INVOICE
               </div>
-            {/* </div>
-            <div className="row"> */}
+            </div>
+            <div className="row">
               <div className="text-end fw-bold fs-6 col">
                 {printmode}
               </div>
@@ -70,12 +70,10 @@ class PDF extends React.Component {
                             <br />
                             Dwipchandrapur, Dhubulia,
                             <br />
-                            Nadia, 19 - West Bengal,
-                            <br />
-                            741125
+                            Nadia, 19 - West Bengal, 741125
                           </p>
                         </div>
-                        <div>GSTIN: 19AATFJ769IR1ZV</div>
+                        <div className="fw-bold">GSTIN: 19AATFJ769IR1ZV</div>
                         <div>Contact No.: 9002630036 / 9563414242</div>
                         <div>E-Mail : jpedhubulia@gmail.com</div>
                       </td>

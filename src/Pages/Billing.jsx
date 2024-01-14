@@ -26,7 +26,7 @@ import { ToWords } from "to-words";
 import { onValue, push, ref, update } from "firebase/database";
 import { db } from "../Utils/Firebase/Firebase_config";
 import PDF from "./Pdf/PDF";
-import { render } from "@testing-library/react";
+import { render } from "react-dom";
 
 export default function Billing() {
   const date = new Date();
@@ -562,7 +562,7 @@ export default function Billing() {
     setBranchAndIFSC(storedBranchAndIFSC || "");
   }, []);
 
-  const BillPrint = async (e) => {
+  const BillSave = async (e) => {
     const invoiceData = {
       Consignee_Name,
       Consignee_Address,
@@ -598,8 +598,9 @@ export default function Billing() {
       bankName,
       accountNumber,
       branchAndIFSC,
-      printmode: e,
+      printmode:e
     };
+    console.log(invoiceData);
     const newWindow = window.open("", "_blank", "width=600,height=400");
 
     newWindow.document.head.innerHTML = `
@@ -2161,19 +2162,19 @@ export default function Billing() {
               icon={<SaveOutlined />}
             />
             <FloatButton
-              onClick={() => BillPrint("Original for Recipient")}
+              icon={<PrinterOutlined />}
+              onClick={() => BillSave("Original for Recipient")}
               tooltip={<div>Original for Recipient</div>}
-              icon={<PrinterOutlined />}
             />
             <FloatButton
-              onClick={() => BillPrint("Duplicate for Transporter")}
+              icon={<PrinterOutlined />}
+              onClick={() => BillSave("Duplicate for Transporter")}
               tooltip={<div>Duplicate for Transporter</div>}
-              icon={<PrinterOutlined />}
             />
             <FloatButton
-              onClick={() => BillPrint("Triplicate for Supplier")}
-              tooltip={<div>Triplicate for Supplier</div>}
               icon={<PrinterOutlined />}
+              onClick={() => BillSave("Triplicate for Supplier")}
+              tooltip={<div>Triplicate for Supplier</div>}
             />
           </FloatButton.Group>
         </>
