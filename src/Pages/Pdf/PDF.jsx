@@ -408,7 +408,7 @@ class PDF extends React.Component {
                     className="card-body"
                     style={{ minWidth: 100, minHeight: 100 }}
                   ></div>
-                  <div className="card-footer">Authorised Signatory</div>
+                  <div className="card-footer text-center">Authorised Signatory</div>
                 </div>
               </div>
             </div>
