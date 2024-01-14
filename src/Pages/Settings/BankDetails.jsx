@@ -28,7 +28,8 @@ export default function BankDetails() {
 
   useEffect(() => {
     // Retrieve data from localStorage
-    const storedData = JSON.parse(sessionStorage.getItem("SettingsConfig")) || {};
+    const storedData =
+      JSON.parse(sessionStorage.getItem("SettingsConfig")) || {};
 
     // Extract values from the stored data
     const {
@@ -45,74 +46,93 @@ export default function BankDetails() {
     setBranchAndIFSC(storedBranchAndIFSC || "");
   }, []);
 
+  const [Permission, setPermission] = useState(true);
+
+  useEffect(() => {
+    const storedData = JSON.parse(sessionStorage.getItem("user")) || {};
+
+    const { email } = storedData;
+
+    const data = JSON.parse(sessionStorage.getItem("UserData"));
+
+    const isUserInData = data.some((item) => item.Email === email);
+    setPermission(isUserInData);
+  }, []);
+
   return (
     <>
-      <div
-        className="container"
-        style={{
-          overflow: "auto",
-        }}
-      >
-        <div className="row my-3">
-          <div className="col-12">
-            <label htmlFor="accountHolderName" className="form-label">
-              A/c Holder’s Name
-            </label>
-            <input
-              type="text"
-              className="form-control"
-              id="accountHolderName"
-              value={accountHolderName}
-              onChange={(e) => setAccountHolderName(e.target.value)}
-            />
+      {!Permission ? (
+        <div
+          className="container"
+          style={{
+            overflow: "auto",
+          }}
+        >
+          <div className="row my-3">
+            <div className="col-12">
+              <label htmlFor="accountHolderName" className="form-label">
+                A/c Holder’s Name
+              </label>
+              <input
+                type="text"
+                className="form-control"
+                id="accountHolderName"
+                value={accountHolderName}
+                onChange={(e) => setAccountHolderName(e.target.value)}
+              />
+            </div>
+            <div className="col-12">
+              <label htmlFor="bankName" className="form-label">
+                Bank Name
+              </label>
+              <input
+                type="text"
+                className="form-control"
+                id="bankName"
+                value={bankName}
+                onChange={(e) => setBankName(e.target.value)}
+              />
+            </div>
+            <div className="col-12">
+              <label htmlFor="accountNumber" className="form-label">
+                A/c No.
+              </label>
+              <input
+                type="text"
+                className="form-control"
+                id="accountNumber"
+                value={accountNumber}
+                onChange={(e) => setAccountNumber(e.target.value)}
+              />
+            </div>
+            <div className="col-12">
+              <label htmlFor="branchAndIFSC" className="form-label">
+                Branch & IFS Code
+              </label>
+              <input
+                type="text"
+                className="form-control"
+                id="branchAndIFSC"
+                value={branchAndIFSC}
+                onChange={(e) => setBranchAndIFSC(e.target.value)}
+              />
+            </div>
+            <footer className="my-3 text-end">
+              <button
+                type="button"
+                className="btn btn-primary btn-sm rounded-circle"
+                onClick={save}
+              >
+                <SaveOutlined />
+              </button>
+            </footer>
           </div>
-          <div className="col-12">
-            <label htmlFor="bankName" className="form-label">
-              Bank Name
-            </label>
-            <input
-              type="text"
-              className="form-control"
-              id="bankName"
-              value={bankName}
-              onChange={(e) => setBankName(e.target.value)}
-            />
-          </div>
-          <div className="col-12">
-            <label htmlFor="accountNumber" className="form-label">
-              A/c No.
-            </label>
-            <input
-              type="text"
-              className="form-control"
-              id="accountNumber"
-              value={accountNumber}
-              onChange={(e) => setAccountNumber(e.target.value)}
-            />
-          </div>
-          <div className="col-12">
-            <label htmlFor="branchAndIFSC" className="form-label">
-              Branch & IFS Code
-            </label>
-            <input
-              type="text"
-              className="form-control"
-              id="branchAndIFSC"
-              value={branchAndIFSC}
-              onChange={(e) => setBranchAndIFSC(e.target.value)}
-            />
-          </div>
-          <footer className="my-3 text-end">
-            <button
-              type="button"
-              className="btn btn-primary btn-sm rounded-circle"
-              onClick={save}
-            >
-              <SaveOutlined />
-            </button>
-          </footer>
         </div>
-      </div>
+      ) : (
+        <div className="alert alert-danger" role="alert">
+          <strong>You have no permission</strong>
+        </div>
+      )}
     </>
   );
 }

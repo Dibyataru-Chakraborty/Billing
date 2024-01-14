@@ -7,6 +7,8 @@ import { useState } from "react";
 
 import Error from "./Pages/Error";
 import Offline from "./Pages/Offline";
+import PrintBill from "./Pages/Pdf/PrintBill";
+import PDF from "./Pages/Pdf/PDF";
 
 const Dashboard = lazy(() => import("./Pages/Dashboard"));
 const Billing = lazy(() => import("./Pages/Billing"));
@@ -18,7 +20,7 @@ const Config = lazy(() => import("./Pages/Config"));
 const Forget = lazy(() => import("./LFC/Forget"));
 const Login = lazy(() => import("./LFC/Login"));
 const BillManage = lazy(() => import("./Pages/BillManage"));
-const PrintBill = lazy(() => import("./Pages/Pdf/PrintBill"));
+// const PrintBill = lazy(() => import("./Pages/Pdf/PrintBill"));
 const Agents = lazy(() => import("./Pages/Agents"));
 const Log = lazy(() => import("./Pages/Log"));
 
@@ -124,6 +126,7 @@ function App() {
       }
     });
   };
+
   //month count
   sessionStorage.setItem("CustomersData", JSON.stringify(CustomersData));
   const monthCounts = Object.values(CustomersData).reduce((acc, entry) => {
@@ -138,23 +141,27 @@ function App() {
     "billDateCountMonth",
     JSON.stringify(resultArrayMonth)
   );
-  //day count
-  const dayCounts = Object.values(CustomersData).reduce((acc, entry) => {
-    const { BillDate } = entry;
-    const today = new Date().toLocaleDateString();
 
-    // Check if the BillDate is until today
-    if (new Date(BillDate) <= new Date(today)) {
-      acc[BillDate] = (acc[BillDate] || 0) + 1;
+  //day count
+  const billDateCount = [];
+  const currentMonth = 1; // January is represented by 1
+
+  CustomersData.forEach((bill) => {
+    const { BillDate } = bill;
+    const billMonth = parseInt(BillDate.split("/")[1], 10); // Extracting month from BillDate
+
+    if (billMonth === currentMonth) {
+      const existingEntry = billDateCount.find(
+        (entry) => entry.date === BillDate
+      );
+      if (existingEntry) {
+        existingEntry.count += 1;
+      } else {
+        billDateCount.push({ date: BillDate, count: 1 });
+      }
     }
-    return acc;
-  }, {});
-  // Convert the object entries to an array of objects with date and count
-  const resultArrayDay = Object.entries(dayCounts).map(([date, count]) => ({
-    date,
-    count,
-  }));
-  sessionStorage.setItem("billDateCount", JSON.stringify(resultArrayDay));
+  });
+  sessionStorage.setItem("billDateCount", JSON.stringify(billDateCount));
 
   const [Settings_Config, setSettings_Config] = useState([]);
   const SettingsConfig = () => {
@@ -251,7 +258,7 @@ function App() {
         setSessionStorageLoaded(true);
       }
     }
-  }, [ check]);
+  }, [check]);
 
   const [isOnline, setIsOnline] = useState(navigator.onLine);
 
@@ -516,6 +523,14 @@ function App() {
                 <NewFooter />
               </RequireAuth>
             </Suspense>
+          }
+        />
+
+        <Route
+          exact
+          path="/pdf"
+          element={
+            <PDF/>
           }
         />
       </Routes>
