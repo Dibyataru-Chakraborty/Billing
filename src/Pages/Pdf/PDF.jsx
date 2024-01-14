@@ -87,7 +87,7 @@ class PDF extends React.Component {
                           State: {Consignee_State} Code: {Consignee_Code}
                         </div>
                         <div>Contact No.: {Consignee_Contact}</div>
-                        <div>GSTIN: {Consignee_GSTIN}</div>
+                        <div className="fw-bold">GSTIN: {Consignee_GSTIN}</div>
                       </td>
                     </tr>
                     <tr className="table-group-divider">
@@ -99,7 +99,7 @@ class PDF extends React.Component {
                           State: {Buyer_State} Code: {Buyer_Code}
                         </div>
                         <div>Contact No.: {Buyer_Contact}</div>
-                        <div>GSTIN: {Buyer_GSTIN}</div>
+                        <div className="fw-bold">GSTIN: {Buyer_GSTIN}</div>
                       </td>
                     </tr>
                   </tbody>
@@ -185,21 +185,9 @@ class PDF extends React.Component {
                           {item.DescriptionofServices}
                         </td>
                         <td className="text-center">{item.HSN}</td>
-                        <td className="text-center">
-                          <input
-                            className="form-control"
-                            type={"number"}
-                            value={item.userQyt}
-                            readOnly
-                          />
+                        <td className="text-center">{item.userQyt}
                         </td>
-                        <td className="text-center">
-                          <input
-                            className="form-control"
-                            type={"number"}
-                            value={item.userRate}
-                            readOnly
-                          />
+                        <td className="text-center">{item.userRate}
                         </td>
                         <td className="text-center">{item.Per}</td>
                         <td className="text-end">{item.Amount}</td>
@@ -267,7 +255,7 @@ class PDF extends React.Component {
               {Sale === "Other State Sale" ? (
                 <>
                   <div className="table-responsive">
-                    <table className="table table-bordered">
+                    <table className="table table-bordered" border={2}>
                       <thead className="fs-6 text-center">
                         <tr>
                           <td rowSpan={2}>HSN/SAC</td>
@@ -304,7 +292,7 @@ class PDF extends React.Component {
               ) : Sale === "State Sale" ? (
                 <>
                   <div className="table-responsive">
-                    <table className="table table-bordered">
+                    <table className="table table-bordered border-primary" border={2}>
                       <thead className="fs-6 text-center">
                         <tr>
                           <td rowSpan={2}>HSN/SAC</td>
