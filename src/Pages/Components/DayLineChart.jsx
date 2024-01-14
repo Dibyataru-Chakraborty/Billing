@@ -6,11 +6,17 @@ export default function DayLineChart() {
   // Extract date and count from stored data
   const dates = storedData.map((item) => item.date);
   const counts = storedData.map((item) => item.count);
+  const amount = storedData.map((item) => item.totalNetAmount);
 
   const series = [
     {
       name: "Products",
       data: counts,
+      offsetY: 0,
+    },
+    {
+      name: "Total Amount",
+      data: amount,
       offsetY: 0,
     },
   ];

@@ -146,18 +146,35 @@ function App() {
   const billDateCount = [];
   const currentMonth = 1; // January is represented by 1
 
-  CustomersData.forEach((bill) => {
-    const { BillDate } = bill;
-    const billMonth = parseInt(BillDate.split("/")[1], 10); // Extracting month from BillDate
+  // CustomersData.forEach((bill) => {
+  //   const { BillDate } = bill;
+  //   const billMonth = parseInt(BillDate.split("/")[1], 10); // Extracting month from BillDate
 
+  //   if (billMonth === currentMonth) {
+  //     const existingEntry = billDateCount.find(
+  //       (entry) => entry.date === BillDate
+  //     );
+  //     if (existingEntry) {
+  //       existingEntry.count += 1;
+  //     } else {
+  //       billDateCount.push({ date: BillDate, count: 1 });
+  //     }
+  //   }
+  // });
+  CustomersData.forEach((bill) => {
+    const { BillDate, NetAmount } = bill;
+    const billMonth = parseInt(BillDate.split("/")[1], 10); // Extracting month from BillDate
+  
     if (billMonth === currentMonth) {
       const existingEntry = billDateCount.find(
         (entry) => entry.date === BillDate
       );
+  
       if (existingEntry) {
         existingEntry.count += 1;
+        existingEntry.totalNetAmount += NetAmount;
       } else {
-        billDateCount.push({ date: BillDate, count: 1 });
+        billDateCount.push({ date: BillDate, count: 1, totalNetAmount: NetAmount });
       }
     }
   });
@@ -526,13 +543,7 @@ function App() {
           }
         />
 
-        <Route
-          exact
-          path="/pdf"
-          element={
-            <PDF/>
-          }
-        />
+        <Route exact path="/pdf" element={<PDF />} />
       </Routes>
     </>
   );

@@ -600,7 +600,6 @@ export default function Billing() {
       branchAndIFSC,
       printmode:e
     };
-    console.log(invoiceData);
     const newWindow = window.open("", "_blank", "width=600,height=400");
 
     newWindow.document.head.innerHTML = `
