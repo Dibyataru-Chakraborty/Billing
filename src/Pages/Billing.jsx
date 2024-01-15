@@ -563,7 +563,7 @@ export default function Billing() {
     setBranchAndIFSC(storedBranchAndIFSC || "");
   }, []);
 
-  const BillSave = async (e) => {
+  const BillPrint = async (e) => {
     const invoiceData = {
       Consignee_Name,
       Consignee_Address,
@@ -1404,7 +1404,8 @@ export default function Billing() {
     render(pdfContent, newWindow.document.body);
   };
 
-  const customersData = JSON.parse(sessionStorage.getItem("CustomersData")) || [];
+  const customersData =
+    JSON.parse(sessionStorage.getItem("CustomersData")) || [];
   const consigneeOptions = customersData.map((customer) => {
     const consigneeName = customer.Consignee[0].Name || "";
     return { value: consigneeName, label: consigneeName };
@@ -1412,6 +1413,11 @@ export default function Billing() {
 
   const [selectedConsignee, setSelectedConsignee] = useState(null);
   const [consignee, setconsignee] = useState("");
+  const [DetailsDisable, setDetailsDisable] = useState(false);
+  // useEffect(() => {
+
+  // }, [consignee, customersData]);
+
   useEffect(() => {
     if (consignee !== "") {
       const foundConsignee = customersData.find(
@@ -1421,9 +1427,6 @@ export default function Billing() {
     } else {
       setSelectedConsignee(null);
     }
-  }, [consignee, customersData]);
-
-  useEffect(() => {
     if (selectedConsignee) {
       // Use selected consignee details
       setConsignee_Name(selectedConsignee.Consignee[0].Name || "");
@@ -1438,7 +1441,9 @@ export default function Billing() {
       setBuyer_Code(selectedConsignee.Buyer[0].Code || "");
       setBuyer_Contact(selectedConsignee.Buyer[0].Contact || "");
       setBuyer_GSTIN(selectedConsignee.Buyer[0].GSTIN || "");
+      setDetailsDisable(true)
     } else {
+      setDetailsDisable(false)
       setConsignee_Name(Consignee_Name);
       setConsignee_Address(Consignee_Address);
       setConsignee_State(Consignee_State);
@@ -1453,6 +1458,7 @@ export default function Billing() {
       setBuyer_GSTIN(Buyer_GSTIN);
     }
   }, [
+    selectedConsignee,
     Buyer_Address,
     Buyer_Code,
     Buyer_Contact,
@@ -1465,7 +1471,6 @@ export default function Billing() {
     Consignee_GSTIN,
     Consignee_Name,
     Consignee_State,
-    selectedConsignee,
   ]);
 
   const handleInputChange = (inputValue) => {
@@ -2057,6 +2062,7 @@ export default function Billing() {
                   onChange={(e) => setConsignee_Address(e.target.value)}
                   type="text"
                   autoSize
+                  disabled={DetailsDisable}
                   id="Consignee_Address"
                 />
               </div>
@@ -2067,6 +2073,7 @@ export default function Billing() {
                 <input
                   type="text"
                   className="form-control"
+                  disabled={DetailsDisable}
                   id="Consignee_State"
                   value={Consignee_State}
                   onChange={(e) => setConsignee_State(e.target.value)}
@@ -2080,6 +2087,7 @@ export default function Billing() {
                   type="text"
                   className="form-control"
                   id="Consignee_Code"
+                  disabled={DetailsDisable}
                   value={Consignee_Code}
                   onChange={(e) => setConsignee_Code(e.target.value)}
                 />
@@ -2092,6 +2100,7 @@ export default function Billing() {
                   type="text"
                   className="form-control"
                   id="Consignee_Contact"
+                  disabled={DetailsDisable}
                   value={Consignee_Contact}
                   onChange={(e) => setConsignee_Contact(e.target.value)}
                 />
@@ -2104,6 +2113,7 @@ export default function Billing() {
                   type="text"
                   className="form-control"
                   id="Consignee_GSTIN"
+                  disabled={DetailsDisable}
                   value={Consignee_GSTIN}
                   onChange={(e) => setConsignee_GSTIN(e.target.value)}
                 />
@@ -2239,17 +2249,17 @@ export default function Billing() {
             />
             <FloatButton
               icon={<PrinterOutlined />}
-              onClick={() => BillSave("Original for Recipient")}
+              onClick={() => BillPrint("Original for Recipient")}
               tooltip={<div>Original for Recipient</div>}
             />
             <FloatButton
               icon={<PrinterOutlined />}
-              onClick={() => BillSave("Duplicate for Transporter")}
+              onClick={() => BillPrint("Duplicate for Transporter")}
               tooltip={<div>Duplicate for Transporter</div>}
             />
             <FloatButton
               icon={<PrinterOutlined />}
-              onClick={() => BillSave("Triplicate for Supplier")}
+              onClick={() => BillPrint("Triplicate for Supplier")}
               tooltip={<div>Triplicate for Supplier</div>}
             />
           </FloatButton.Group>

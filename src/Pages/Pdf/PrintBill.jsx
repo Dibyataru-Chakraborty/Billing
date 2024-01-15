@@ -1,13 +1,16 @@
 import { faInr } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { FloatButton, Spin, Watermark } from "antd";
+import { Checkbox, FloatButton, Modal, Popover, Spin, Watermark, message } from "antd";
 import React, { useEffect, useState } from "react";
-import { SaveOutlined, PrinterOutlined } from "@ant-design/icons";
+import { SaveOutlined, PrinterOutlined, EditOutlined } from "@ant-design/icons";
 
 import { ToWords } from "to-words";
 import { useParams } from "react-router-dom";
 import { render } from "react-dom";
 import PDF from "./PDF";
+import TextArea from "antd/es/input/TextArea";
+import { ref, update } from "firebase/database";
+import { db } from "../../Utils/Firebase/Firebase_config";
 
 export default function PrintBill() {
   const BillId = useParams();
@@ -127,7 +130,7 @@ export default function PrintBill() {
     }
   }, [BillId]);
 
-  const BillSave = async (e) => {
+  const BillPrint = async (e) => {
     const invoiceData = {
       Consignee_Name,
       Consignee_Address,
@@ -163,7 +166,7 @@ export default function PrintBill() {
       bankName,
       accountNumber,
       branchAndIFSC,
-      printmode:e
+      printmode: e,
     };
     const newWindow = window.open("", "_blank", "width=600,height=400");
 
@@ -968,6 +971,87 @@ export default function PrintBill() {
     render(pdfContent, newWindow.document.body);
   };
 
+  const [Consignee_isModalOpen, setConsignee_isModalOpen] = useState(false);
+  const Consignee_showModal = () => {
+    setConsignee_isModalOpen(true);
+  };
+  const Consignee_handleCancel = () => {
+    setConsignee_isModalOpen(false);
+  };
+
+  const [Buyer_isModalOpen, setBuyer_isModalOpen] = useState(false);
+  const Buyer_showModal = () => {
+    setBuyer_isModalOpen(true);
+  };
+  const Buyer_handleCancel = () => {
+    setBuyer_isModalOpen(false);
+  };
+  const BuyerSame = (e) => {
+    e.target.checked ? assignConsigneeToBuyer() : NotassignConsigneeToBuyer();
+    function assignConsigneeToBuyer() {
+      setBuyer_Name(Consignee_Name);
+      setBuyer_Address(Consignee_Address);
+      setBuyer_State(Consignee_State);
+      setBuyer_Code(Consignee_Code);
+      setBuyer_Contact(Consignee_Contact);
+      setBuyer_GSTIN(Consignee_GSTIN);
+    }
+    function NotassignConsigneeToBuyer() {
+      setBuyer_Name("");
+      setBuyer_Address(null);
+      setBuyer_State("");
+      setBuyer_Code("");
+      setBuyer_Contact("");
+      setBuyer_GSTIN("");
+    }
+  };
+
+  const [DetailsDisable, setDetailsDisable] = useState(true);
+  const Edit = () => {
+    setDetailsDisable(false);
+  };
+
+  const Save = async () => {
+    const confirmation = window.confirm("Want to save?");
+
+    if (confirmation) {
+      try {
+        const bill = {
+          Consignee: [
+            {
+              Name: Consignee_Name,
+              Address: Consignee_Address,
+              State: Consignee_State,
+              Code: Consignee_Code,
+              Contact: Consignee_Contact,
+              GSTIN: Consignee_GSTIN,
+            },
+          ],
+          Buyer: [
+            {
+              Name: Buyer_Name,
+              Address: Buyer_Address,
+              State: Buyer_State,
+              Code: Buyer_Code,
+              Contact: Buyer_Contact,
+              GSTIN: Buyer_GSTIN,
+            },
+          ],
+        };
+
+        await update(ref(db,`Customer/${BillId.billid}`), bill);
+
+        message.success("Bill Updated successfully");
+        setDetailsDisable(true)
+      } catch (error) {
+        alert("Error Update bill: " + error.message);
+      }
+    } else {
+      alert("Update operation canceled.");
+      setDetailsDisable(true);
+    }
+  };
+
   return (
     <>
       <div className="container my-2">
@@ -1024,14 +1108,27 @@ export default function PrintBill() {
                         <tbody>
                           <tr>
                             <td>
-                              <div>Consignee (Ship to)</div>
+                              <div hidden={!DetailsDisable}>
+                                Consignee (Ship to)
+                              </div>
+                              <div hidden={DetailsDisable}>
+                                <Popover
+                                  title={false}
+                                  arrow={false}
+                                  onClick={Consignee_showModal}
+                                >
+                                  Consignee (Ship to){" "}
+                                  <span className="text-danger">
+                                    *(Click here)
+                                  </span>
+                                </Popover>
+                              </div>
                               <div className="fs-6 fw-bold">
                                 {Consignee_Name}
                               </div>
                               <div>{Consignee_Address}</div>
                               <div>
-                                State: {Consignee_State} Code:{" "}
-                                {Consignee_Code}
+                                State: {Consignee_State} Code: {Consignee_Code}
                               </div>
                               <div>Contact No.: {Consignee_Contact}</div>
                               <div>GSTIN: {Consignee_GSTIN}</div>
@@ -1044,7 +1141,21 @@ export default function PrintBill() {
                         <tbody>
                           <tr>
                             <td>
-                              <div>Buyer (Bill to)</div>
+                              <div hidden={!DetailsDisable}>
+                                Buyer (Bill to)
+                              </div>
+                              <div hidden={DetailsDisable}>
+                                <Popover
+                                  title={false}
+                                  arrow={false}
+                                  onClick={Buyer_showModal}
+                                >
+                                  Buyer (Bill to)
+                                  <span className="text-danger">
+                                    *(Click here)
+                                  </span>
+                                </Popover>
+                              </div>
                               <div className="fs-6 fw-bold">{Buyer_Name}</div>
                               <div>{Buyer_Address}</div>
                               <div>
@@ -1203,7 +1314,9 @@ export default function PrintBill() {
                           <tr>
                             <td></td>
                             <td>
-                              <div className="text-end fw-bold">Total Amount</div>
+                              <div className="text-end fw-bold">
+                                Total Amount
+                              </div>
                             </td>
                             <td colSpan={4}></td>
                             <td className="text-end fw-bold">
@@ -1340,8 +1453,7 @@ export default function PrintBill() {
                                   <u>Declaration</u>
                                 </div>
                                 <div className="fw-normal">
-                                  1. Goods once sold can't be taken back.{" "}
-                                  <br />
+                                  1. Goods once sold can't be taken back. <br />
                                   2. Credit option not available.
                                   <br />
                                   3. Subject to Nadia District Judge Court
@@ -1401,9 +1513,7 @@ export default function PrintBill() {
                           className="card-body"
                           style={{ minWidth: 100, minHeight: 100 }}
                         ></div>
-                        <div className="card-footer">
-                          Authorised Signatory
-                        </div>
+                        <div className="card-footer">Authorised Signatory</div>
                       </div>
                     </div>
                   </div>
@@ -1414,34 +1524,229 @@ export default function PrintBill() {
                 Thank You For Purchasing. Visit Again.
               </div>
             </Watermark>
-            )}
+          )}
         </div>
       </div>
 
-      <FloatButton.Group
-        trigger="hover"
-        type="primary"
-        style={{
-          right: 24,
-        }}
-        icon={<SaveOutlined />}
+      <div hidden={!DetailsDisable}>
+        <FloatButton.Group
+          trigger="hover"
+          type="primary"
+          style={{
+            right: 24,
+          }}
+          icon={<SaveOutlined />}
+        >
+          <FloatButton
+            icon={<PrinterOutlined />}
+            onClick={() => BillPrint("Original for Recipient")}
+            tooltip={<div>Original for Recipient</div>}
+          />
+          <FloatButton
+            icon={<PrinterOutlined />}
+            onClick={() => BillPrint("Duplicate for Transporter")}
+            tooltip={<div>Duplicate for Transporter</div>}
+          />
+          <FloatButton
+            icon={<PrinterOutlined />}
+            onClick={() => BillPrint("Triplicate for Supplier")}
+            tooltip={<div>Triplicate for Supplier</div>}
+          />
+          <FloatButton
+            icon={<EditOutlined />}
+            onClick={() => Edit()}
+            tooltip={<div>Edit</div>}
+          />
+        </FloatButton.Group>
+      </div>
+      <div hidden={DetailsDisable}>
+        <FloatButton.Group
+          trigger="hover"
+          type="primary"
+          style={{ right: 94 }}
+          tooltip={<div>Save</div>}
+        >
+          <FloatButton
+            icon={<SaveOutlined />}
+            onClick={() => Save()}
+            tooltip={<div>Save</div>}
+          />
+        </FloatButton.Group>
+      </div>
+
+      {/* Consignee */}
+      <Modal
+        title="Consignee"
+        open={Consignee_isModalOpen}
+        onCancel={Consignee_handleCancel}
+        okButtonProps={{ hidden: true }}
+        cancelButtonProps={{ hidden: true }}
       >
-        <FloatButton
-          icon={<PrinterOutlined />}
-          onClick={() => BillSave("Original for Recipient")}
-          tooltip={<div>Original for Recipient</div>}
-        />
-        <FloatButton
-          icon={<PrinterOutlined />}
-          onClick={() => BillSave("Duplicate for Transporter")}
-          tooltip={<div>Duplicate for Transporter</div>}
-        />
-        <FloatButton
-          icon={<PrinterOutlined />}
-          onClick={() => BillSave("Triplicate for Supplier")}
-          tooltip={<div>Triplicate for Supplier</div>}
-        />
-      </FloatButton.Group>
+        <div className="row g-3">
+          <div className="col-md-12">
+            <label htmlFor="Consignee_Name" className="form-label">
+              Name
+            </label>
+            <input
+              type="text"
+              className="form-control"
+              id="Buyer_Name"
+              value={Consignee_Name}
+              onChange={(e) => setConsignee_Name(e.target.value)}
+            />
+          </div>
+          <div className="col-md-12">
+            <label htmlFor="Consignee_Address" className="form-label">
+              Address
+            </label>
+            <TextArea
+              className="form-control"
+              value={Consignee_Address}
+              onChange={(e) => setConsignee_Address(e.target.value)}
+              type="text"
+              autoSize
+              id="Consignee_Address"
+            />
+          </div>
+          <div className="col-md-6">
+            <label htmlFor="Consignee_State" className="form-label">
+              State
+            </label>
+            <input
+              type="text"
+              className="form-control"
+              id="Consignee_State"
+              value={Consignee_State}
+              onChange={(e) => setConsignee_State(e.target.value)}
+            />
+          </div>
+          <div className="col-md-6">
+            <label htmlFor="Consignee_Code" className="form-label">
+              Code
+            </label>
+            <input
+              type="text"
+              className="form-control"
+              id="Consignee_Code"
+              value={Consignee_Code}
+              onChange={(e) => setConsignee_Code(e.target.value)}
+            />
+          </div>
+          <div className="col-md-6">
+            <label htmlFor="Consignee_Contact" className="form-label">
+              Contact
+            </label>
+            <input
+              type="text"
+              className="form-control"
+              id="Consignee_Contact"
+              value={Consignee_Contact}
+              onChange={(e) => setConsignee_Contact(e.target.value)}
+            />
+          </div>
+          <div className="col-md-6">
+            <label htmlFor="Consignee_GSTIN" className="form-label">
+              GSTIN
+            </label>
+            <input
+              type="text"
+              className="form-control"
+              id="Consignee_GSTIN"
+              value={Consignee_GSTIN}
+              onChange={(e) => setConsignee_GSTIN(e.target.value)}
+            />
+          </div>
+        </div>
+      </Modal>
+      {/* Buyer */}
+      <Modal
+        title={
+          <div>
+            Buyer / (Same as Consignee){" "}
+            <Checkbox onChange={BuyerSame} style={{ marginRight: 8 }} />
+          </div>
+        }
+        open={Buyer_isModalOpen}
+        onCancel={Buyer_handleCancel}
+        okButtonProps={{ hidden: true }}
+        cancelButtonProps={{ hidden: true }}
+      >
+        <div className="row g-3">
+          <div className="col-md-12">
+            <label htmlFor="Buyer_Name" className="form-label">
+              Name
+            </label>
+            <input
+              type="text"
+              className="form-control"
+              id="Buyer_Name"
+              value={Buyer_Name}
+              onChange={(e) => setBuyer_Name(e.target.value)}
+            />
+          </div>
+          <div className="col-md-12">
+            <label htmlFor="Buyer_Address" className="form-label">
+              Address
+            </label>
+            <TextArea
+              className="form-control"
+              value={Buyer_Address}
+              onChange={(e) => setBuyer_Address(e.target.value)}
+              type="text"
+              autoSize
+              id="Buyer_Address"
+            />
+          </div>
+          <div className="col-md-6">
+            <label htmlFor="Buyer_State" className="form-label">
+              State
+            </label>
+            <input
+              type="text"
+              className="form-control"
+              id="Buyer_State"
+              value={Buyer_State}
+              onChange={(e) => setBuyer_State(e.target.value)}
+            />
+          </div>
+          <div className="col-md-6">
+            <label htmlFor="Buyer_Code" className="form-label">
+              Code
+            </label>
+            <input
+              type="text"
+              className="form-control"
+              id="Buyer_Code"
+              value={Buyer_Code}
+              onChange={(e) => setBuyer_Code(e.target.value)}
+            />
+          </div>
+          <div className="col-md-6">
+            <label htmlFor="Buyer_Contact" className="form-label">
+              Contact
+            </label>
+            <input
+              type="text"
+              className="form-control"
+              id="Buyer_Contact"
+              value={Buyer_Contact}
+              onChange={(e) => setBuyer_Contact(e.target.value)}
+            />
+          </div>
+          <div className="col-md-6">
+            <label htmlFor="Buyer_GSTIN" className="form-label">
+              GSTIN
+            </label>
+            <input
+              type="text"
+              className="form-control"
+              id="Buyer_GSTIN"
+              value={Buyer_GSTIN}
+              onChange={(e) => setBuyer_GSTIN(e.target.value)}
+            />
+          </div>
+        </div>
+      </Modal>
     </>
   );
 }

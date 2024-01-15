@@ -1,9 +1,13 @@
 import { SearchOutlined } from "@ant-design/icons";
 import Highlighter from "react-highlight-words";
-import { Input, Space, Table, Button } from "antd";
+import { Input, Space, Table, Button, message, Popconfirm } from "antd";
 import React, { useRef, useState } from "react";
 import { SaveOutlined } from "@ant-design/icons";
 import { Link } from "react-router-dom";
+import { ref, remove } from "firebase/database";
+import { db } from "../Utils/Firebase/Firebase_config";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faTrashCan } from "@fortawesome/free-solid-svg-icons";
 
 export default function BillManage() {
   const [searchText, setSearchText] = useState("");
@@ -168,7 +172,7 @@ export default function BillManage() {
     {
       title: "Print",
       dataIndex: "Print",
-      width: 150,
+      width: 100,
       render: (text,record) => {
         const {id} = record;
         return (
@@ -183,6 +187,46 @@ export default function BillManage() {
                 </button>
               </Link>
             </div>
+          </>
+        );
+      },
+    },
+    {
+      title: "Option",
+      dataIndex: "Option",
+      width: 100,
+      render: (text, record) => {
+        const {id} = record;
+        const confirm = async () => {
+          await remove(ref(db, "Customer/" + id + "/"));
+          message.success("Customer Delete");
+        };
+        const cancel = () => {
+          message.error("Customer Not Delete");
+        };
+        const option = (
+          <>
+            <Popconfirm
+              title="Delete the Agent"
+              description="Are you sure to delete this Customer?"
+              onConfirm={confirm}
+              onCancel={cancel}
+              okText="Yes"
+              cancelText="No"
+            >
+              <Button danger>
+                <FontAwesomeIcon
+                  icon={faTrashCan}
+                  size="xl"
+                  style={{ color: "#a30000" }}
+                />
+              </Button>
+            </Popconfirm>
+          </>
+        );
+        return (
+          <>
+            <div className="text-center">{option}</div>
           </>
         );
       },
