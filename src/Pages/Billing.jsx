@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { SearchOutlined } from "@ant-design/icons";
 import Highlighter from "react-highlight-words";
 import { faInr } from "@fortawesome/free-solid-svg-icons";
@@ -1403,8 +1404,7 @@ export default function Billing() {
     render(pdfContent, newWindow.document.body);
   };
 
-  const customersData =
-    JSON.parse(sessionStorage.getItem("CustomersData")) || [];
+  const customersData = JSON.parse(sessionStorage.getItem("CustomersData")) || [];
   const consigneeOptions = customersData.map((customer) => {
     const consigneeName = customer.Consignee[0].Name || "";
     return { value: consigneeName, label: consigneeName };
@@ -1469,9 +1469,8 @@ export default function Billing() {
   ]);
 
   const handleInputChange = (inputValue) => {
-    setconsignee(inputValue ? inputValue.value : "");
     setConsignee_Name(inputValue.value);
-    console.log(inputValue.value);
+    setconsignee(inputValue ? inputValue.value : "");
   };
 
   return (
