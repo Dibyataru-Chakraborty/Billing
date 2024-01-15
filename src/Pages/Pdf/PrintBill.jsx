@@ -1012,7 +1012,7 @@ export default function PrintBill() {
                                   741125
                                 </p>
                               </div>
-                              <div>GSTIN: 19AATFJ769IR1ZV</div>
+                              <div>GSTIN: 19AATFJ7691R1ZV</div>
                               <div>Contact No.: 9002630036 / 9563414242</div>
                               <div>E-Mail : jpedhubulia@gmail.com</div>
                             </td>
@@ -1334,7 +1334,7 @@ export default function PrintBill() {
                               <td>
                                 <div>
                                   <span>Company’s PAN:</span>&nbsp;
-                                  <span className="fw-bold">AATFJ769IR</span>
+                                  <span className="fw-bold">AATFJ7691R</span>
                                 </div>
                                 <div>
                                   <u>Declaration</u>

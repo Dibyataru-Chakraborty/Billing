@@ -39,23 +39,21 @@ class PDF extends React.Component {
       bankName,
       accountNumber,
       branchAndIFSC,
-      printmode
+      printmode,
     } = this.props;
     return (
       <>
         <section>
           <header>
             <div className="text-center">
-            <div className="row justify-content-end">
-              <div className="text-center fw-bold fs-4 text-decoration-underline col">
-                TAX INVOICE
+              <div className="row justify-content-end">
+                <div className="text-center fw-bold fs-4 text-decoration-underline col">
+                  TAX INVOICE
+                </div>
               </div>
-            </div>
-            <div className="row">
-              <div className="text-end fw-bold fs-6 col">
-                {printmode}
+              <div className="row">
+                <div className="text-end fw-bold fs-6 col">{printmode}</div>
               </div>
-            </div>
             </div>
             <div className="row">
               <div className="col">
@@ -73,7 +71,7 @@ class PDF extends React.Component {
                             Nadia, 19 - West Bengal, 741125
                           </p>
                         </div>
-                        <div className="fw-bold">GSTIN: 19AATFJ769IR1ZV</div>
+                        <div className="fw-bold">GSTIN: 19AATFJ7691R1ZV</div>
                         <div>Contact No.: 9002630036 / 9563414242</div>
                         <div>E-Mail : jpedhubulia@gmail.com</div>
                       </td>
@@ -185,10 +183,8 @@ class PDF extends React.Component {
                           {item.DescriptionofServices}
                         </td>
                         <td className="text-center">{item.HSN}</td>
-                        <td className="text-center">{item.userQyt}
-                        </td>
-                        <td className="text-center">{item.userRate}
-                        </td>
+                        <td className="text-center">{item.userQyt}</td>
+                        <td className="text-center">{item.userRate}</td>
                         <td className="text-center">{item.Per}</td>
                         <td className="text-end">{item.Amount}</td>
                       </tr>
@@ -292,7 +288,10 @@ class PDF extends React.Component {
               ) : Sale === "State Sale" ? (
                 <>
                   <div className="table-responsive">
-                    <table className="table table-bordered border-primary" border={2}>
+                    <table
+                      className="table table-bordered border-primary"
+                      border={2}
+                    >
                       <thead className="fs-6 text-center">
                         <tr>
                           <td rowSpan={2}>HSN/SAC</td>
@@ -348,7 +347,7 @@ class PDF extends React.Component {
                         <td>
                           <div>
                             <span>Company’s PAN:</span>&nbsp;
-                            <span className="fw-bold">AATFJ769IR</span>
+                            <span className="fw-bold">AATFJ7691R</span>
                           </div>
                           <div>
                             <u>Declaration</u>
@@ -408,7 +407,9 @@ class PDF extends React.Component {
                     className="card-body"
                     style={{ minWidth: 100, minHeight: 100 }}
                   ></div>
-                  <div className="card-footer text-center">Authorised Signatory</div>
+                  <div className="card-footer text-center">
+                    Authorised Signatory
+                  </div>
                 </div>
               </div>
             </div>

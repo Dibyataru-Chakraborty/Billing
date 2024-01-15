@@ -8,7 +8,6 @@ import {
   FloatButton,
   Modal,
   Popover,
-  Select,
   Watermark,
   Input,
   Space,
@@ -27,6 +26,8 @@ import { onValue, push, ref, update } from "firebase/database";
 import { db } from "../Utils/Firebase/Firebase_config";
 import PDF from "./Pdf/PDF";
 import { render } from "react-dom";
+import Select from "react-select";
+import CreatableSelect from "react-select/creatable";
 
 export default function Billing() {
   const date = new Date();
@@ -110,7 +111,7 @@ export default function Billing() {
     <div>
       <Select
         optionFilterProp="children"
-        onChange={(e) => setPayment(e)}
+        onChange={(e) => setPayment(e.value)}
         options={[
           {
             value: "offline",
@@ -121,7 +122,6 @@ export default function Billing() {
             label: "Online",
           },
         ]}
-        allowClear
         style={{
           width: 200,
         }}
@@ -158,7 +158,7 @@ export default function Billing() {
     <div>
       <Select
         optionFilterProp="children"
-        onChange={(e) => setSale(e)}
+        onChange={(e) => setSale(e.value)}
         options={[
           {
             value: "State Sale",
@@ -598,7 +598,7 @@ export default function Billing() {
       bankName,
       accountNumber,
       branchAndIFSC,
-      printmode:e
+      printmode: e,
     };
     const newWindow = window.open("", "_blank", "width=600,height=400");
 
@@ -1403,6 +1403,77 @@ export default function Billing() {
     render(pdfContent, newWindow.document.body);
   };
 
+  const customersData =
+    JSON.parse(sessionStorage.getItem("CustomersData")) || [];
+  const consigneeOptions = customersData.map((customer) => {
+    const consigneeName = customer.Consignee[0].Name || "";
+    return { value: consigneeName, label: consigneeName };
+  });
+
+  const [selectedConsignee, setSelectedConsignee] = useState(null);
+  const [consignee, setconsignee] = useState("");
+  useEffect(() => {
+    if (consignee !== "") {
+      const foundConsignee = customersData.find(
+        (customer) => customer.Consignee[0].Name === consignee
+      );
+      setSelectedConsignee(foundConsignee || null);
+    } else {
+      setSelectedConsignee(null);
+    }
+  }, [consignee, customersData]);
+
+  useEffect(() => {
+    if (selectedConsignee) {
+      // Use selected consignee details
+      setConsignee_Name(selectedConsignee.Consignee[0].Name || "");
+      setConsignee_Address(selectedConsignee.Consignee[0].Address || "");
+      setConsignee_State(selectedConsignee.Consignee[0].State || "");
+      setConsignee_Code(selectedConsignee.Consignee[0].Code || "");
+      setConsignee_Contact(selectedConsignee.Consignee[0].Contact || "");
+      setConsignee_GSTIN(selectedConsignee.Consignee[0].GSTIN || "");
+      setBuyer_Name(selectedConsignee.Buyer[0].Name || "");
+      setBuyer_Address(selectedConsignee.Buyer[0].Address || "");
+      setBuyer_State(selectedConsignee.Buyer[0].State || "");
+      setBuyer_Code(selectedConsignee.Buyer[0].Code || "");
+      setBuyer_Contact(selectedConsignee.Buyer[0].Contact || "");
+      setBuyer_GSTIN(selectedConsignee.Buyer[0].GSTIN || "");
+    } else {
+      setConsignee_Name(Consignee_Name);
+      setConsignee_Address(Consignee_Address);
+      setConsignee_State(Consignee_State);
+      setConsignee_Code(Consignee_Code);
+      setConsignee_Contact(Consignee_Contact);
+      setConsignee_GSTIN(Consignee_GSTIN);
+      setBuyer_Name(Buyer_Name);
+      setBuyer_Address(Buyer_Address);
+      setBuyer_State(Buyer_State);
+      setBuyer_Code(Buyer_Code);
+      setBuyer_Contact(Buyer_Contact);
+      setBuyer_GSTIN(Buyer_GSTIN);
+    }
+  }, [
+    Buyer_Address,
+    Buyer_Code,
+    Buyer_Contact,
+    Buyer_GSTIN,
+    Buyer_Name,
+    Buyer_State,
+    Consignee_Address,
+    Consignee_Code,
+    Consignee_Contact,
+    Consignee_GSTIN,
+    Consignee_Name,
+    Consignee_State,
+    selectedConsignee,
+  ]);
+
+  const handleInputChange = (inputValue) => {
+    setconsignee(inputValue ? inputValue.value : "");
+    setConsignee_Name(inputValue.value);
+    console.log(inputValue.value);
+  };
+
   return (
     <>
       <div className="container my-2">
@@ -1438,7 +1509,7 @@ export default function Billing() {
                                 741125
                               </p>
                             </div>
-                            <div>GSTIN: 19AATFJ769IR1ZV</div>
+                            <div>GSTIN: 19AATFJ7691R1ZV</div>
                             <div>Contact No.: 9002630036 / 9563414242</div>
                             <div>E-Mail : jpedhubulia@gmail.com</div>
                           </td>
@@ -1633,7 +1704,14 @@ export default function Billing() {
                           <th className="text-start">Sl No.</th>
                           <th className="text-center">
                             Description of Goods{" "}
-                            {Sale !== undefined && Sale !== "" ? (
+                            {Sale !== undefined &&
+                            Sale !== "" &&
+                            Consignee_Name !== "" &&
+                            Consignee_Address !== "" &&
+                            Consignee_State !== "" &&
+                            Consignee_Code !== "" &&
+                            Consignee_Contact !== "" &&
+                            Consignee_GSTIN !== "" ? (
                               <Button
                                 onClick={Services_showModal}
                                 danger
@@ -1875,7 +1953,7 @@ export default function Billing() {
                             <td>
                               <div>
                                 <span>Company’s PAN:</span>&nbsp;
-                                <span className="fw-bold">AATFJ769IR</span>
+                                <span className="fw-bold">AATFJ7691R</span>
                               </div>
                               <div>
                                 <u>Declaration</u>
@@ -1962,12 +2040,12 @@ export default function Billing() {
                 <label htmlFor="Consignee_Name" className="form-label">
                   Name
                 </label>
-                <input
-                  type="text"
+                <CreatableSelect
                   className="form-control"
-                  id="Consignee_Name"
-                  value={Consignee_Name}
-                  onChange={(e) => setConsignee_Name(e.target.value)}
+                  optionFilterProp="children"
+                  onChange={(inputValue) => handleInputChange(inputValue)}
+                  options={consigneeOptions}
+                  isSearchable
                 />
               </div>
               <div className="col-md-12">
