@@ -1817,14 +1817,14 @@ export default function Billing() {
                         <tr>
                           <td></td>
                           <td>
-                            <div className="text-end">Total</div>
+                            <div className="text-end fw-bold">Total Amount</div>
                           </td>
                           <td></td>
                           {/* <td>{totalProductQuantity}</td> */}
                           <td></td>
                           <td></td>
                           <td></td>
-                          <td className="text-end">
+                          <td className="text-end fw-bold">
                             <FontAwesomeIcon icon={faInr} /> {NetAmount}
                           </td>
                         </tr>
