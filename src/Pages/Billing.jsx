@@ -2045,6 +2045,7 @@ export default function Billing() {
                   onChange={(inputValue) => handleInputChange(inputValue)}
                   options={consigneeOptions}
                   isSearchable
+                  // isClearable
                 />
               </div>
               <div className="col-md-12">
