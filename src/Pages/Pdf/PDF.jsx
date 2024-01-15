@@ -229,7 +229,7 @@ class PDF extends React.Component {
                     <tr>
                       <td></td>
                       <td>
-                        <div className="text-end fw-bold">Total</div>
+                        <div className="text-end fw-bold">Total Amount</div>
                       </td>
                       <td colSpan={4}></td>
                       <td className="text-end fw-bold">
