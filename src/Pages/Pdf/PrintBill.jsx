@@ -1,6 +1,14 @@
 import { faInr } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Checkbox, FloatButton, Modal, Popover, Spin, Watermark, message } from "antd";
+import {
+  Checkbox,
+  FloatButton,
+  Modal,
+  Popover,
+  Spin,
+  Watermark,
+  message,
+} from "antd";
 import React, { useEffect, useState } from "react";
 import { SaveOutlined, PrinterOutlined, EditOutlined } from "@ant-design/icons";
 
@@ -1039,10 +1047,10 @@ export default function PrintBill() {
           ],
         };
 
-        await update(ref(db,`Customer/${BillId.billid}`), bill);
+        await update(ref(db, `Customer/${BillId.billid}`), bill);
 
         message.success("Bill Updated successfully");
-        setDetailsDisable(true)
+        setDetailsDisable(true);
       } catch (error) {
         alert("Error Update bill: " + error.message);
       }
@@ -1051,6 +1059,19 @@ export default function PrintBill() {
       setDetailsDisable(true);
     }
   };
+
+  const [Permission, setPermission] = useState(true);
+
+  useEffect(() => {
+    const storedData = JSON.parse(sessionStorage.getItem("user")) || {};
+
+    const { email } = storedData;
+
+    const data = JSON.parse(sessionStorage.getItem("UserData"));
+
+    const isUserInData = data.some((item) => item.Email === email);
+    setPermission(isUserInData);
+  }, []);
 
   return (
     <>
@@ -1552,11 +1573,13 @@ export default function PrintBill() {
             onClick={() => BillPrint("Triplicate for Supplier")}
             tooltip={<div>Triplicate for Supplier</div>}
           />
-          <FloatButton
-            icon={<EditOutlined />}
-            onClick={() => Edit()}
-            tooltip={<div>Edit</div>}
-          />
+          {!Permission ? (
+            <FloatButton
+              icon={<EditOutlined />}
+              onClick={() => Edit()}
+              tooltip={<div>Edit</div>}
+            />
+          ) : null}
         </FloatButton.Group>
       </div>
       <div hidden={DetailsDisable}>
