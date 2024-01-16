@@ -1,7 +1,9 @@
 import { SearchOutlined } from "@ant-design/icons";
 import Highlighter from "react-highlight-words";
-import { Input, Space, Table, Button } from "antd";
-import React, { useRef, useState } from "react";
+import { Input, Space, Table, Button, message } from "antd";
+import React, { useEffect, useRef, useState } from "react";
+import { ref, remove } from "firebase/database";
+import { db } from "../Utils/Firebase/Firebase_config";
 
 export default function Log() {
   const [searchText, setSearchText] = useState("");
@@ -182,6 +184,23 @@ export default function Log() {
     }
   });
 
+  const [Permission, setPermission] = useState(true);
+  useEffect(() => {
+    const storedData = JSON.parse(sessionStorage.getItem("user")) || {};
+
+    const { email } = storedData;
+
+    const data = JSON.parse(sessionStorage.getItem("UserData"));
+
+    const isUserInData = data.some((item) => item.Email === email);
+    setPermission(isUserInData);
+  }, []);
+
+  const Delete = async () => {
+    await remove(ref(db, "Log"));
+    message.success("Delete Successfully");
+  };
+
   return (
     <>
       <div
@@ -190,6 +209,22 @@ export default function Log() {
           overflow: "auto",
         }}
       >
+        {!Permission && data.length > 100 ? (
+          <>
+            <div className="alert alert-danger my-3" role="alert">
+              File size exceeded 100
+              <button
+                type="button"
+                className="btn btn-danger mx-3"
+                id="Delete"
+                onClick={Delete}
+              >
+                Delete
+              </button>
+              <label htmlFor="Delete">Click On Delete Button</label>
+            </div>
+          </>
+        ) : null}
         <div className="row my-3">
           <div className="card">
             <div className="row my-3">
