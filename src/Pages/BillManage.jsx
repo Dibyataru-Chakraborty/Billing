@@ -1,18 +1,34 @@
 import { SearchOutlined } from "@ant-design/icons";
 import Highlighter from "react-highlight-words";
 import { Input, Space, Table, Button, message, Popconfirm } from "antd";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { SaveOutlined } from "@ant-design/icons";
 import { Link } from "react-router-dom";
 import { ref, remove } from "firebase/database";
 import { db } from "../Utils/Firebase/Firebase_config";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTrashCan } from "@fortawesome/free-solid-svg-icons";
+import {
+  faTrashCan,
+  faTriangleExclamation,
+} from "@fortawesome/free-solid-svg-icons";
 
 export default function BillManage() {
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
+
+  const [Permission, setPermission] = useState(true);
+
+  useEffect(() => {
+    const storedData = JSON.parse(sessionStorage.getItem("user")) || {};
+
+    const { email } = storedData;
+
+    const data = JSON.parse(sessionStorage.getItem("UserData"));
+
+    const isUserInData = data.some((item) => item.Email === email);
+    setPermission(isUserInData);
+  }, []);
 
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
     confirm();
@@ -173,8 +189,8 @@ export default function BillManage() {
       title: "Print",
       dataIndex: "Print",
       width: 100,
-      render: (text,record) => {
-        const {id} = record;
+      render: (text, record) => {
+        const { id } = record;
         return (
           <>
             <div className="text-center">
@@ -196,7 +212,7 @@ export default function BillManage() {
       dataIndex: "Option",
       width: 100,
       render: (text, record) => {
-        const {id} = record;
+        const { id } = record;
         const confirm = async () => {
           await remove(ref(db, "Customer/" + id + "/"));
           message.success("Customer Delete");
@@ -226,7 +242,17 @@ export default function BillManage() {
         );
         return (
           <>
-            <div className="text-center">{option}</div>
+            {!Permission ? (
+              <div className="text-center">{option}</div>
+            ) : (
+              <div className="text-center">
+                <FontAwesomeIcon
+                  icon={faTriangleExclamation}
+                  style={{ color: "#810909" }}
+                  size="xl"
+                />
+              </div>
+            )}
           </>
         );
       },
@@ -321,7 +347,7 @@ export default function BillManage() {
         SGSTAmount: element.SGSTAmount,
         Sale: element.Sale,
         Vehicle: element.Vehicle,
-        Totalamount: element.TotalAmount
+        Totalamount: element.TotalAmount,
       });
     }
   });
