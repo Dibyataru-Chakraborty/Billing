@@ -20,6 +20,7 @@ export default function ProductEntry() {
   const [HSN, setHSN] = useState("");
   const [Quantity, setQuantity] = useState("");
   const [AddQuantity, setAddQuantity] = useState(0);
+  const [SubQuantity, setSubQuantity] = useState(0);
   const [RATE, setRATE] = useState("");
   const [per, setPer] = useState("");
   const [date, setDate] = useState("");
@@ -32,6 +33,7 @@ export default function ProductEntry() {
 
   const showDetails = () => {
     setAddQuantity(0)
+    setSubQuantity(0)
     setIsUpdateVisible(true);
   };
 
@@ -42,14 +44,16 @@ export default function ProductEntry() {
       let product = {
         DescriptionofServices: DescriptionofServices,
         HSN: HSN,
-        Quantity: Number(Quantity) + Number(AddQuantity),
+        Quantity: Number(Quantity) + Number(AddQuantity) - Number(SubQuantity),
         RATE: RATE,
         Per: per,
       };
       let Updateproduct = {
         DescriptionofServices: DescriptionofServices,
         HSN: HSN,
-        Quantity: Number(AddQuantity),
+        AddQuantity: Number(AddQuantity),
+        SubQuantity: Number(SubQuantity),
+        Quantity,
         RATE: RATE,
         Per: per,
         Date: date
@@ -381,7 +385,7 @@ export default function ProductEntry() {
         confirmLoading={loadings}
       >
         <form className="row g-3">
-          <div className="col-md-6">
+          <div className="col-md-12">
             <label htmlFor="Date" className="form-label">
               Date
             </label>
@@ -430,8 +434,20 @@ export default function ProductEntry() {
             />
           </div>
           <div className="col-md-6">
+            <label htmlFor="RATE" className="form-label">
+              Rate
+            </label>
+            <input
+              type="text"
+              className="form-control"
+              id="RATE"
+              value={RATE}
+              onChange={(e) => setRATE(e.target.value)}
+            />
+          </div>
+          <div className="col-md-6">
             <label htmlFor="AddQuantity" className="form-label">
-              AddQuantity
+              Add Quantity
             </label>
             <input
               type="number"
@@ -443,15 +459,16 @@ export default function ProductEntry() {
             />
           </div>
           <div className="col-md-6">
-            <label htmlFor="RATE" className="form-label">
-              Rate
+            <label htmlFor="SubQuantity" className="form-label">
+              Sub Quantity
             </label>
             <input
-              type="text"
+              type="number"
               className="form-control"
-              id="RATE"
-              value={RATE}
-              onChange={(e) => setRATE(e.target.value)}
+              id="SubQuantity"
+              min={0}
+              value={SubQuantity}
+              onChange={(e) => setSubQuantity(e.target.value)}
             />
           </div>
         </form>
