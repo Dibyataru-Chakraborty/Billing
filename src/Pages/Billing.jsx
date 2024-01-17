@@ -23,7 +23,7 @@ import {
 } from "@ant-design/icons";
 import TextArea from "antd/es/input/TextArea";
 import { ToWords } from "to-words";
-import { onValue, push, ref, update } from "firebase/database";
+import { push, ref, update } from "firebase/database";
 import { db } from "../Utils/Firebase/Firebase_config";
 import PDF from "./Pdf/PDF";
 import { render } from "react-dom";
@@ -89,10 +89,21 @@ export default function Billing() {
   };
 
   const [InvoiceNumber, setInvoiceNumber] = useState("0");
+  const [Id, setId] = useState("0");
   useEffect(() => {
-    onValue(ref(db, "Customer"), (snapshot) => {
-      setInvoiceNumber(`JPE/${year}/${snapshot.size + 1}`);
-    });
+    const rawData = JSON.parse(sessionStorage.getItem("CustomersData")) || [];
+    const CustomersData = rawData
+      .filter(element => element !== null)
+      .map(element => ({ id: element.Id }));
+  
+    const maxId = Math.max(...CustomersData.map(item => item.id), 0);
+  
+    setInvoiceNumber(`JPE/${year}/${maxId + 1}`);
+    setId(`${maxId + 1}`)
+
+    // onValue(ref(db, "Customer"), (snapshot) => {
+    //   setInvoiceNumber(`JPE/${year}/${snapshot.size + 1}`);
+    // });
   }, [year]);
 
   const [Vehicle, setVehicle] = useState("");
@@ -502,6 +513,7 @@ export default function Billing() {
               GSTIN: Buyer_GSTIN,
             },
           ],
+          Id,
           Vehicle,
           Payment,
           Reference_No,
@@ -1441,9 +1453,9 @@ export default function Billing() {
       setBuyer_Code(selectedConsignee.Buyer[0].Code || "");
       setBuyer_Contact(selectedConsignee.Buyer[0].Contact || "");
       setBuyer_GSTIN(selectedConsignee.Buyer[0].GSTIN || "");
-      setDetailsDisable(true)
+      setDetailsDisable(true);
     } else {
-      setDetailsDisable(false)
+      setDetailsDisable(false);
       setConsignee_Name(Consignee_Name);
       setConsignee_Address(Consignee_Address);
       setConsignee_State(Consignee_State);
