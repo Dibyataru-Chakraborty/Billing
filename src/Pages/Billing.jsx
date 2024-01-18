@@ -23,7 +23,7 @@ import {
 } from "@ant-design/icons";
 import TextArea from "antd/es/input/TextArea";
 import { ToWords } from "to-words";
-import { push, ref, update } from "firebase/database";
+import { onValue, push, ref, update } from "firebase/database";
 import { db } from "../Utils/Firebase/Firebase_config";
 import PDF from "./Pdf/PDF";
 import { render } from "react-dom";
@@ -87,24 +87,6 @@ export default function Billing() {
       setBuyer_GSTIN("");
     }
   };
-
-  const [InvoiceNumber, setInvoiceNumber] = useState("0");
-  const [Id, setId] = useState("0");
-  useEffect(() => {
-    const rawData = JSON.parse(sessionStorage.getItem("CustomersData")) || [];
-    const CustomersData = rawData
-      .filter(element => element !== null)
-      .map(element => ({ id: element.Id }));
-  
-    const maxId = Math.max(...CustomersData.map(item => item.id), 0);
-  
-    setInvoiceNumber(`JPE/${year}/${maxId + 1}`);
-    setId(`${maxId + 1}`)
-
-    // onValue(ref(db, "Customer"), (snapshot) => {
-    //   setInvoiceNumber(`JPE/${year}/${snapshot.size + 1}`);
-    // });
-  }, [year]);
 
   const [Vehicle, setVehicle] = useState("");
   const Vehicleno = (
@@ -1416,8 +1398,40 @@ export default function Billing() {
     render(pdfContent, newWindow.document.body);
   };
 
-  const customersData =
-    JSON.parse(sessionStorage.getItem("CustomersData")) || [];
+  const [customersData, setCustomersData] = useState([]);
+  const Customers = () => {
+    onValue(ref(db, "Customer"), (snapshot) => {
+      const data = snapshot.val();
+      if (data === null) {
+        setCustomersData([]);
+      } else {
+        // Convert the object into an array of customer objects
+        const customerArray = Object.keys(data).map((customerId) => ({
+          id: customerId,
+          ...data[customerId],
+        }));
+
+        // Update the state with the array of customer objects
+        setCustomersData(customerArray);
+      }
+    });
+  };
+
+  const [InvoiceNumber, setInvoiceNumber] = useState("0");
+  const [Id, setId] = useState("0");
+
+  useEffect(() => {
+    const CustData = customersData
+      .filter(element => element !== null)
+      .map(element => ({ id: element.Id }));
+  
+    const maxId = Math.max(...CustData.map(item => item.id), 0);
+  
+    setInvoiceNumber(`JPE/${year}/${maxId + 1}`);
+    setId(`${maxId + 1}`)
+
+  });
+
   const consigneeOptions = customersData.map((customer) => {
     const consigneeName = customer.Consignee[0].Name || "";
     return { value: consigneeName, label: consigneeName };
@@ -1426,9 +1440,6 @@ export default function Billing() {
   const [selectedConsignee, setSelectedConsignee] = useState(null);
   const [consignee, setconsignee] = useState("");
   const [DetailsDisable, setDetailsDisable] = useState(false);
-  // useEffect(() => {
-
-  // }, [consignee, customersData]);
 
   useEffect(() => {
     if (consignee !== "") {
@@ -1489,6 +1500,10 @@ export default function Billing() {
     setConsignee_Name(inputValue.value);
     setconsignee(inputValue ? inputValue.value : "");
   };
+
+  useEffect(() => {
+    Customers();
+  }, []);
 
   return (
     <>

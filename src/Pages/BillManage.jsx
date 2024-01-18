@@ -4,7 +4,7 @@ import { Input, Space, Table, Button, message, Popconfirm } from "antd";
 import React, { useEffect, useRef, useState } from "react";
 import { SaveOutlined } from "@ant-design/icons";
 import { Link } from "react-router-dom";
-import { ref, remove } from "firebase/database";
+import { onValue, ref, remove } from "firebase/database";
 import { db } from "../Utils/Firebase/Firebase_config";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -18,17 +18,6 @@ export default function BillManage() {
   const searchInput = useRef(null);
 
   const [Permission, setPermission] = useState(true);
-
-  useEffect(() => {
-    const storedData = JSON.parse(sessionStorage.getItem("user")) || {};
-
-    const { email } = storedData;
-
-    const data = JSON.parse(sessionStorage.getItem("UserData"));
-
-    const isUserInData = data.some((item) => item.Email === email);
-    setPermission(isUserInData);
-  }, []);
 
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
     confirm();
@@ -147,10 +136,10 @@ export default function BillManage() {
     },
     {
       title: "Total Amount",
-      dataIndex: "Totalamount",
+      dataIndex: "TotalAmount",
       width: 150,
-      sorter: (a, b) => a.Totalamount - b.Totalamount,
-      ...getColumnSearchProps("Totalamount"),
+      sorter: (a, b) => a.TotalAmount - b.TotalAmount,
+      ...getColumnSearchProps("TotalAmount"),
       sortDirections: ["descend", "ascend"],
     },
     {
@@ -325,32 +314,36 @@ export default function BillManage() {
     );
   };
 
-  const data = [];
-  let count = 0;
-  JSON.parse(sessionStorage.getItem("CustomersData")).forEach((element) => {
-    if (element !== null) {
-      data.push({
-        key: count++,
-        id: element.id,
-        BillDate: element.BillDate,
-        BillId: element.BillId,
-        Buyer: element.Buyer,
-        CGSTAmount: element.CGSTAmount,
-        Consignee: element.Consignee,
-        EWayBill: element.EWayBill,
-        IGSTAmount: element.IGSTAmount,
-        NetAmount: element.NetAmount,
-        OtherReferences: element.Other_References,
-        Payment: element.Payment,
-        Product: element.Product,
-        ReferenceNo: element.Reference_No,
-        SGSTAmount: element.SGSTAmount,
-        Sale: element.Sale,
-        Vehicle: element.Vehicle,
-        Totalamount: element.TotalAmount,
-      });
-    }
-  });
+  const [CustomersData, setCustomersData] = useState([]);
+  const Customers = () => {
+    onValue(ref(db, "Customer"), (snapshot) => {
+      const data = snapshot.val();
+      if (data === null) {
+        setCustomersData([]);
+      } else {
+        // Convert the object into an array of customer objects
+        const customerArray = Object.keys(data).map((customerId) => ({
+          id: customerId,
+          ...data[customerId],
+        }));
+
+        // Update the state with the array of customer objects
+        setCustomersData(customerArray);
+      }
+    });
+  };
+
+  useEffect(() => {
+    Customers();
+    const storedData = JSON.parse(sessionStorage.getItem("user")) || {};
+
+    const { email } = storedData;
+
+    const data = JSON.parse(sessionStorage.getItem("UserData"));
+
+    const isUserInData = data.some((item) => item.Email === email);
+    setPermission(isUserInData);
+  }, []);
   
   return (
     <>
@@ -365,7 +358,7 @@ export default function BillManage() {
             <div className="row my-3">
               <Table
                 columns={columns}
-                dataSource={data}
+                dataSource={CustomersData}
                 scroll={{
                   y: 1000,
                 }}

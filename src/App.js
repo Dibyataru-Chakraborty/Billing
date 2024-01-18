@@ -128,7 +128,6 @@ function App() {
   };
 
   //month count
-  sessionStorage.setItem("CustomersData", JSON.stringify(CustomersData));
   const monthCounts = Object.values(CustomersData).reduce((acc, entry) => {
     const { BillDate } = entry;
     const monthYear = BillDate.slice(3); // Extract month and year (excluding day)
@@ -414,7 +413,7 @@ function App() {
               }
             >
               <RequireAuth>
-                <Navbar number="3" /> {!isOnline ? <Offline /> : <BillManage />}
+                <Navbar number="3" /> {!isOnline ? <Offline /> : <BillManage/>}
                 <NewFooter />
               </RequireAuth>
             </Suspense>
