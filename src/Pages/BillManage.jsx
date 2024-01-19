@@ -315,15 +315,18 @@ export default function BillManage() {
   };
 
   const [CustomersData, setCustomersData] = useState([]);
+  let count = 0;
   const Customers = () => {
     onValue(ref(db, "Customer"), (snapshot) => {
       const data = snapshot.val();
       if (data === null) {
         setCustomersData([]);
       } else {
+        console.log(count++);
         // Convert the object into an array of customer objects
         const customerArray = Object.keys(data).map((customerId) => ({
           id: customerId,
+          key: count++,
           ...data[customerId],
         }));
 
