@@ -315,8 +315,9 @@ export default function BillManage() {
   };
 
   const [CustomersData, setCustomersData] = useState([]);
-  let count = 0;
   const Customers = () => {
+    let count = 0;
+
     onValue(ref(db, "Customer"), (snapshot) => {
       const data = snapshot.val();
       if (data === null) {
@@ -347,7 +348,7 @@ export default function BillManage() {
     const isUserInData = data.some((item) => item.Email === email);
     setPermission(isUserInData);
   }, []);
-  
+
   return (
     <>
       <div
