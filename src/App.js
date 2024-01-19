@@ -254,8 +254,6 @@ function App() {
     return children;
   }
 
-  const [isSessionStorageLoaded, setSessionStorageLoaded] = useState(false);
-
   useEffect(() => {
     const fetchData = async () => {
       await Promise.all([
@@ -269,10 +267,6 @@ function App() {
     };
     if (check) {
       fetchData();
-      const CustomersDatasessionData = sessionStorage.getItem("CustomersData");
-      if (CustomersDatasessionData) {
-        setSessionStorageLoaded(true);
-      }
     }
   }, [check]);
 
@@ -425,17 +419,7 @@ function App() {
           element={
             <RequireAuth>
               <Navbar number="3" />
-              {isSessionStorageLoaded ? (
                 <PrintBill />
-              ) : (
-                <>
-                  <div className="container py-5 h-100">
-                    <Spin tip="Loading" size="large">
-                      <div className="content" />
-                    </Spin>
-                  </div>
-                </>
-              )}
               <NewFooter />
             </RequireAuth>
           }

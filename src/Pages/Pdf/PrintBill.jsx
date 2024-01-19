@@ -17,7 +17,7 @@ import { useParams } from "react-router-dom";
 import { render } from "react-dom";
 import PDF from "./PDF";
 import TextArea from "antd/es/input/TextArea";
-import { ref, update } from "firebase/database";
+import { onValue, ref, update } from "firebase/database";
 import { db } from "../../Utils/Firebase/Firebase_config";
 
 export default function PrintBill() {
@@ -85,8 +85,26 @@ export default function PrintBill() {
 
   const [load, setload] = useState(true);
 
+  const [CustomersData, setCustomersData] = useState([]);
+  const Customers = () => {
+    onValue(ref(db, "Customer"), (snapshot) => {
+      const data = snapshot.val();
+      if (data === null) {
+        setCustomersData([]);
+      } else {
+        // Convert the object into an array of customer objects
+        const customerArray = Object.keys(data).map((customerId) => ({
+          id: customerId,
+          ...data[customerId],
+        }));
+
+        // Update the state with the array of customer objects
+        setCustomersData(customerArray);
+      }
+    });
+  };
+
   useEffect(() => {
-    const CustomersData = JSON.parse(sessionStorage.getItem("CustomersData"));
     const filteredData = CustomersData.filter(
       (item) => item.id === BillId.billid
     )[0];
@@ -136,7 +154,7 @@ export default function PrintBill() {
         setload(true);
       }
     }
-  }, [BillId]);
+  }, [BillId, CustomersData]);
 
   const BillPrint = async (e) => {
     const invoiceData = {
@@ -1063,6 +1081,7 @@ export default function PrintBill() {
   const [Permission, setPermission] = useState(true);
 
   useEffect(() => {
+    Customers();
     const storedData = JSON.parse(sessionStorage.getItem("user")) || {};
 
     const { email } = storedData;
