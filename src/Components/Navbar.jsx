@@ -41,7 +41,8 @@ export default function Navbar(props) {
       if (e.key === "9") {
         message.success("Successfully Logout").then(() => {
           signOut(auth).then(() => {
-            sessionStorage.clear()
+            sessionStorage.clear();
+            navigate("/")
           });
         });
       } else {

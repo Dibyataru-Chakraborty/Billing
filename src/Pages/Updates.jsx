@@ -112,7 +112,7 @@ export default function Updates() {
     {
       title: "Date",
       dataIndex: "Date",
-      width: 150,
+      width: 100,
       sorter: (a, b) => a.Date - b.Date,
       ...getColumnSearchProps("Date"),
       sortDirections: ["descend", "ascend"],
@@ -129,7 +129,7 @@ export default function Updates() {
     {
       title: "HSN",
       dataIndex: "HSN",
-      width: 150,
+      width: 100,
       sorter: (a, b) => a.HSN.length - b.HSN.length,
       ...getColumnSearchProps("HSN"),
       sortDirections: ["descend", "ascend"],
@@ -137,7 +137,7 @@ export default function Updates() {
     {
       title: "Quantity",
       dataIndex: "Quantity",
-      width: 150,
+      width: 50,
       sorter: (a, b) => a.Quantity - b.Quantity,
       ...getColumnSearchProps("Quantity"),
       sortDirections: ["descend", "ascend"],
@@ -145,7 +145,7 @@ export default function Updates() {
     {
       title: "Add Quantity",
       dataIndex: "AddQuantity",
-      width: 150,
+      width: 50,
       sorter: (a, b) => a.AddQuantity - b.AddQuantity,
       ...getColumnSearchProps("AddQuantity"),
       sortDirections: ["descend", "ascend"],
@@ -153,7 +153,7 @@ export default function Updates() {
     {
       title: "Sub Quantity",
       dataIndex: "SubQuantity",
-      width: 150,
+      width: 50,
       sorter: (a, b) => a.SubQuantity - b.SubQuantity,
       ...getColumnSearchProps("SubQuantity"),
       sortDirections: ["descend", "ascend"],
@@ -161,7 +161,7 @@ export default function Updates() {
     {
       title: "Rate",
       dataIndex: "RATE",
-      width: 150,
+      width: 50,
       sorter: (a, b) => a.RATE - b.RATE,
       ...getColumnSearchProps("RATE"),
       sortDirections: ["descend", "ascend"],
@@ -169,9 +169,17 @@ export default function Updates() {
     {
       title: "Per",
       dataIndex: "Per",
-      width: 150,
+      width: 50,
       sorter: (a, b) => a.Per.length - b.Per.length,
       ...getColumnSearchProps("Per"),
+      sortDirections: ["descend", "ascend"],
+    },
+    {
+      title: "Email",
+      dataIndex: "userEmail",
+      width: 150,
+      sorter: (a, b) => a.userEmail.length - b.userEmail.length,
+      ...getColumnSearchProps("userEmail"),
       sortDirections: ["descend", "ascend"],
     },
   ];
@@ -191,6 +199,7 @@ export default function Updates() {
         RATE: element.RATE,
         Per: element.Per,
         Date: element.Date,
+        userEmail:element.userEmail
       });
     }
   });

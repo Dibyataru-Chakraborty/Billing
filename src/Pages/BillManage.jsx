@@ -323,7 +323,6 @@ export default function BillManage() {
       if (data === null) {
         setCustomersData([]);
       } else {
-        console.log(count++);
         // Convert the object into an array of customer objects
         const customerArray = Object.keys(data).map((customerId) => ({
           id: customerId,

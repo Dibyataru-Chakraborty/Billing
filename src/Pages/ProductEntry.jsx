@@ -1,11 +1,21 @@
 import { SearchOutlined } from "@ant-design/icons";
 import Highlighter from "react-highlight-words";
-import { Input, Space, Table, Button, Modal, message } from "antd";
-import React, { useRef, useState } from "react";
+import {
+  Input,
+  Space,
+  Table,
+  Button,
+  Modal,
+  message,
+  Popconfirm,
+  Tour,
+} from "antd";
+import React, { useEffect, useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPenToSquare } from "@fortawesome/free-regular-svg-icons";
-import { push, ref, set, update } from "firebase/database";
+import { faPenToSquare, faTrashCan } from "@fortawesome/free-regular-svg-icons";
+import { push, ref, remove, update } from "firebase/database";
 import { db } from "../Utils/Firebase/Firebase_config";
+import { faLightbulb } from "@fortawesome/free-solid-svg-icons";
 
 export default function ProductEntry() {
   const [searchText, setSearchText] = useState("");
@@ -31,16 +41,73 @@ export default function ProductEntry() {
   const year = dates.getFullYear();
   const formattedDate = `${year}-${month}-${day}`;
 
+  const [UserEmail, setUserEmail] = useState("");
+  const [UserUid, setUserUid] = useState("");
+
+  // Later Delete
+  const [open, setOpen] = useState(true);
+  const ref1 = useRef(null);
+  const ref2 = useRef(null);
+  const steps = [
+    {
+      title: (
+        <FontAwesomeIcon
+          icon={faLightbulb}
+          size="2xl"
+          style={{ color: "#63E6BE" }}
+        />
+      ),
+      description: "Please check there is an update.",
+      target: null,
+    },
+    {
+      title: (
+        <FontAwesomeIcon
+          icon={faLightbulb}
+          size="2xl"
+          style={{ color: "#63E6BE" }}
+        />
+      ),
+
+      description: "Now You can delete your product also.",
+      target: () => ref1.current,
+    },
+    {
+      title: (
+        <FontAwesomeIcon
+          icon={faLightbulb}
+          size="2xl"
+          style={{ color: "#63E6BE" }}
+        />
+      ),
+
+      description:
+        "Who is updating the product that also shown in update list.",
+      target: () => ref2.current,
+    },
+  ];
+
+  useEffect(() => {
+    // Retrieve data from sessionStorage
+    const storedData = JSON.parse(sessionStorage.getItem("user")) || {};
+
+    // Extract values from the stored data
+    const { email: storedemail, uid: storeduid } = storedData;
+
+    // Set state variables using the extracted values
+    setUserUid(storeduid || "");
+    setUserEmail(storedemail || "");
+  }, []);
+
   const showDetails = () => {
-    setAddQuantity(0)
-    setSubQuantity(0)
+    setAddQuantity(0);
+    setSubQuantity(0);
     setIsUpdateVisible(true);
   };
 
   const updateOk = async () => {
     try {
       setLoadings(true);
-      let id = Id - 1;
       let product = {
         DescriptionofServices: DescriptionofServices,
         HSN: HSN,
@@ -56,15 +123,17 @@ export default function ProductEntry() {
         Quantity,
         RATE: RATE,
         Per: per,
-        Date: date
+        Date: date,
+        userUID: UserUid,
+        userEmail: UserEmail,
       };
-  
+
       // Simulating an asynchronous operation (e.g., API call or database update)
       await new Promise((resolve) => setTimeout(resolve, 2000));
-  
-      await update(ref(db, "Products/" + id + "/"), product);
+
+      await update(ref(db, "Product/" + Id + "/"), product);
       await push(ref(db, "Updates/"), Updateproduct);
-  
+
       setLoadings(false);
       setIsUpdateVisible(false);
       message.success("Update Successfully");
@@ -75,7 +144,7 @@ export default function ProductEntry() {
       setLoadings(false);
     }
   };
-  
+
   const updateCancel = () => {
     setIsUpdateVisible(false);
   };
@@ -91,10 +160,6 @@ export default function ProductEntry() {
 
   const addOk = async () => {
     try {
-      const count = data.reduce((max, current) => {
-        return current.id > max ? current.id : max;
-      }, 0);
-  
       let product = {
         DescriptionofServices: DescriptionofServices,
         HSN: HSN,
@@ -102,17 +167,18 @@ export default function ProductEntry() {
         RATE: RATE,
         Per: per,
         Date: date,
-        id: count+1
+        userUID: UserUid,
+        userEmail: UserEmail,
       };
-  
+
       setLoadings(true);
-  
+
       // Simulating an asynchronous operation (e.g., API call or database update)
       await new Promise((resolve) => setTimeout(resolve, 2000));
-  
-      await set(ref(db, "Products/" + count + "/"), product);
+
+      await push(ref(db, "Product/"), product);
       await push(ref(db, "Updates/"), product);
-  
+
       setLoadings(false);
       setIsAddVisible(false);
       setDescriptionofServices("");
@@ -232,12 +298,12 @@ export default function ProductEntry() {
   const columns = [
     {
       title: "Id",
-      dataIndex: "id",
+      dataIndex: "key",
       width: 150,
       rowScope: "row",
-      sorter: (a, b) => a.id - b.id,
+      sorter: (a, b) => a.key - b.key,
       sortDirections: ["descend", "ascend"],
-      ...getColumnSearchProps("id"),
+      ...getColumnSearchProps("key"),
     },
     {
       title: "Description of Services",
@@ -294,8 +360,9 @@ export default function ProductEntry() {
       width: 150,
       rowScope: "row",
       render: (text, record) => {
-        const MenuClick = (e) => {
-          const { id, DescriptionofServices, HSN, Quantity, RATE, Per, Date } = record;
+        const { id, DescriptionofServices, HSN, Quantity, RATE, Per, Date } =
+          record;
+        const MenuClick = () => {
           setId(id);
           setDescriptionofServices(DescriptionofServices);
           setHSN(HSN);
@@ -305,15 +372,51 @@ export default function ProductEntry() {
           setDate(Date || formattedDate);
           showDetails();
         };
+        const confirm = async () => {
+          let Updateproduct = {
+            DescriptionofServices: `${DescriptionofServices} (removed)`,
+            HSN: HSN,
+            AddQuantity: 0,
+            SubQuantity: 0,
+            Quantity: 0,
+            RATE: 0,
+            Per: per,
+            Date: formattedDate,
+            userUID: UserUid,
+            userEmail: UserEmail,
+          };
+          await remove(ref(db, "Product/" + id + "/"));
+          await push(ref(db, "Updates/"), Updateproduct);
+          message.success("Product Delete");
+        };
+        const cancel = () => {
+          message.error("Product Not Delete");
+        };
         const option = (
           <>
-            <Button onClick={MenuClick}>
+            <Button onClick={MenuClick} ref={ref2}>
               <FontAwesomeIcon
                 icon={faPenToSquare}
                 size="xl"
                 style={{ color: "#9d670c" }}
               />
             </Button>
+            <Popconfirm
+              title="Delete the Product"
+              description="Are you sure to delete this Product?"
+              onConfirm={confirm}
+              onCancel={cancel}
+              okText="Yes"
+              cancelText="No"
+            >
+              <Button danger ref={ref1}>
+                <FontAwesomeIcon
+                  icon={faTrashCan}
+                  size="xl"
+                  style={{ color: "#a30000" }}
+                />
+              </Button>
+            </Popconfirm>
           </>
         );
         return (
@@ -344,6 +447,8 @@ export default function ProductEntry() {
 
   return (
     <>
+      <Tour open={open} onClose={() => setOpen(false)} steps={steps} />
+
       <div
         className="container"
         style={{
@@ -484,7 +589,8 @@ export default function ProductEntry() {
         okButtonProps={{
           disabled:
             DescriptionofServices === null ||
-            DescriptionofServices.trim() === "" || date === ""
+            DescriptionofServices.trim() === "" ||
+            date === "",
         }}
       >
         <form className="row g-3">

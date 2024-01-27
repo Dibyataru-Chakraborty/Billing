@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { message } from "antd";
+import { message, notification } from "antd";
 import { AuthErrorCodes, signInWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "../Utils/Firebase/Firebase_config";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -58,25 +58,21 @@ export default function Login() {
       const Signup = {
         email: currentUser.email,
         uid: currentUser.uid,
-        lastLoginAt: currentUser.metadata.lastLoginAt,
-        creationTime: currentUser.metadata.creationTime,
-        refreshToken: currentUser.refreshToken,
-        expirationTime: currentUser.toJSON().stsTokenManager.expirationTime,
-        accessToken: currentUser.toJSON().stsTokenManager.accessToken,
       };
 
       sessionStorage.setItem("user", JSON.stringify(Signup));
 
       message.success("Successfully Login", 1.5);
       await fetch("https://api.ipify.org/?format=json")
-      .then(response => response.json())
-      .then(async json => 
-        await push(ref(db, "Log/"), ({
-          user: currentUser.email,
-          lastSignInTime: currentUser.metadata.lastLoginAt,
-          ip: json.ip
-        }))
-      )
+        .then((response) => response.json())
+        .then(
+          async (json) =>
+            await push(ref(db, "Log/"), {
+              user: currentUser.email,
+              lastSignInTime: currentUser.metadata.lastLoginAt,
+              ip: json.ip,
+            })
+        );
       setTimeout(() => {
         navigate("/dashboard");
       }, 2000);
@@ -95,8 +91,23 @@ export default function Login() {
     }
   };
 
+  // Later Delete
+  const [api, contextHolder] = notification.useNotification();
+  useEffect(() => {
+    const openNotification = () => {
+      api.info({
+        message: 'Update',
+        description:
+          'Please check your updates and inform me immediately',
+      });
+    };
+    openNotification();
+  }, [api])
+  
+
   return (
-    <>
+    <>      
+    {contextHolder}
       <section className="vh-100">
         <div className="container py-5 h-100">
           <div className="row d-flex justify-content-center align-items-center h-100">

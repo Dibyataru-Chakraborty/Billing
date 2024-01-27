@@ -300,6 +300,15 @@ export default function Billing() {
   };
   const columns = [
     {
+      title: "Id",
+      dataIndex: "key",
+      width: 50,
+      rowScope: "row",
+      sorter: (a, b) => a.key - b.key,
+      sortDirections: ["descend", "ascend"],
+      ...getColumnSearchProps("key"),
+    },
+    {
       title: "Description of Services",
       dataIndex: "DescriptionofServices",
       width: 150,
@@ -422,7 +431,6 @@ export default function Billing() {
   const [IGSTAmount, setIGSTAmount] = useState(0);
   const [CGSTAmount, setCGSTAmount] = useState(0);
   const [SGSTAmount, setSGSTAmount] = useState(0);
-  // const [totalProductQuantity, setTotalProductQuantity] = useState(0);
   const [NetAmount, setNetAmount] = useState(0);
   const [NetAmountWord, setNetAmountWord] = useState("");
   const [IGSTAmountWord, setIGSTAmountWord] = useState("");
@@ -516,8 +524,8 @@ export default function Billing() {
 
         const updates = {};
         updatedProducts.forEach((item) => {
-          const productIndex = item.id - 1;
-          updates[`Products/${productIndex}/Quantity`] = item.Quantity;
+          const productIndex = item.id;
+          updates[`Product/${productIndex}/Quantity`] = item.Quantity;
         });
 
         await push(ref(db, "Customer/"), bill);

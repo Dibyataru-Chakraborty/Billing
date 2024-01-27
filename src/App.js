@@ -77,12 +77,19 @@ function App() {
 
   const [ProductsData, setProductsData] = useState([]);
   const Products = () => {
-    onValue(ref(db, "Products"), (snapshot) => {
+    onValue(ref(db, "Product"), (snapshot) => {
       const data = snapshot.val();
       if (data === null) {
         setProductsData([]);
       } else {
-        setProductsData(data);
+        // Convert the object into an array of customer objects
+        const customerArray = Object.keys(data).map((Id) => ({
+          id: Id,
+          ...data[Id],
+        }));
+
+        // Update the state with the array of customer objects
+        setProductsData(customerArray);
       }
     });
   };
