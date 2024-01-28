@@ -7,8 +7,6 @@ import { useState } from "react";
 
 import Error from "./Pages/Error";
 import Offline from "./Pages/Offline";
-import PrintBill from "./Pages/Pdf/PrintBill";
-import PDF from "./Pages/Pdf/PDF";
 
 const Dashboard = lazy(() => import("./Pages/Dashboard"));
 const Billing = lazy(() => import("./Pages/Billing"));
@@ -20,7 +18,7 @@ const Config = lazy(() => import("./Pages/Config"));
 const Forget = lazy(() => import("./LFC/Forget"));
 const Login = lazy(() => import("./LFC/Login"));
 const BillManage = lazy(() => import("./Pages/BillManage"));
-// const PrintBill = lazy(() => import("./Pages/Pdf/PrintBill"));
+const PrintBill = lazy(() => import("./Pages/Pdf/PrintBill"));
 const Agents = lazy(() => import("./Pages/Agents"));
 const Log = lazy(() => import("./Pages/Log"));
 
@@ -134,38 +132,27 @@ function App() {
     });
   };
 
-  // //month count
-  // const monthCounts = Object.values(CustomersData).reduce((acc, entry) => {
-  //   const { BillDate } = entry;
-  //   const monthYear = BillDate.slice(3); // Extract month and year (excluding day)
-  //   acc[monthYear] = (acc[monthYear] || 0) + 1;
-  //   return acc;
-  // }, {});
-  // // Convert the object values to an array of counts
-  // const resultArrayMonth = Object.values(monthCounts);
-  // sessionStorage.setItem(
-  //   "billDateCountMonth",
-  //   JSON.stringify(resultArrayMonth)
-  // );
-
-  // Month count with net amount
+  // Month count with net amount for the current year
+  const currentYear = new Date().getFullYear();
   const monthCounts = Object.values(CustomersData).reduce((acc, entry) => {
     const { BillDate, NetAmount } = entry;
-    const monthYear = BillDate.slice(3); // Extract month and year (excluding day)
-    acc[monthYear] = acc[monthYear] || { count: 0, totalNetAmount: 0 };
-    acc[monthYear].count += 1;
-    acc[monthYear].totalNetAmount += NetAmount;
+    const [day, month, year] = BillDate.split("/").map(Number);
+
+    if (year === currentYear) {
+      const monthYear = `${month}/${year}`; // Extract month and year (excluding day)
+      acc[monthYear] = acc[monthYear] || { count: 0, totalNetAmount: 0 };
+      acc[monthYear].count += 1;
+      acc[monthYear].totalNetAmount += NetAmount;
+    }
+
     return acc;
   }, {});
   const resultArrayMonth = Object.values(monthCounts);
-  sessionStorage.setItem(
-    "billDateCountMonth",
-    JSON.stringify(resultArrayMonth)
-  );
+  sessionStorage.setItem("billDateCountMonth", JSON.stringify(resultArrayMonth));
 
   //day count
   const billDateCount = [];
-  const currentMonth = 1; // January is represented by 1
+  const currentMonth = new Date().getMonth() + 1;
   CustomersData.forEach((bill) => {
     const { BillDate, NetAmount } = bill;
     const billMonth = parseInt(BillDate.split("/")[1], 10); // Extracting month from BillDate
@@ -427,11 +414,21 @@ function App() {
           exact
           path="/billing-manage/:billid"
           element={
-            <RequireAuth>
-              <Navbar number="3" />
-              <PrintBill />
-              <NewFooter />
-            </RequireAuth>
+            <Suspense
+              fallback={
+                <div className="container py-5 h-100">
+                  <Spin tip="Loading" size="large">
+                    <div className="content" />
+                  </Spin>
+                </div>
+              }
+            >
+              <RequireAuth>
+                <Navbar number="3" />
+                {!isOnline ? <Offline /> : <PrintBill />}
+                <NewFooter />
+              </RequireAuth>
+            </Suspense>
           }
         />
         <Route
@@ -535,8 +532,6 @@ function App() {
             </Suspense>
           }
         />
-
-        <Route exact path="/pdf" element={<PDF />} />
       </Routes>
     </>
   );
