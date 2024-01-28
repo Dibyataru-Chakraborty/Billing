@@ -134,14 +134,29 @@ function App() {
     });
   };
 
-  //month count
+  // //month count
+  // const monthCounts = Object.values(CustomersData).reduce((acc, entry) => {
+  //   const { BillDate } = entry;
+  //   const monthYear = BillDate.slice(3); // Extract month and year (excluding day)
+  //   acc[monthYear] = (acc[monthYear] || 0) + 1;
+  //   return acc;
+  // }, {});
+  // // Convert the object values to an array of counts
+  // const resultArrayMonth = Object.values(monthCounts);
+  // sessionStorage.setItem(
+  //   "billDateCountMonth",
+  //   JSON.stringify(resultArrayMonth)
+  // );
+
+  // Month count with net amount
   const monthCounts = Object.values(CustomersData).reduce((acc, entry) => {
-    const { BillDate } = entry;
+    const { BillDate, NetAmount } = entry;
     const monthYear = BillDate.slice(3); // Extract month and year (excluding day)
-    acc[monthYear] = (acc[monthYear] || 0) + 1;
+    acc[monthYear] = acc[monthYear] || { count: 0, totalNetAmount: 0 };
+    acc[monthYear].count += 1;
+    acc[monthYear].totalNetAmount += NetAmount;
     return acc;
   }, {});
-  // Convert the object values to an array of counts
   const resultArrayMonth = Object.values(monthCounts);
   sessionStorage.setItem(
     "billDateCountMonth",
@@ -151,36 +166,24 @@ function App() {
   //day count
   const billDateCount = [];
   const currentMonth = 1; // January is represented by 1
-
-  // CustomersData.forEach((bill) => {
-  //   const { BillDate } = bill;
-  //   const billMonth = parseInt(BillDate.split("/")[1], 10); // Extracting month from BillDate
-
-  //   if (billMonth === currentMonth) {
-  //     const existingEntry = billDateCount.find(
-  //       (entry) => entry.date === BillDate
-  //     );
-  //     if (existingEntry) {
-  //       existingEntry.count += 1;
-  //     } else {
-  //       billDateCount.push({ date: BillDate, count: 1 });
-  //     }
-  //   }
-  // });
   CustomersData.forEach((bill) => {
     const { BillDate, NetAmount } = bill;
     const billMonth = parseInt(BillDate.split("/")[1], 10); // Extracting month from BillDate
-  
+
     if (billMonth === currentMonth) {
       const existingEntry = billDateCount.find(
         (entry) => entry.date === BillDate
       );
-  
+
       if (existingEntry) {
         existingEntry.count += 1;
         existingEntry.totalNetAmount += NetAmount;
       } else {
-        billDateCount.push({ date: BillDate, count: 1, totalNetAmount: NetAmount });
+        billDateCount.push({
+          date: BillDate,
+          count: 1,
+          totalNetAmount: NetAmount,
+        });
       }
     }
   });
@@ -414,7 +417,7 @@ function App() {
               }
             >
               <RequireAuth>
-                <Navbar number="3" /> {!isOnline ? <Offline /> : <BillManage/>}
+                <Navbar number="3" /> {!isOnline ? <Offline /> : <BillManage />}
                 <NewFooter />
               </RequireAuth>
             </Suspense>
@@ -426,7 +429,7 @@ function App() {
           element={
             <RequireAuth>
               <Navbar number="3" />
-                <PrintBill />
+              <PrintBill />
               <NewFooter />
             </RequireAuth>
           }

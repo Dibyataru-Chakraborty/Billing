@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { message, notification } from "antd";
+import { message } from "antd";
 import { AuthErrorCodes, signInWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "../Utils/Firebase/Firebase_config";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -91,23 +91,8 @@ export default function Login() {
     }
   };
 
-  // Later Delete
-  const [api, contextHolder] = notification.useNotification();
-  useEffect(() => {
-    const openNotification = () => {
-      api.info({
-        message: 'Update',
-        description:
-          'Please check your updates and inform me immediately',
-      });
-    };
-    openNotification();
-  }, [api])
-  
-
   return (
-    <>      
-    {contextHolder}
+    <>
       <section className="vh-100">
         <div className="container py-5 h-100">
           <div className="row d-flex justify-content-center align-items-center h-100">

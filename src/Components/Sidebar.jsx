@@ -2,17 +2,12 @@ import { Layout, Menu } from "antd";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  UserOutlined,
   FormOutlined,
-  UsergroupAddOutlined,
   StarOutlined,
-  CheckOutlined,
-  MailOutlined,
-  SettingOutlined,
-  RiseOutlined
+  SettingOutlined
 } from "@ant-design/icons";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faBook, faBriefcaseMedical, faCalculator, faCalendarDays, faCartPlus, faChartColumn, faCircleUser, faCloudArrowUp, faCreditCard, faFile, faFileLines, faFlask, faGears, faGraduationCap, faHandshake, faHeartPulse, faIndianRupeeSign, faMoneyBillWaveAlt, faMotorcycle, faPen, faPercent, faPlus, faRocket, faScrewdriverWrench, faSquarePlus, faTag, faUserDoctor, faMoneyBillTransfer, faBullhorn } from "@fortawesome/free-solid-svg-icons";
+import { faBook, faCartPlus, faGears, faScrewdriverWrench } from "@fortawesome/free-solid-svg-icons";
 
 export default function Sidebar(props) {
   const navigate = useNavigate();

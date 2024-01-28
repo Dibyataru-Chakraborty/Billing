@@ -119,14 +119,6 @@ export default function Log() {
       ...getColumnSearchProps("key"),
     },
     {
-      title: "Id",
-      dataIndex: "id",
-      width: 100,
-      sorter: (a, b) => a.id - b.id,
-      sortDirections: ["descend", "ascend"],
-      ...getColumnSearchProps("id"),
-    },
-    {
       title: "Email",
       dataIndex: "Email",
       width: 150,

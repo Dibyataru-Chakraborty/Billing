@@ -2,12 +2,21 @@ import React from "react";
 import ReactApexChart from "react-apexcharts";
 
 export default function MonthLineChrat() {
-  const data = JSON.parse(sessionStorage.getItem("billDateCountMonth"));
+  // const data = JSON.parse(sessionStorage.getItem("billDateCountMonth"));
+  const storedData = JSON.parse(sessionStorage.getItem("billDateCountMonth"));
+  // Extract date and count from stored data
+  const counts = storedData.map((item) => item.count);
+  const amount = storedData.map((item) => item.totalNetAmount);
 
   const series = [
     {
       name: "Products",
-      data: data,
+      data: counts,
+      offsetY: 0,
+    },
+    {
+      name: "Total Amount",
+      data: amount,
       offsetY: 0,
     },
   ];

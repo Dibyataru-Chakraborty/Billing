@@ -8,14 +8,12 @@ import {
   Modal,
   message,
   Popconfirm,
-  Tour,
 } from "antd";
 import React, { useEffect, useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPenToSquare, faTrashCan } from "@fortawesome/free-regular-svg-icons";
 import { push, ref, remove, update } from "firebase/database";
 import { db } from "../Utils/Firebase/Firebase_config";
-import { faLightbulb } from "@fortawesome/free-solid-svg-icons";
 
 export default function ProductEntry() {
   const [searchText, setSearchText] = useState("");
@@ -43,49 +41,6 @@ export default function ProductEntry() {
 
   const [UserEmail, setUserEmail] = useState("");
   const [UserUid, setUserUid] = useState("");
-
-  // Later Delete
-  const [open, setOpen] = useState(true);
-  const ref1 = useRef(null);
-  const ref2 = useRef(null);
-  const steps = [
-    {
-      title: (
-        <FontAwesomeIcon
-          icon={faLightbulb}
-          size="2xl"
-          style={{ color: "#63E6BE" }}
-        />
-      ),
-      description: "Please check there is an update.",
-      target: null,
-    },
-    {
-      title: (
-        <FontAwesomeIcon
-          icon={faLightbulb}
-          size="2xl"
-          style={{ color: "#63E6BE" }}
-        />
-      ),
-
-      description: "Now You can delete your product also.",
-      target: () => ref1.current,
-    },
-    {
-      title: (
-        <FontAwesomeIcon
-          icon={faLightbulb}
-          size="2xl"
-          style={{ color: "#63E6BE" }}
-        />
-      ),
-
-      description:
-        "Who is updating the product that also shown in update list.",
-      target: () => ref2.current,
-    },
-  ];
 
   useEffect(() => {
     // Retrieve data from sessionStorage
@@ -394,7 +349,7 @@ export default function ProductEntry() {
         };
         const option = (
           <>
-            <Button onClick={MenuClick} ref={ref2}>
+            <Button onClick={MenuClick}>
               <FontAwesomeIcon
                 icon={faPenToSquare}
                 size="xl"
@@ -409,7 +364,7 @@ export default function ProductEntry() {
               okText="Yes"
               cancelText="No"
             >
-              <Button danger ref={ref1}>
+              <Button danger>
                 <FontAwesomeIcon
                   icon={faTrashCan}
                   size="xl"
@@ -447,8 +402,6 @@ export default function ProductEntry() {
 
   return (
     <>
-      <Tour open={open} onClose={() => setOpen(false)} steps={steps} />
-
       <div
         className="container"
         style={{
