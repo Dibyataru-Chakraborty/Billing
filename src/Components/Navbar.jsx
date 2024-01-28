@@ -73,6 +73,13 @@ export default function Navbar(props) {
 
   const items1 = [
     getItem(
+      null,
+      null,
+      <img src="logo512.png" alt="Logo" style={{height:'35px', verticalAlign:"middle"}}/>,
+      null,
+      null
+    ),
+    getItem(
       "Dashboard",
       "1",
       <FontAwesomeIcon icon={faChartSimple} style={{ color: "#d20f49" }} />,
@@ -145,6 +152,13 @@ export default function Navbar(props) {
   ];
 
   const items3 = [
+    getItem(
+      null,
+      null,
+      <img src="logo512.png" alt="Logo" style={{height:'35px'}}/>,
+      null,
+      null
+    ),
     getItem(
       "Dashboard",
       "1",
