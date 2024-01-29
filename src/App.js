@@ -242,11 +242,14 @@ function App() {
   sessionStorage.setItem("LogData", JSON.stringify(LogData));
 
   useEffect(() => {
+    document.getElementById("description").content = Details_Config.ShopName;
+    document.getElementById("Facebookdescription").content = Details_Config.ShopName;
+    document.getElementById("twitterdescription").content = Details_Config.ShopName;
     setInterval(() => {
       document.title = "FORBIDDEN 403";
     }, 4000);
     setInterval(() => {
-      document.title = "JALANGI POLYMER ENTERPRISE";
+      document.title = Details_Config.ShopName;
     }, 8000);
   });
 

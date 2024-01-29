@@ -119,19 +119,19 @@ export default function BillManage() {
   });
   const columns = [
     {
-      title: "BillDate",
-      dataIndex: "BillDate",
-      width: 150,
-      sorter: (a, b) => a.BillDate - b.BillDate,
-      ...getColumnSearchProps("BillDate"),
-      sortDirections: ["descend", "ascend"],
-    },
-    {
       title: "BillId",
       dataIndex: "BillId",
       width: 150,
       sorter: (a, b) => a.BillId.length - b.BillId.length,
       ...getColumnSearchProps("BillId"),
+      sortDirections: ["descend", "ascend"],
+    },
+    {
+      title: "BillDate",
+      dataIndex: "BillDate",
+      width: 150,
+      sorter: (a, b) => a.BillDate - b.BillDate,
+      ...getColumnSearchProps("BillDate"),
       sortDirections: ["descend", "ascend"],
     },
     {
@@ -212,27 +212,25 @@ export default function BillManage() {
         const option = (
           <>
             <Popconfirm
-              title="Delete the Agent"
+              title="Delete the Customer"
               description="Are you sure to delete this Customer?"
               onConfirm={confirm}
               onCancel={cancel}
               okText="Yes"
               cancelText="No"
             >
-              <Button danger>
-                <FontAwesomeIcon
-                  icon={faTrashCan}
-                  size="xl"
-                  style={{ color: "#a30000" }}
-                />
-              </Button>
+              <FontAwesomeIcon
+                icon={faTrashCan}
+                size="xl"
+                style={{ color: "#ffffff" }}
+              />
             </Popconfirm>
           </>
         );
         return (
           <>
             {!Permission ? (
-              <div className="text-center">{option}</div>
+              <div className="text-center btn btn-danger btn-sm rounded-circle">{option}</div>
             ) : (
               <div className="text-center">
                 <FontAwesomeIcon

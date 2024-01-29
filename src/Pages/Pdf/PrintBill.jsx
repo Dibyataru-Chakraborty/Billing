@@ -64,8 +64,7 @@ export default function PrintBill() {
   const [branchAndIFSC, setBranchAndIFSC] = useState("");
   useEffect(() => {
     // Retrieve data from sessionStorage
-    const storedData =
-      JSON.parse(sessionStorage.getItem("BankConfig")) || {};
+    const storedData = JSON.parse(sessionStorage.getItem("BankConfig")) || {};
 
     // Extract values from the stored data
     const {
@@ -221,6 +220,12 @@ export default function PrintBill() {
       accountNumber,
       branchAndIFSC,
       printmode: e,
+      ShopName,
+      ShopAddress,
+      GSTINNumber,
+      ContactNo,
+      Pan,
+      Email,
     };
     const newWindow = window.open("", "_blank", "width=600,height=400");
 
@@ -1150,11 +1155,9 @@ export default function PrintBill() {
                         <tbody>
                           <tr>
                             <td>
-                              <div className="fs-2">
-                                {ShopName}
-                              </div>
-                              <div className="col-8">
-                                {ShopAddress}
+                              <div className="fs-2">{ShopName}</div>
+                              <div>
+                                <pre>{ShopAddress}</pre>
                               </div>
                               <div>GSTIN: {GSTINNumber}</div>
                               <div>Contact No.: {ContactNo}</div>

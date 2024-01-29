@@ -629,6 +629,12 @@ export default function Billing() {
       accountNumber,
       branchAndIFSC,
       printmode: e,
+      ShopName,
+      ShopAddress,
+      GSTINNumber,
+      ContactNo,
+      Pan,
+      Email,
     };
     const newWindow = window.open("", "_blank", "width=600,height=400");
 
@@ -1477,8 +1483,14 @@ export default function Billing() {
       const consigneeGSTIN = consignee.GSTIN;
       const consigneeState = consignee.State;
       // Check if the consigneeAddress is not already in the set before adding it
-      if (!consigneeSet.has(`${consigneeAddress};${consigneeCode};${consigneeState};${consigneeGSTIN};${consigneeContact}`)) {
-        consigneeSet.add(`${consigneeAddress};${consigneeCode};${consigneeState};${consigneeGSTIN};${consigneeContact}`);
+      if (
+        !consigneeSet.has(
+          `${consigneeAddress};${consigneeCode};${consigneeState};${consigneeGSTIN};${consigneeContact}`
+        )
+      ) {
+        consigneeSet.add(
+          `${consigneeAddress};${consigneeCode};${consigneeState};${consigneeGSTIN};${consigneeContact}`
+        );
         // Return the option object with unique values
         return {
           value: `${consigneeName};${consigneeAddress};${consigneeCode};${consigneeState};${consigneeGSTIN};${consigneeContact}`,
@@ -1492,8 +1504,17 @@ export default function Billing() {
 
   const handleInputChange = (inputValue) => {
     if (inputValue && inputValue.value) {
-      const valuesArray = inputValue.value.split(';').map(value => value.trim());
-      const [consigneeName, consigneeAddress, consigneeCode, consigneeState, consigneeGSTIN, consigneeContact] = valuesArray
+      const valuesArray = inputValue.value
+        .split(";")
+        .map((value) => value.trim());
+      const [
+        consigneeName,
+        consigneeAddress,
+        consigneeCode,
+        consigneeState,
+        consigneeGSTIN,
+        consigneeContact,
+      ] = valuesArray;
       setConsignee_Name(consigneeName);
       setConsignee_Address(consigneeAddress);
       setConsignee_Code(consigneeCode);
@@ -1524,7 +1545,9 @@ export default function Billing() {
                         <tr>
                           <td>
                             <div className="fs-2">{ShopName}</div>
-                            <div className="col-8">{ShopAddress}</div>
+                            <div>
+                              <pre>{ShopAddress}</pre>
+                            </div>
                             <div>GSTIN: {GSTINNumber}</div>
                             <div>Contact No.: {ContactNo}</div>
                             <div>E-Mail : {Email}</div>

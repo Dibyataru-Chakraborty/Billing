@@ -40,6 +40,12 @@ class PDF extends React.Component {
       accountNumber,
       branchAndIFSC,
       printmode,
+      ShopName,
+      ShopAddress,
+      GSTINNumber,
+      ContactNo,
+      Pan,
+      Email,
     } = this.props;
     return (
       <>
@@ -61,19 +67,13 @@ class PDF extends React.Component {
                   <tbody>
                     <tr>
                       <td>
-                        <div className="fs-2">JALANGI POLYMER ENTERPRISE</div>
+                        <div className="fs-2">{ShopName}</div>
                         <div>
-                          <p>
-                            Nimtala Bazar, Near Dhubulia Station,
-                            <br />
-                            Dwipchandrapur, Dhubulia,
-                            <br />
-                            Nadia, 19 - West Bengal, 741125
-                          </p>
+                          <pre>{ShopAddress}</pre>
                         </div>
-                        <div className="fw-bold">GSTIN: 19AATFJ7691R1ZV</div>
-                        <div>Contact No.: 9002630036 / 9563414242</div>
-                        <div>E-Mail : jpedhubulia@gmail.com</div>
+                        <div className="fw-bold">GSTIN: {GSTINNumber}</div>
+                        <div>Contact No.: {ContactNo}</div>
+                        <div>E-Mail : {Email}</div>
                       </td>
                     </tr>
                     <tr className="table-group-divider">
@@ -347,7 +347,7 @@ class PDF extends React.Component {
                         <td>
                           <div>
                             <span>Company’s PAN:</span>&nbsp;
-                            <span className="fw-bold">AATFJ7691R</span>
+                            <span className="fw-bold">{Pan}</span>
                           </div>
                           <div>
                             <u>Declaration</u>
@@ -400,9 +400,7 @@ class PDF extends React.Component {
               </div>
               <div className="col">
                 <div className="card">
-                  <div className="card-header text-end">
-                    for JALANGI POLYMER ENTERPRISE
-                  </div>
+                  <div className="card-header text-end">for {ShopName}</div>
                   <div
                     className="card-body"
                     style={{ minWidth: 100, minHeight: 100 }}
