@@ -1466,12 +1466,6 @@ export default function Billing() {
       setConsignee_Code(selectedConsignee.Consignee[0].Code || "");
       setConsignee_Contact(selectedConsignee.Consignee[0].Contact || "");
       setConsignee_GSTIN(selectedConsignee.Consignee[0].GSTIN || "");
-      setBuyer_Name(selectedConsignee.Buyer[0].Name || "");
-      setBuyer_Address(selectedConsignee.Buyer[0].Address || "");
-      setBuyer_State(selectedConsignee.Buyer[0].State || "");
-      setBuyer_Code(selectedConsignee.Buyer[0].Code || "");
-      setBuyer_Contact(selectedConsignee.Buyer[0].Contact || "");
-      setBuyer_GSTIN(selectedConsignee.Buyer[0].GSTIN || "");
       setDetailsDisable(true);
     } else {
       setDetailsDisable(false);
@@ -1481,12 +1475,6 @@ export default function Billing() {
       setConsignee_Code(Consignee_Code);
       setConsignee_Contact(Consignee_Contact);
       setConsignee_GSTIN(Consignee_GSTIN);
-      setBuyer_Name(Buyer_Name);
-      setBuyer_Address(Buyer_Address);
-      setBuyer_State(Buyer_State);
-      setBuyer_Code(Buyer_Code);
-      setBuyer_Contact(Buyer_Contact);
-      setBuyer_GSTIN(Buyer_GSTIN);
     }
   }, [
     selectedConsignee,
