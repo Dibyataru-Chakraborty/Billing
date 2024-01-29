@@ -136,6 +136,7 @@ function App() {
   const currentYear = new Date().getFullYear();
   const monthCounts = Object.values(CustomersData).reduce((acc, entry) => {
     const { BillDate, NetAmount } = entry;
+    // eslint-disable-next-line no-unused-vars
     const [day, month, year] = BillDate.split("/").map(Number);
 
     if (year === currentYear) {
