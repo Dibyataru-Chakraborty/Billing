@@ -249,7 +249,7 @@ function App() {
       document.title = "FORBIDDEN 403";
     }, 4000);
     setInterval(() => {
-      document.title = Details_Config.ShopName;
+      document.title = Details_Config.ShopName || "FORBIDDEN 403";
     }, 8000);
   });
 
