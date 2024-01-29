@@ -1,14 +1,16 @@
 import { message } from "antd";
-import { ref, update } from "firebase/database";
+import { ref, set } from "firebase/database";
 import React, { useEffect, useState } from "react";
 import { db } from "../../Utils/Firebase/Firebase_config";
-import { SaveOutlined } from "@ant-design/icons";
+import { SaveOutlined, EditOutlined } from "@ant-design/icons";
 
 export default function BankDetails() {
   const [accountHolderName, setAccountHolderName] = useState("");
   const [bankName, setBankName] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
   const [branchAndIFSC, setBranchAndIFSC] = useState("");
+
+  const [Readonly, setReadonly] = useState(true);
 
   const save = async () => {
     const client = {
@@ -19,7 +21,7 @@ export default function BankDetails() {
     };
 
     try {
-      await update(ref(db, "Settings/"), client);
+      await set(ref(db, "Bank/"), client);
       message.success("Details Update");
     } catch (e) {
       message.error("Something Wrong");
@@ -28,8 +30,7 @@ export default function BankDetails() {
 
   useEffect(() => {
     // Retrieve data from localStorage
-    const storedData =
-      JSON.parse(sessionStorage.getItem("SettingsConfig")) || {};
+    const storedData = JSON.parse(sessionStorage.getItem("BankConfig")) || {};
 
     // Extract values from the stored data
     const {
@@ -46,93 +47,88 @@ export default function BankDetails() {
     setBranchAndIFSC(storedBranchAndIFSC || "");
   }, []);
 
-  const [Permission, setPermission] = useState(true);
-
-  useEffect(() => {
-    const storedData = JSON.parse(sessionStorage.getItem("user")) || {};
-
-    const { email } = storedData;
-
-    const data = JSON.parse(sessionStorage.getItem("UserData"));
-
-    const isUserInData = data.some((item) => item.Email === email);
-    setPermission(isUserInData);
-  }, []);
-
   return (
     <>
-      {!Permission ? (
-        <div
-          className="container"
-          style={{
-            overflow: "auto",
-          }}
-        >
-          <div className="row my-3">
-            <div className="col-12">
-              <label htmlFor="accountHolderName" className="form-label">
-                A/c Holder’s Name
-              </label>
-              <input
-                type="text"
-                className="form-control"
-                id="accountHolderName"
-                value={accountHolderName}
-                onChange={(e) => setAccountHolderName(e.target.value)}
-              />
-            </div>
-            <div className="col-12">
-              <label htmlFor="bankName" className="form-label">
-                Bank Name
-              </label>
-              <input
-                type="text"
-                className="form-control"
-                id="bankName"
-                value={bankName}
-                onChange={(e) => setBankName(e.target.value)}
-              />
-            </div>
-            <div className="col-12">
-              <label htmlFor="accountNumber" className="form-label">
-                A/c No.
-              </label>
-              <input
-                type="text"
-                className="form-control"
-                id="accountNumber"
-                value={accountNumber}
-                onChange={(e) => setAccountNumber(e.target.value)}
-              />
-            </div>
-            <div className="col-12">
-              <label htmlFor="branchAndIFSC" className="form-label">
-                Branch & IFS Code
-              </label>
-              <input
-                type="text"
-                className="form-control"
-                id="branchAndIFSC"
-                value={branchAndIFSC}
-                onChange={(e) => setBranchAndIFSC(e.target.value)}
-              />
-            </div>
-            <footer className="my-3 text-end">
+      <div
+        className="container"
+        style={{
+          overflow: "auto",
+        }}
+      >
+        <div className="row my-3">
+          <div className="col-12">
+            <label htmlFor="accountHolderName" className="form-label">
+              A/c Holder’s Name
+            </label>
+            <input
+              disabled={Readonly}
+              type="text"
+              className="form-control"
+              id="accountHolderName"
+              value={accountHolderName}
+              onChange={(e) => setAccountHolderName(e.target.value)}
+            />
+          </div>
+          <div className="col-12">
+            <label htmlFor="bankName" className="form-label">
+              Bank Name
+            </label>
+            <input
+              disabled={Readonly}
+              type="text"
+              className="form-control"
+              id="bankName"
+              value={bankName}
+              onChange={(e) => setBankName(e.target.value)}
+            />
+          </div>
+          <div className="col-12">
+            <label htmlFor="accountNumber" className="form-label">
+              A/c No.
+            </label>
+            <input
+              disabled={Readonly}
+              type="text"
+              className="form-control"
+              id="accountNumber"
+              value={accountNumber}
+              onChange={(e) => setAccountNumber(e.target.value)}
+            />
+          </div>
+          <div className="col-12">
+            <label htmlFor="branchAndIFSC" className="form-label">
+              Branch & IFS Code
+            </label>
+            <input
+              disabled={Readonly}
+              type="text"
+              className="form-control"
+              id="branchAndIFSC"
+              value={branchAndIFSC}
+              onChange={(e) => setBranchAndIFSC(e.target.value)}
+            />
+          </div>
+          <footer className="my-3 text-end">
+            {Readonly ? (
               <button
                 type="button"
-                className="btn btn-primary btn-sm rounded-circle"
+                className="btn btn-danger btn-sm rounded-circle"
+                onClick={() => setReadonly(false)}
+              >
+                <EditOutlined />
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="btn btn-success btn-sm rounded-circle"
                 onClick={save}
               >
                 <SaveOutlined />
               </button>
-            </footer>
-          </div>
+            )}
+          </footer>
         </div>
-      ) : (
-        <div className="alert alert-danger" role="alert">
-          <strong>You have no permission</strong>
-        </div>
-      )}
+      </div>
     </>
   );
 }

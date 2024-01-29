@@ -75,7 +75,7 @@ export default function Navbar(props) {
     getItem(
       null,
       null,
-      <img src="logo512.png" alt="Logo" style={{height:'35px', verticalAlign:"middle"}}/>,
+      <img src="/logo512.png" alt="Logo" style={{height:'35px', verticalAlign:"middle"}}/>,
       null,
       null
     ),
@@ -155,7 +155,7 @@ export default function Navbar(props) {
     getItem(
       null,
       null,
-      <img src="logo512.png" alt="Logo" style={{height:'35px'}}/>,
+      <img src="/logo512.png" alt="Logo" style={{height:'35px'}}/>,
       null,
       null
     ),

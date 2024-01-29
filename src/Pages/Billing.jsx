@@ -191,6 +191,58 @@ export default function Billing() {
     setServices_isModalOpen(false);
   };
 
+  const [accountHolderName, setAccountHolderName] = useState("");
+  const [bankName, setBankName] = useState("");
+  const [accountNumber, setAccountNumber] = useState("");
+  const [branchAndIFSC, setBranchAndIFSC] = useState("");
+  useEffect(() => {
+    // Retrieve data from sessionStorage
+    const storedData = JSON.parse(sessionStorage.getItem("BankConfig")) || {};
+
+    // Extract values from the stored data
+    const {
+      accountHolderName: storedAccountHolderName,
+      accountNumber: storedAccountNumber,
+      bankName: storedBankName,
+      branchAndIFSC: storedBranchAndIFSC,
+    } = storedData;
+
+    // Set state variables using the extracted values
+    setAccountHolderName(storedAccountHolderName || "");
+    setAccountNumber(storedAccountNumber || "");
+    setBankName(storedBankName || "");
+    setBranchAndIFSC(storedBranchAndIFSC || "");
+  }, []);
+
+  const [ShopName, setShopName] = useState("");
+  const [ShopAddress, setShopAddress] = useState("");
+  const [GSTINNumber, setGSTINNumber] = useState("");
+  const [ContactNo, setContactNo] = useState("");
+  const [Pan, setPan] = useState("");
+  const [Email, setEmail] = useState("");
+  useEffect(() => {
+    // Retrieve data from localStorage
+    const storedData =
+      JSON.parse(sessionStorage.getItem("DetailsConfig")) || {};
+
+    const {
+      ShopName: storedShopName,
+      ShopAddress: storedShopAddress,
+      GSTINNumber: storedGSTINNumber,
+      ContactNo: storedContactNo,
+      Email: storedEmail,
+      Pan: storedPan,
+    } = storedData;
+
+    // Set state variables using the extracted values
+    setShopName(storedShopName || "");
+    setShopAddress(storedShopAddress || "");
+    setGSTINNumber(storedGSTINNumber || "");
+    setContactNo(storedContactNo || "");
+    setEmail(storedEmail || "");
+    setPan(storedPan || "");
+  }, []);
+
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
@@ -539,31 +591,6 @@ export default function Billing() {
       alert("Save operation canceled.");
     }
   };
-
-  const [accountHolderName, setAccountHolderName] = useState("");
-  const [bankName, setBankName] = useState("");
-  const [accountNumber, setAccountNumber] = useState("");
-  const [branchAndIFSC, setBranchAndIFSC] = useState("");
-
-  useEffect(() => {
-    // Retrieve data from sessionStorage
-    const storedData =
-      JSON.parse(sessionStorage.getItem("SettingsConfig")) || {};
-
-    // Extract values from the stored data
-    const {
-      accountHolderName: storedAccountHolderName,
-      accountNumber: storedAccountNumber,
-      bankName: storedBankName,
-      branchAndIFSC: storedBranchAndIFSC,
-    } = storedData;
-
-    // Set state variables using the extracted values
-    setAccountHolderName(storedAccountHolderName || "");
-    setAccountNumber(storedAccountNumber || "");
-    setBankName(storedBankName || "");
-    setBranchAndIFSC(storedBranchAndIFSC || "");
-  }, []);
 
   const BillPrint = async (e) => {
     const invoiceData = {
@@ -1430,71 +1457,50 @@ export default function Billing() {
 
   useEffect(() => {
     const CustData = customersData
-      .filter(element => element !== null)
-      .map(element => ({ id: element.Id }));
-  
-    const maxId = Math.max(...CustData.map(item => item.id), 0);
-  
+      .filter((element) => element !== null)
+      .map((element) => ({ id: element.Id }));
+
+    const maxId = Math.max(...CustData.map((item) => item.id), 0);
+
     setInvoiceNumber(`JPE/${year}/${maxId + 1}`);
-    setId(`${maxId + 1}`)
-
+    setId(`${maxId + 1}`);
   });
 
-  const consigneeOptions = customersData.map((customer) => {
-    const consigneeName = customer.Consignee[0].Name || "";
-    return { value: consigneeName, label: consigneeName };
-  });
-
-  const [selectedConsignee, setSelectedConsignee] = useState(null);
-  const [consignee, setconsignee] = useState("");
-  const [DetailsDisable, setDetailsDisable] = useState(false);
-
-  useEffect(() => {
-    if (consignee !== "") {
-      const foundConsignee = customersData.find(
-        (customer) => customer.Consignee[0].Name === consignee
-      );
-      setSelectedConsignee(foundConsignee || null);
-    } else {
-      setSelectedConsignee(null);
-    }
-    if (selectedConsignee) {
-      // Use selected consignee details
-      setConsignee_Name(selectedConsignee.Consignee[0].Name || "");
-      setConsignee_Address(selectedConsignee.Consignee[0].Address || "");
-      setConsignee_State(selectedConsignee.Consignee[0].State || "");
-      setConsignee_Code(selectedConsignee.Consignee[0].Code || "");
-      setConsignee_Contact(selectedConsignee.Consignee[0].Contact || "");
-      setConsignee_GSTIN(selectedConsignee.Consignee[0].GSTIN || "");
-      setDetailsDisable(true);
-    } else {
-      setDetailsDisable(false);
-      setConsignee_Name(Consignee_Name);
-      setConsignee_Address(Consignee_Address);
-      setConsignee_State(Consignee_State);
-      setConsignee_Code(Consignee_Code);
-      setConsignee_Contact(Consignee_Contact);
-      setConsignee_GSTIN(Consignee_GSTIN);
-    }
-  }, [
-    selectedConsignee,
-    Buyer_Address,
-    Buyer_Code,
-    Buyer_Contact,
-    Buyer_GSTIN,
-    Buyer_Name,
-    Buyer_State,
-    Consignee_Address,
-    Consignee_Code,
-    Consignee_Contact,
-    Consignee_GSTIN,
-    Consignee_Name,
-    Consignee_State,
-  ]);
+  const consigneeSet = new Set();
+  const consigneeOptions = customersData
+    .map((customer) => {
+      const consignee = customer.Consignee[0] || "";
+      const consigneeName = consignee.Name;
+      const consigneeAddress = consignee.Address;
+      const consigneeCode = consignee.Code;
+      const consigneeContact = consignee.Contact;
+      const consigneeGSTIN = consignee.GSTIN;
+      const consigneeState = consignee.State;
+      // Check if the consigneeAddress is not already in the set before adding it
+      if (!consigneeSet.has(`${consigneeAddress};${consigneeCode};${consigneeState};${consigneeGSTIN};${consigneeContact}`)) {
+        consigneeSet.add(`${consigneeAddress};${consigneeCode};${consigneeState};${consigneeGSTIN};${consigneeContact}`);
+        // Return the option object with unique values
+        return {
+          value: `${consigneeName};${consigneeAddress};${consigneeCode};${consigneeState};${consigneeGSTIN};${consigneeContact}`,
+          label: `${consigneeName}; ${consigneeAddress}; ${consigneeState}; ${consigneeCode}; ${consigneeContact}; ${consigneeGSTIN}`,
+        };
+      }
+      // If consigneeName is already in the set, return null to filter it out
+      return null;
+    })
+    .filter(Boolean);
 
   const handleInputChange = (inputValue) => {
-    setConsignee_Name(inputValue.value);
-    setconsignee(inputValue ? inputValue.value : "");
+    if (inputValue && inputValue.value) {
+      const valuesArray = inputValue.value.split(';').map(value => value.trim());
+      const [consigneeName, consigneeAddress, consigneeCode, consigneeState, consigneeGSTIN, consigneeContact] = valuesArray
+      setConsignee_Name(consigneeName);
+      setConsignee_Address(consigneeAddress);
+      setConsignee_Code(consigneeCode);
+      setConsignee_State(consigneeState);
+      setConsignee_GSTIN(consigneeGSTIN);
+      setConsignee_Contact(consigneeContact);
+    }
   };
 
   useEffect(() => {
@@ -1505,12 +1511,7 @@ export default function Billing() {
     <>
       <div className="container my-2">
         <div className="card">
-          <Watermark
-            fontSize={16}
-            zIndex={11}
-            rotate={-26}
-            content={"JALANGI POLYMER ENTERPRISE"}
-          >
+          <Watermark fontSize={16} zIndex={11} rotate={-26} content={ShopName}>
             <div className="card-header text-center fw-bold fs-4">
               Tax Invoice
             </div>
@@ -1522,23 +1523,11 @@ export default function Billing() {
                       <tbody>
                         <tr>
                           <td>
-                            <div className="fs-2">
-                              JALANGI POLYMER ENTERPRISE
-                            </div>
-                            <div>
-                              <p>
-                                Nimtala Bazar, Near Dhubulia Station,
-                                <br />
-                                Dwipchandrapur, Dhubulia,
-                                <br />
-                                Nadia, 19 - West Bengal,
-                                <br />
-                                741125
-                              </p>
-                            </div>
-                            <div>GSTIN: 19AATFJ7691R1ZV</div>
-                            <div>Contact No.: 9002630036 / 9563414242</div>
-                            <div>E-Mail : jpedhubulia@gmail.com</div>
+                            <div className="fs-2">{ShopName}</div>
+                            <div className="col-8">{ShopAddress}</div>
+                            <div>GSTIN: {GSTINNumber}</div>
+                            <div>Contact No.: {ContactNo}</div>
+                            <div>E-Mail : {Email}</div>
                           </td>
                         </tr>
                       </tbody>
@@ -1980,7 +1969,7 @@ export default function Billing() {
                             <td>
                               <div>
                                 <span>Company’s PAN:</span>&nbsp;
-                                <span className="fw-bold">AATFJ7691R</span>
+                                <span className="fw-bold">{Pan}</span>
                               </div>
                               <div>
                                 <u>Declaration</u>
@@ -2035,9 +2024,7 @@ export default function Billing() {
                   </div>
                   <div className="col">
                     <div className="card">
-                      <div className="card-header text-end">
-                        for JALANGI POLYMER ENTERPRISE
-                      </div>
+                      <div className="card-header text-end">for {ShopName}</div>
                       <div
                         className="card-body"
                         style={{ minWidth: 100, minHeight: 100 }}
@@ -2085,7 +2072,6 @@ export default function Billing() {
                   onChange={(e) => setConsignee_Address(e.target.value)}
                   type="text"
                   autoSize
-                  disabled={DetailsDisable}
                   id="Consignee_Address"
                 />
               </div>
@@ -2096,7 +2082,6 @@ export default function Billing() {
                 <input
                   type="text"
                   className="form-control"
-                  disabled={DetailsDisable}
                   id="Consignee_State"
                   value={Consignee_State}
                   onChange={(e) => setConsignee_State(e.target.value)}
@@ -2110,7 +2095,6 @@ export default function Billing() {
                   type="text"
                   className="form-control"
                   id="Consignee_Code"
-                  disabled={DetailsDisable}
                   value={Consignee_Code}
                   onChange={(e) => setConsignee_Code(e.target.value)}
                 />
@@ -2123,7 +2107,6 @@ export default function Billing() {
                   type="text"
                   className="form-control"
                   id="Consignee_Contact"
-                  disabled={DetailsDisable}
                   value={Consignee_Contact}
                   onChange={(e) => setConsignee_Contact(e.target.value)}
                 />
@@ -2136,13 +2119,13 @@ export default function Billing() {
                   type="text"
                   className="form-control"
                   id="Consignee_GSTIN"
-                  disabled={DetailsDisable}
                   value={Consignee_GSTIN}
                   onChange={(e) => setConsignee_GSTIN(e.target.value)}
                 />
               </div>
             </div>
           </Modal>
+
           {/* Buyer */}
           <Modal
             title={

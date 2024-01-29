@@ -9,7 +9,7 @@ export default function NewFooter() {
           <div className="card-footer text-body-secondary text-center">
             <blockquote className="blockquote mb-0">
               <pre>
-                <img src="logo512.png" alt="Logo" style={{height:'35px'}}/>{" "}
+                <img src="/logo512.png" alt="Logo" style={{height:'35px'}}/>{" "}
                 &#169; Copyright 2023 . Developed by{" "}
                 <cite title="Source Title">Forbidden - </cite>
                 <cite title="Source Title">403</cite>

@@ -27,6 +27,7 @@
     "react-scripts": "^5.0.1",
     "react-select": "^5.8.0",
     "run-script": "^0.1.1",
+    "runes2": "^1.1.4",
     "to-words": "^3.7.0",
     "web-vitals": "^2.1.4"
   },

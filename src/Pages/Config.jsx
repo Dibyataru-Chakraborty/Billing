@@ -1,71 +1,63 @@
-import { Card } from 'antd'
-import React, { useState } from 'react'
-import BankDetails from './Settings/BankDetails';
+import { Card } from "antd";
+import React, { useEffect, useState } from "react";
+import BankDetails from "./Settings/BankDetails";
+import ShopDetails from "./Settings/ShopDetails";
 
 export default function Config() {
-
-    const [activeTabKey, setActiveTabKey] = useState("Bank");
+  const [activeTabKey, setActiveTabKey] = useState("Details");
 
   const tabList = [
+    {
+      key: "Details",
+      tab: "Details",
+    },
     {
       key: "Bank",
       tab: "Bank",
     },
-    // {
-    //   key: "Billing",
-    //   tab: "Billing",
-    // },
-    // {
-    //   key: "Test",
-    //   tab: "Test",
-    // },
-    // {
-    //   key: "Templates",
-    //   tab: "Templates",
-    // },
-    // {
-    //   key: "Logo",
-    //   tab: "Logo",
-    // },
-    // {
-    //   key: "Password",
-    //   tab: "Password",
-    // },
-    // {
-    //   key: "WhatsApp",
-    //   tab: "WhatsApp",
-    // },
-    // {
-    //   key: "Teleradio",
-    //   tab: "Teleradio",
-    // },
   ];
   const contentList = {
     Bank: <BankDetails />,
-    // Billing: <Billing/>,
-    // Test: <></>,
-    // Templates: <Templates/>,
-    // Logo: <></>,
-    // Password: <></>,
-    // WhatsApp: <></>,
-    // Teleradio: <></>,
+    Details: <ShopDetails />,
   };
   const onTabChange = (key) => {
     setActiveTabKey(key);
   };
+
+  const [Permission, setPermission] = useState(true);
+
+  useEffect(() => {
+    const storedData = JSON.parse(sessionStorage.getItem("user")) || {};
+
+    const { email } = storedData;
+
+    const data = JSON.parse(sessionStorage.getItem("UserData"));
+
+    const isUserInData = data.some((item) => item.Email === email);
+    setPermission(isUserInData);
+  }, []);
+
   return (
     <div className="container my-3">
-        <Card
-          style={{
-            width: "100%",
-          }}
-          title="JALANGI POLYMER ENTERPRISE Settings"
-          tabList={tabList}
-          activeTabKey={activeTabKey}
-          onTabChange={onTabChange}
-        >
-          {contentList[activeTabKey]}
-        </Card>
-      </div>
-  )
+      <Card
+        style={{
+          width: "100%",
+        }}
+        title="Settings"
+        tabList={tabList}
+        activeTabKey={activeTabKey}
+        onTabChange={onTabChange}
+      >
+        {!Permission ? (
+          <>{contentList[activeTabKey]}</>
+        ) : (
+          <>
+            <div className="alert alert-danger" role="alert">
+              <strong>You have no permission</strong>
+            </div>
+          </>
+        )}
+      </Card>
+    </div>
+  );
 }

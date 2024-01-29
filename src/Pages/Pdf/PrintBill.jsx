@@ -62,11 +62,10 @@ export default function PrintBill() {
   const [bankName, setBankName] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
   const [branchAndIFSC, setBranchAndIFSC] = useState("");
-
   useEffect(() => {
     // Retrieve data from sessionStorage
     const storedData =
-      JSON.parse(sessionStorage.getItem("SettingsConfig")) || {};
+      JSON.parse(sessionStorage.getItem("BankConfig")) || {};
 
     // Extract values from the stored data
     const {
@@ -81,6 +80,35 @@ export default function PrintBill() {
     setAccountNumber(storedAccountNumber || "");
     setBankName(storedBankName || "");
     setBranchAndIFSC(storedBranchAndIFSC || "");
+  }, []);
+
+  const [ShopName, setShopName] = useState("");
+  const [ShopAddress, setShopAddress] = useState("");
+  const [GSTINNumber, setGSTINNumber] = useState("");
+  const [ContactNo, setContactNo] = useState("");
+  const [Pan, setPan] = useState("");
+  const [Email, setEmail] = useState("");
+  useEffect(() => {
+    // Retrieve data from localStorage
+    const storedData =
+      JSON.parse(sessionStorage.getItem("DetailsConfig")) || {};
+
+    const {
+      ShopName: storedShopName,
+      ShopAddress: storedShopAddress,
+      GSTINNumber: storedGSTINNumber,
+      ContactNo: storedContactNo,
+      Email: storedEmail,
+      Pan: storedPan,
+    } = storedData;
+
+    // Set state variables using the extracted values
+    setShopName(storedShopName || "");
+    setShopAddress(storedShopAddress || "");
+    setGSTINNumber(storedGSTINNumber || "");
+    setContactNo(storedContactNo || "");
+    setEmail(storedEmail || "");
+    setPan(storedPan || "");
   }, []);
 
   const [load, setload] = useState(true);
@@ -1109,7 +1137,7 @@ export default function PrintBill() {
               fontSize={16}
               zIndex={11}
               rotate={-26}
-              content={"JALANGI POLYMER ENTERPRISE"}
+              content={ShopName}
             >
               <div className="card-header text-center fw-bold fs-4">
                 Tax Invoice
@@ -1123,22 +1151,14 @@ export default function PrintBill() {
                           <tr>
                             <td>
                               <div className="fs-2">
-                                JALANGI POLYMER ENTERPRISE
+                                {ShopName}
                               </div>
-                              <div>
-                                <p>
-                                  Nimtala Bazar, Near Dhubulia Station,
-                                  <br />
-                                  Dwipchandrapur, Dhubulia,
-                                  <br />
-                                  Nadia, 19 - West Bengal,
-                                  <br />
-                                  741125
-                                </p>
+                              <div className="col-8">
+                                {ShopAddress}
                               </div>
-                              <div>GSTIN: 19AATFJ7691R1ZV</div>
-                              <div>Contact No.: 9002630036 / 9563414242</div>
-                              <div>E-Mail : jpedhubulia@gmail.com</div>
+                              <div>GSTIN: {GSTINNumber}</div>
+                              <div>Contact No.: {ContactNo}</div>
+                              <div>E-Mail : {Email}</div>
                             </td>
                           </tr>
                         </tbody>
@@ -1487,7 +1507,7 @@ export default function PrintBill() {
                               <td>
                                 <div>
                                   <span>Company’s PAN:</span>&nbsp;
-                                  <span className="fw-bold">AATFJ7691R</span>
+                                  <span className="fw-bold">{Pan}</span>
                                 </div>
                                 <div>
                                   <u>Declaration</u>
@@ -1547,7 +1567,7 @@ export default function PrintBill() {
                     <div className="col">
                       <div className="card">
                         <div className="card-header text-end">
-                          for JALANGI POLYMER ENTERPRISE
+                          for {ShopName}
                         </div>
                         <div
                           className="card-body"

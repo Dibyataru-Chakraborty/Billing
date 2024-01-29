@@ -177,17 +177,29 @@ function App() {
   });
   sessionStorage.setItem("billDateCount", JSON.stringify(billDateCount));
 
-  const [Settings_Config, setSettings_Config] = useState([]);
-  const SettingsConfig = () => {
-    onValue(ref(db, "Settings"), (snapshot) => {
+  const [Bank_Config, setBank_Config] = useState([]);
+  const BankConfig = () => {
+    onValue(ref(db, "Bank"), (snapshot) => {
       if (snapshot.exists()) {
-        setSettings_Config(snapshot.val());
+        setBank_Config(snapshot.val());
       } else {
-        setSettings_Config(null);
+        setBank_Config(null);
       }
     });
   };
-  sessionStorage.setItem("SettingsConfig", JSON.stringify(Settings_Config));
+  sessionStorage.setItem("BankConfig", JSON.stringify(Bank_Config));
+
+  const [Details_Config, setDetails_Config] = useState([]);
+  const DetailsConfig = () => {
+    onValue(ref(db, "Details"), (snapshot) => {
+      if (snapshot.exists()) {
+        setDetails_Config(snapshot.val());
+      } else {
+        setDetails_Config(null);
+      }
+    });
+  };
+  sessionStorage.setItem("DetailsConfig", JSON.stringify(Details_Config));
 
   const [UserData, setUserData] = useState([]);
   const Users = () => {
@@ -258,9 +270,10 @@ function App() {
         Products(),
         Customers(),
         Update(),
-        SettingsConfig(),
+        BankConfig(),
         Users(),
         Logs(),
+        DetailsConfig()
       ]);
     };
     if (check) {
