@@ -242,9 +242,9 @@ function App() {
   sessionStorage.setItem("LogData", JSON.stringify(LogData));
 
   useEffect(() => {
-    document.getElementById("description").content = Details_Config.ShopName;
-    document.getElementById("Facebookdescription").content = Details_Config.ShopName;
-    document.getElementById("twitterdescription").content = Details_Config.ShopName;
+    document.getElementById("description").content = Details_Config.ShopName || "FORBIDDEN 403";
+    document.getElementById("Facebookdescription").content = Details_Config.ShopName || "FORBIDDEN 403";
+    document.getElementById("twitterdescription").content = Details_Config.ShopName || "FORBIDDEN 403";
     setInterval(() => {
       document.title = "FORBIDDEN 403";
     }, 4000);
