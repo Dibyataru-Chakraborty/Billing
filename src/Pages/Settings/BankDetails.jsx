@@ -9,6 +9,7 @@ export default function BankDetails() {
   const [bankName, setBankName] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
   const [branchAndIFSC, setBranchAndIFSC] = useState("");
+  const [UPI, setUPI] = useState("");
 
   const [Readonly, setReadonly] = useState(true);
 
@@ -18,6 +19,7 @@ export default function BankDetails() {
       bankName: bankName,
       accountNumber: accountNumber,
       branchAndIFSC: branchAndIFSC,
+      UPI: UPI,
     };
 
     try {
@@ -38,6 +40,7 @@ export default function BankDetails() {
       accountNumber: storedAccountNumber,
       bankName: storedBankName,
       branchAndIFSC: storedBranchAndIFSC,
+      UPI: storedUPI,
     } = storedData;
 
     // Set state variables using the extracted values
@@ -45,6 +48,7 @@ export default function BankDetails() {
     setAccountNumber(storedAccountNumber || "");
     setBankName(storedBankName || "");
     setBranchAndIFSC(storedBranchAndIFSC || "");
+    setUPI(storedUPI || "");
   }, []);
 
   return (
@@ -56,6 +60,19 @@ export default function BankDetails() {
         }}
       >
         <div className="row my-3">
+          <div className="col-12">
+            <label htmlFor="UPI" className="form-label">
+              UPI
+            </label>
+            <input
+              disabled={Readonly}
+              type="text"
+              className="form-control"
+              id="UPI"
+              value={UPI}
+              onChange={(e) => setUPI(e.target.value)}
+            />
+          </div>
           <div className="col-12">
             <label htmlFor="accountHolderName" className="form-label">
               A/c Holder’s Name

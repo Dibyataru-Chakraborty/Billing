@@ -26,7 +26,7 @@ class PDF extends React.Component {
       Other_References,
       Sale,
       EWayBill,
-      SelectedCheckbox,
+      SelectedProduct,
       totalAmount,
       IGSTAmount,
       CGSTAmount,
@@ -46,7 +46,11 @@ class PDF extends React.Component {
       ContactNo,
       Pan,
       Email,
+      UPI,
+      PaidAmount,
+      DueAmount,
     } = this.props;
+    console.log(SelectedProduct);
     return (
       <>
         <section>
@@ -123,28 +127,39 @@ class PDF extends React.Component {
                         <div>{Vehicle}</div>
                       </td>
                       <td>
-                        <div>Mode/Terms of Payment</div>
-                        <div>{Payment}</div>
+                        <div>Sale Type:</div>
+                        <div>{Sale}</div>
                       </td>
                     </tr>
                     {Payment === "online" ? (
                       <tr>
-                        <td colSpan={2}>
+                        <td>
+                          <div>Mode/Terms of Payment</div>
+                          <div>{Payment}</div>
+                        </td>
+                        <td>
                           <div>Reference No.</div>
                           <div>{Reference_No}</div>
                         </td>
                       </tr>
                     ) : Payment === "offline" ? (
                       <tr>
-                        <td colSpan={2}>
+                        <td>
+                          <div>Mode/Terms of Payment</div>
+                          <div>{Payment}</div>
+                        </td>
+                        <td>
                           <div>Other References:</div>
                           <div>{Other_References}</div>
                         </td>
                       </tr>
                     ) : null}
                     <tr>
-                      <td colSpan={2}>
-                        <div>Sale Type: {Sale}</div>
+                      <td>
+                        <div>Paid: {PaidAmount}</div>
+                      </td>
+                      <td>
+                        <div>Due: {DueAmount}</div>
                       </td>
                     </tr>
                     <tr>
@@ -174,7 +189,7 @@ class PDF extends React.Component {
                     </tr>
                   </thead>
                   <tbody className="fs-5 table-group-divider">
-                    {SelectedCheckbox.map((item, index) => (
+                    {SelectedProduct.map((item, index) => (
                       <tr>
                         <th scope="row" className="text-start" key={index}>
                           {index + 1}
@@ -391,6 +406,10 @@ class PDF extends React.Component {
                           <div>
                             <span>Branch & IFS Code:</span>&nbsp;
                             <span className="fw-bold">{branchAndIFSC}</span>
+                          </div>
+                          <div>
+                            <span>UPI:</span>&nbsp;
+                            <span className="fw-bold">{UPI}</span>
                           </div>
                         </td>
                       </tr>

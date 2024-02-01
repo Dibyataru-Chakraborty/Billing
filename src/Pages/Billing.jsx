@@ -1,26 +1,18 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { SearchOutlined } from "@ant-design/icons";
-import Highlighter from "react-highlight-words";
 import { faInr } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   Button,
   Checkbox,
   FloatButton,
+  InputNumber,
   Modal,
   Popover,
   Watermark,
-  Input,
-  Space,
-  Table,
   message,
 } from "antd";
-import React, { useEffect, useRef, useState } from "react";
-import {
-  PlusCircleOutlined,
-  SaveOutlined,
-  PrinterOutlined,
-} from "@ant-design/icons";
+import React, { useEffect, useState } from "react";
+import { SaveOutlined, PrinterOutlined } from "@ant-design/icons";
 import TextArea from "antd/es/input/TextArea";
 import { ToWords } from "to-words";
 import { onValue, push, ref, update } from "firebase/database";
@@ -29,6 +21,7 @@ import PDF from "./Pdf/PDF";
 import { render } from "react-dom";
 import Select from "react-select";
 import CreatableSelect from "react-select/creatable";
+import { Select as AntSelect } from "antd";
 
 export default function Billing() {
   const date = new Date();
@@ -101,51 +94,10 @@ export default function Billing() {
   );
 
   const [Payment, setPayment] = useState("");
-  const Mode_of_Payment = (
-    <div>
-      <Select
-        optionFilterProp="children"
-        onChange={(e) => setPayment(e.value)}
-        options={[
-          {
-            value: "offline",
-            label: "Offline",
-          },
-          {
-            value: "online",
-            label: "Online",
-          },
-        ]}
-        style={{
-          width: 200,
-        }}
-      />
-    </div>
-  );
 
   const [Reference_No, setReference_No] = useState("");
-  const Reference = (
-    <div>
-      <input
-        type="text"
-        className="form-control"
-        value={Reference_No}
-        onChange={(e) => setReference_No(e.target.value)}
-      />
-    </div>
-  );
 
   const [Other_References, setOther_References] = useState("");
-  const OtherReferences = (
-    <div>
-      <input
-        type="text"
-        className="form-control"
-        value={Other_References}
-        onChange={(e) => setOther_References(e.target.value)}
-      />
-    </div>
-  );
 
   const [Sale, setSale] = useState("");
   const Sale_Type = (
@@ -183,20 +135,13 @@ export default function Billing() {
     </div>
   );
 
-  const [Services_isModalOpen, setServices_isModalOpen] = useState(false);
-  const Services_showModal = () => {
-    setServices_isModalOpen(true);
-  };
-  const Services_handleCancel = () => {
-    setServices_isModalOpen(false);
-  };
-
   const [accountHolderName, setAccountHolderName] = useState("");
   const [bankName, setBankName] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
   const [branchAndIFSC, setBranchAndIFSC] = useState("");
+  const [UPI, setUPI] = useState("");
   useEffect(() => {
-    // Retrieve data from sessionStorage
+    // Retrieve data from localStorage
     const storedData = JSON.parse(sessionStorage.getItem("BankConfig")) || {};
 
     // Extract values from the stored data
@@ -205,6 +150,7 @@ export default function Billing() {
       accountNumber: storedAccountNumber,
       bankName: storedBankName,
       branchAndIFSC: storedBranchAndIFSC,
+      UPI: storedUPI,
     } = storedData;
 
     // Set state variables using the extracted values
@@ -212,6 +158,7 @@ export default function Billing() {
     setAccountNumber(storedAccountNumber || "");
     setBankName(storedBankName || "");
     setBranchAndIFSC(storedBranchAndIFSC || "");
+    setUPI(storedUPI || "");
   }, []);
 
   const [ShopName, setShopName] = useState("");
@@ -243,193 +190,35 @@ export default function Billing() {
     setPan(storedPan || "");
   }, []);
 
-  const [searchText, setSearchText] = useState("");
-  const [searchedColumn, setSearchedColumn] = useState("");
-  const searchInput = useRef(null);
-  const handleSearch = (selectedKeys, confirm, dataIndex) => {
-    confirm();
-    setSearchText(selectedKeys[0]);
-    setSearchedColumn(dataIndex);
-  };
-  const handleReset = (clearFilters) => {
-    clearFilters();
-    setSearchText("");
-  };
-  const getColumnSearchProps = (dataIndex) => ({
-    filterDropdown: ({
-      setSelectedKeys,
-      selectedKeys,
-      confirm,
-      clearFilters,
-      close,
-    }) => (
-      <div
-        style={{
-          padding: 8,
-        }}
-        onKeyDown={(e) => e.stopPropagation()}
-      >
-        <Input
-          ref={searchInput}
-          placeholder={`Search ${dataIndex}`}
-          value={selectedKeys[0]}
-          onChange={(e) =>
-            setSelectedKeys(e.target.value ? [e.target.value] : [])
-          }
-          onPressEnter={() => handleSearch(selectedKeys, confirm, dataIndex)}
-          style={{
-            marginBottom: 8,
-            display: "block",
-          }}
-        />
-        <Space>
-          <Button
-            type="primary"
-            onClick={() => handleSearch(selectedKeys, confirm, dataIndex)}
-            icon={<SearchOutlined />}
-            size="small"
-            style={{
-              width: 90,
-            }}
-          >
-            Search
-          </Button>
-          <Button
-            onClick={() => clearFilters && handleReset(clearFilters)}
-            size="small"
-            style={{
-              width: 90,
-            }}
-          >
-            Reset
-          </Button>
-          <Button
-            type="link"
-            size="small"
-            onClick={() => {
-              close();
-            }}
-          >
-            close
-          </Button>
-        </Space>
-      </div>
-    ),
-    filterIcon: (filtered) => (
-      <SearchOutlined
-        style={{
-          color: filtered ? "#1677ff" : undefined,
-        }}
-      />
-    ),
-    onFilter: (value, record) =>
-      record[dataIndex].toString().toLowerCase().includes(value.toLowerCase()),
-    onFilterDropdownOpenChange: (visible) => {
-      if (visible) {
-        setTimeout(() => searchInput.current?.select(), 100);
-      }
-    },
-    render: (text) =>
-      searchedColumn === dataIndex ? (
-        <Highlighter
-          highlightStyle={{
-            backgroundColor: "#ffc069",
-            padding: 0,
-          }}
-          searchWords={[searchText]}
-          autoEscape
-          textToHighlight={text ? text.toString() : ""}
-        />
-      ) : (
-        text
-      ),
+  const [SelectedProduct, setSelectedProduct] = useState([]);
+  const [selectedValue, setSelectedValue] = useState(undefined);
+  const [Products, setProducts] = useState({
+    Amount: 0,
+    userQyt: 0,
+    userRate: 0,
   });
-  const [SelectedCheckbox, setSelectedCheckbox] = useState([]);
-  const rowSelection = {
-    onChange: (selectedRowKeys, selectedRows) => {
-      setSelectedCheckbox(selectedRows);
-    },
-  };
-  const columns = [
-    {
-      title: "Id",
-      dataIndex: "key",
-      width: 50,
-      rowScope: "row",
-      sorter: (a, b) => a.key - b.key,
-      sortDirections: ["descend", "ascend"],
-      ...getColumnSearchProps("key"),
-    },
-    {
-      title: "Description of Services",
-      dataIndex: "DescriptionofServices",
-      width: 150,
-      sorter: (a, b) =>
-        a.DescriptionofServices.length - b.DescriptionofServices.length,
-      ...getColumnSearchProps("DescriptionofServices"),
-      sortDirections: ["descend", "ascend"],
-    },
-    {
-      title: "HSN",
-      dataIndex: "HSN",
-      width: 150,
-      sorter: (a, b) => a.HSN.length - b.HSN.length,
-      ...getColumnSearchProps("HSN"),
-      sortDirections: ["descend", "ascend"],
-    },
-    {
-      title: "Quantity",
-      dataIndex: "Quantity",
-      width: 100,
-      sorter: (a, b) => a.Quantity - b.Quantity,
-      ...getColumnSearchProps("Quantity"),
-      sortDirections: ["descend", "ascend"],
-    },
-    {
-      title: "Rate",
-      dataIndex: "RATE",
-      width: 100,
-      sorter: (a, b) => a.RATE - b.RATE,
-      ...getColumnSearchProps("RATE"),
-      sortDirections: ["descend", "ascend"],
-    },
-    {
-      title: "Per",
-      dataIndex: "Per",
-      width: 100,
-      sorter: (a, b) => a.Per.length - b.Per.length,
-      ...getColumnSearchProps("Per"),
-      sortDirections: ["descend", "ascend"],
-    },
-  ];
-  const data = [];
-  var count = "0";
-  JSON.parse(sessionStorage.getItem("ProductsData")).forEach((element) => {
-    if (element !== null && element.Quantity > 0) {
-      data.push({
-        key: count++,
-        id: element.id,
-        DescriptionofServices: element.DescriptionofServices,
-        HSN: element.HSN,
-        Quantity: element.Quantity,
-        RATE: element.RATE,
-        Amount: 0,
-        userQyt: 0,
-        userRate: 0,
-        Per: element.Per || "",
-      });
-    }
-  });
-  sessionStorage.setItem("SelectedCheckbox", JSON.stringify(SelectedCheckbox));
+  const ProductsData = JSON.parse(
+    sessionStorage.getItem("ProductsData")
+  ).filter((element) => element !== null && element.Quantity > 0);
 
-  const handleQuantityChange = (e, productId) => {
+  const handleProductSelectChange = (value) => {
+    setSelectedValue(value);
+    const ProductsDetails = ProductsData.find(
+      (product) => product.id === value
+    );
+
+    // Set additional properties for the selected product
+    setProducts({
+      ...ProductsDetails,
+      Amount: 0,
+      userQyt: 0,
+      userRate: 0,
+    });
+  };
+  const handleQuantityChange = (e) => {
     let newQuantity = parseFloat(e.target.value) || 0;
 
-    const maxQuantity = Math.max(
-      ...SelectedCheckbox.filter((item) => item.id === productId).map(
-        (item) => item.Quantity
-      )
-    );
+    const maxQuantity = Products.Quantity;
 
     if (newQuantity > maxQuantity) {
       // Display an alert if the entered value exceeds maxQuantity
@@ -439,46 +228,44 @@ export default function Billing() {
     }
 
     // Update the state with the new quantity
-    setSelectedCheckbox((prevProducts) =>
-      prevProducts.map((product) =>
-        product.id === productId
-          ? {
-              ...product,
-              userQyt: newQuantity,
-              Amount: +(product.userRate * newQuantity).toFixed(2),
-            }
-          : product
-      )
-    );
+    setProducts((prevProduct) => ({
+      ...prevProduct,
+      userQyt: newQuantity,
+      Amount: +(prevProduct.userRate * newQuantity).toFixed(2),
+    }));
   };
-  const handleRateChange = (e, productId) => {
+  const handleRateChange = (e) => {
     const newRate = parseFloat(e.target.value) || 0;
-
-    const maxRate = Math.max(
-      ...SelectedCheckbox.filter((item) => item.id === productId).map(
-        (item) => item.RATE
-      )
-    );
-
+    const maxRate = Products.RATE;
     if (newRate > maxRate) {
       // Display an alert if the entered value exceeds maxRate
       alert(`Maximum Rate is ${maxRate}`);
     }
 
     // Update the state with the new Rate
-    setSelectedCheckbox((prevProducts) =>
-      prevProducts.map((product) =>
-        product.id === productId
-          ? {
-              ...product,
-              userRate: newRate,
-              Amount: +(newRate * product.userQyt).toFixed(2),
-            }
-          : product
-      )
+    setProducts((prevProduct) => ({
+      ...prevProduct,
+      userRate: newRate,
+      Amount: +(newRate * prevProduct.userQyt).toFixed(2),
+    }));
+  };
+  const handelAdd = (e) => {
+    setSelectedProduct([...SelectedProduct, e]);
+    setProducts({
+      Amount: 0,
+      userQyt: 0,
+      userRate: 0,
+    });
+    setSelectedValue(undefined);
+  };
+  const handelCancel = (index) => {
+    setSelectedProduct((prevProducts) =>
+      prevProducts.filter((_, i) => i !== index)
     );
   };
+  sessionStorage.setItem("SelectedCheckbox", JSON.stringify(SelectedProduct));
 
+  const [SavePrintBtn, setSavePrintBtn] = useState(false);
   const [totalAmount, setTotalAmount] = useState(0);
   const [IGSTAmount, setIGSTAmount] = useState(0);
   const [CGSTAmount, setCGSTAmount] = useState(0);
@@ -490,11 +277,11 @@ export default function Billing() {
 
   useEffect(() => {
     const uniqueHsns = [
-      ...new Set(SelectedCheckbox.map((item) => item.HSN)),
+      ...new Set(SelectedProduct.map((item) => item.HSN)),
     ].join(", ");
     // Calculate the total amount whenever selectedProducts change
     const toWords = new ToWords();
-    const newTotalAmount = SelectedCheckbox.reduce(
+    const newTotalAmount = SelectedProduct.reduce(
       (total, product) => +(total + product.Amount).toFixed(2),
       0
     );
@@ -521,17 +308,116 @@ export default function Billing() {
     newNetAmount !== "" && newNetAmount !== 0
       ? setSavePrintBtn(true)
       : setSavePrintBtn(false);
-  }, [SelectedCheckbox]);
+  }, [SelectedProduct]);
 
-  const [SavePrintBtn, setSavePrintBtn] = useState(false);
+  const [customersData, setCustomersData] = useState([]);
+  const Customers = () => {
+    onValue(ref(db, "Customer"), (snapshot) => {
+      const data = snapshot.val();
+      if (data === null) {
+        setCustomersData([]);
+      } else {
+        // Convert the object into an array of customer objects
+        const customerArray = Object.keys(data).map((customerId) => ({
+          id: customerId,
+          ...data[customerId],
+        }));
 
+        // Update the state with the array of customer objects
+        setCustomersData(customerArray);
+      }
+    });
+  };
+
+  const [InvoiceNumber, setInvoiceNumber] = useState("0");
+  const [Id, setId] = useState("0");
+
+  useEffect(() => {
+    const CustData = customersData
+      .filter((element) => element !== null)
+      .map((element) => ({ id: element.Id }));
+
+    const maxId = Math.max(...CustData.map((item) => item.id), 0);
+
+    setInvoiceNumber(`JPE/${year}/${maxId + 1}`);
+    setId(`${maxId + 1}`);
+  });
+
+  const consigneeSet = new Set();
+  const consigneeOptions = customersData
+    .map((customer) => {
+      const consignee = customer.Consignee[0] || "";
+      const consigneeName = consignee.Name;
+      const consigneeAddress = consignee.Address;
+      const consigneeCode = consignee.Code;
+      const consigneeContact = consignee.Contact;
+      const consigneeGSTIN = consignee.GSTIN;
+      const consigneeState = consignee.State;
+      // Check if the consigneeAddress is not already in the set before adding it
+      if (
+        !consigneeSet.has(
+          `${consigneeAddress};${consigneeCode};${consigneeState};${consigneeGSTIN};${consigneeContact}`
+        )
+      ) {
+        consigneeSet.add(
+          `${consigneeAddress};${consigneeCode};${consigneeState};${consigneeGSTIN};${consigneeContact}`
+        );
+        // Return the option object with unique values
+        return {
+          value: `${consigneeName};${consigneeAddress};${consigneeCode};${consigneeState};${consigneeGSTIN};${consigneeContact}`,
+          label: `${consigneeName}; ${consigneeAddress}; ${consigneeState}; ${consigneeCode}; ${consigneeContact}; ${consigneeGSTIN}`,
+        };
+      }
+      // If consigneeName is already in the set, return null to filter it out
+      return null;
+    })
+    .filter(Boolean);
+
+  const handleInputChange = (inputValue) => {
+    if (inputValue && inputValue.value) {
+      const valuesArray = inputValue.value
+        .split(";")
+        .map((value) => value.trim());
+      const [
+        consigneeName,
+        consigneeAddress,
+        consigneeCode,
+        consigneeState,
+        consigneeGSTIN,
+        consigneeContact,
+      ] = valuesArray;
+      setConsignee_Name(consigneeName);
+      setConsignee_Address(consigneeAddress);
+      setConsignee_Code(consigneeCode);
+      setConsignee_State(consigneeState);
+      setConsignee_GSTIN(consigneeGSTIN);
+      setConsignee_Contact(consigneeContact);
+    }
+  };
+
+  useEffect(() => {
+    Customers();
+  }, []);
+
+  const [loading, setLoading] = useState(false);
+  const [PaidAmount, setPaidAmount] = useState(0);
+  const [DueAmount, setDueAmount] = useState(0);
+  const [PaidDueModal, setPaidDueModal] = useState(false);
+  const PaidDue_showModal = () => {
+    setDueAmount(NetAmount);
+    setPaidDueModal(true);
+  };
+  const PaidDue_handleCancel = () => {
+    setPaidDueModal(false);
+  };
   const Save = async () => {
+    setLoading(true);
     const confirmation = window.confirm("Before Save Please Print Your Bill");
 
     if (confirmation) {
       try {
         const bill = {
-          Product: SelectedCheckbox,
+          Product: SelectedProduct,
           BillId: InvoiceNumber,
           BillDate: formattedDate,
           BillTime: formattedTime,
@@ -567,9 +453,11 @@ export default function Billing() {
           SGSTAmount,
           NetAmount,
           TotalAmount: totalAmount,
+          PaidAmount,
+          DueAmount,
         };
 
-        const updatedProducts = SelectedCheckbox.map((item) => ({
+        const updatedProducts = SelectedProduct.map((item) => ({
           ...item,
           Quantity: +(item.Quantity - item.userQyt).toFixed(2),
         }));
@@ -584,15 +472,25 @@ export default function Billing() {
         await update(ref(db), updates);
 
         message.success("Bill Saved successfully");
+        setLoading(false);
+        setPaidDueModal(false);
       } catch (error) {
         alert("Error saving bill: " + error.message);
+        setLoading(false);
+        setPaidDueModal(true);
       }
     } else {
       alert("Save operation canceled.");
+      setLoading(false);
+      setPaidDueModal(true);
     }
   };
+  useEffect(() => {
+    setDueAmount(Number(NetAmount) - Number(PaidAmount));
+  });
 
   const BillPrint = async (e) => {
+    setLoading(true);
     const invoiceData = {
       Consignee_Name,
       Consignee_Address,
@@ -615,7 +513,7 @@ export default function Billing() {
       Other_References,
       Sale,
       EWayBill,
-      SelectedCheckbox,
+      SelectedProduct,
       totalAmount,
       IGSTAmount,
       CGSTAmount,
@@ -635,6 +533,9 @@ export default function Billing() {
       ContactNo,
       Pan,
       Email,
+      UPI,
+      PaidAmount,
+      DueAmount,
     };
     const newWindow = window.open("", "_blank", "width=600,height=400");
 
@@ -1437,861 +1338,764 @@ export default function Billing() {
     `;
     const pdfContent = <PDF {...invoiceData} />;
     render(pdfContent, newWindow.document.body);
+    setLoading(false);
   };
-
-  const [customersData, setCustomersData] = useState([]);
-  const Customers = () => {
-    onValue(ref(db, "Customer"), (snapshot) => {
-      const data = snapshot.val();
-      if (data === null) {
-        setCustomersData([]);
-      } else {
-        // Convert the object into an array of customer objects
-        const customerArray = Object.keys(data).map((customerId) => ({
-          id: customerId,
-          ...data[customerId],
-        }));
-
-        // Update the state with the array of customer objects
-        setCustomersData(customerArray);
-      }
-    });
-  };
-
-  const [InvoiceNumber, setInvoiceNumber] = useState("0");
-  const [Id, setId] = useState("0");
-
-  useEffect(() => {
-    const CustData = customersData
-      .filter((element) => element !== null)
-      .map((element) => ({ id: element.Id }));
-
-    const maxId = Math.max(...CustData.map((item) => item.id), 0);
-
-    setInvoiceNumber(`JPE/${year}/${maxId + 1}`);
-    setId(`${maxId + 1}`);
-  });
-
-  const consigneeSet = new Set();
-  const consigneeOptions = customersData
-    .map((customer) => {
-      const consignee = customer.Consignee[0] || "";
-      const consigneeName = consignee.Name;
-      const consigneeAddress = consignee.Address;
-      const consigneeCode = consignee.Code;
-      const consigneeContact = consignee.Contact;
-      const consigneeGSTIN = consignee.GSTIN;
-      const consigneeState = consignee.State;
-      // Check if the consigneeAddress is not already in the set before adding it
-      if (
-        !consigneeSet.has(
-          `${consigneeAddress};${consigneeCode};${consigneeState};${consigneeGSTIN};${consigneeContact}`
-        )
-      ) {
-        consigneeSet.add(
-          `${consigneeAddress};${consigneeCode};${consigneeState};${consigneeGSTIN};${consigneeContact}`
-        );
-        // Return the option object with unique values
-        return {
-          value: `${consigneeName};${consigneeAddress};${consigneeCode};${consigneeState};${consigneeGSTIN};${consigneeContact}`,
-          label: `${consigneeName}; ${consigneeAddress}; ${consigneeState}; ${consigneeCode}; ${consigneeContact}; ${consigneeGSTIN}`,
-        };
-      }
-      // If consigneeName is already in the set, return null to filter it out
-      return null;
-    })
-    .filter(Boolean);
-
-  const handleInputChange = (inputValue) => {
-    if (inputValue && inputValue.value) {
-      const valuesArray = inputValue.value
-        .split(";")
-        .map((value) => value.trim());
-      const [
-        consigneeName,
-        consigneeAddress,
-        consigneeCode,
-        consigneeState,
-        consigneeGSTIN,
-        consigneeContact,
-      ] = valuesArray;
-      setConsignee_Name(consigneeName);
-      setConsignee_Address(consigneeAddress);
-      setConsignee_Code(consigneeCode);
-      setConsignee_State(consigneeState);
-      setConsignee_GSTIN(consigneeGSTIN);
-      setConsignee_Contact(consigneeContact);
-    }
-  };
-
-  useEffect(() => {
-    Customers();
-  }, []);
 
   return (
     <>
       <div className="container my-2">
-        <div className="card">
-          <Watermark fontSize={16} zIndex={11} rotate={-26} content={ShopName}>
-            <div className="card-header text-center fw-bold fs-4">
-              Tax Invoice
+        <Watermark fontSize={16} zIndex={11} rotate={-26} content={ShopName}>
+          <header>
+            <div className="row">
+              <div className="col">
+                <table className="table table-borderless">
+                  <tbody>
+                    <tr>
+                      <td>
+                        <div>
+                          <Popover
+                            title={false}
+                            arrow={false}
+                            onClick={Consignee_showModal}
+                          >
+                            Consignee (Ship to){" "}
+                            <span className="text-danger">*(Click here)</span>
+                          </Popover>
+                        </div>
+                        <div className="fs-6 fw-bold">{Consignee_Name}</div>
+                        <div>{Consignee_Address}</div>
+                        <div>
+                          State: {Consignee_State} Code: {Consignee_Code}
+                        </div>
+                        <div>Contact No.: {Consignee_Contact}</div>
+                        <div>GSTIN: {Consignee_GSTIN}</div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+                <hr className="border border-dark border-1 opacity-100" />
+                <table className="table table-borderless">
+                  <tbody>
+                    <tr>
+                      <td>
+                        <div>
+                          <Popover
+                            title={false}
+                            arrow={false}
+                            onClick={Buyer_showModal}
+                          >
+                            Buyer (Bill to){" "}
+                            <span className="text-danger">*(Click here)</span>
+                          </Popover>
+                        </div>
+                        <div className="fs-6 fw-bold">{Buyer_Name}</div>
+                        <div>{Buyer_Address}</div>
+                        <div>
+                          State: {Buyer_State} Code: {Buyer_Code}
+                        </div>
+                        <div>Contact No.: {Buyer_Contact}</div>
+                        <div>GSTIN: {Buyer_GSTIN}</div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div className="col">
+                <table className="table table-bordered table-responsive">
+                  <tbody>
+                    <tr>
+                      <td>
+                        <div>Invoice No.</div>
+                        <div>{InvoiceNumber}</div>
+                      </td>
+                      <td>
+                        <div>Dated</div>
+                        <div>{formattedDate}</div>
+                        <div>{formattedTime}</div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div>
+                          <Popover
+                            title={false}
+                            content={Vehicleno}
+                            trigger="click"
+                          >
+                            Vehicle No.{" "}
+                            <span className="text-danger">*(Click here)</span>
+                          </Popover>
+                        </div>
+                        <div>{Vehicle}</div>
+                      </td>
+                      <td>
+                        <div>Mode/Terms of Payment</div>
+                        <div>{Payment}</div>
+                      </td>
+                    </tr>
+                    {Payment === "online" ? (
+                      <tr>
+                        <td colSpan={2}>
+                          <div>Reference No.</div>
+                          <div>{Reference_No}</div>
+                        </td>
+                      </tr>
+                    ) : Payment === "offline" ? (
+                      <tr>
+                        <td colSpan={2}>
+                          <div>Other References:</div>
+                          <div>{Other_References}</div>
+                        </td>
+                      </tr>
+                    ) : null}
+                    <tr>
+                      <td colSpan={2}>
+                        <div>
+                          <Popover
+                            title={false}
+                            content={Sale_Type}
+                            trigger="click"
+                          >
+                            Sale Type:{" "}
+                            <span className="text-danger">*(Click here)</span>
+                          </Popover>{" "}
+                          {Sale}
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td colSpan={2}>
+                        <div>
+                          <Popover
+                            title={false}
+                            content={E_Way_Bill_No}
+                            trigger="click"
+                          >
+                            E Way Bill No:{" "}
+                            <span className="text-danger">*(Click here)</span>
+                          </Popover>
+                        </div>
+                        <div>{EWayBill}</div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
-            <div className="card-body">
-              <header>
-                <div className="row">
-                  <div className="col">
-                    <table className="table table-borderless">
-                      <tbody>
-                        <tr>
-                          <td>
-                            <div className="fs-2">{ShopName}</div>
-                            <div>
-                              <pre>{ShopAddress}</pre>
-                            </div>
-                            <div>GSTIN: {GSTINNumber}</div>
-                            <div>Contact No.: {ContactNo}</div>
-                            <div>E-Mail : {Email}</div>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                    <hr className="border border-dark border-1 opacity-100" />
-                    <table className="table table-borderless">
-                      <tbody>
-                        <tr>
-                          <td>
-                            <div>
-                              <Popover
-                                title={false}
-                                arrow={false}
-                                onClick={Consignee_showModal}
-                              >
-                                Consignee (Ship to){" "}
-                                <span className="text-danger">
-                                  *(Click here)
-                                </span>
-                              </Popover>
-                            </div>
-                            <div className="fs-6 fw-bold">{Consignee_Name}</div>
-                            <div>{Consignee_Address}</div>
-                            <div>
-                              State: {Consignee_State} Code: {Consignee_Code}
-                            </div>
-                            <div>Contact No.: {Consignee_Contact}</div>
-                            <div>GSTIN: {Consignee_GSTIN}</div>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                    <hr className="border border-dark border-1 opacity-100" />
-                    <table className="table table-borderless">
-                      <tbody>
-                        <tr>
-                          <td>
-                            <div>
-                              <Popover
-                                title={false}
-                                arrow={false}
-                                onClick={Buyer_showModal}
-                              >
-                                Buyer (Bill to){" "}
-                                <span className="text-danger">
-                                  *(Click here)
-                                </span>
-                              </Popover>
-                            </div>
-                            <div className="fs-6 fw-bold">{Buyer_Name}</div>
-                            <div>{Buyer_Address}</div>
-                            <div>
-                              State: {Buyer_State} Code: {Buyer_Code}
-                            </div>
-                            <div>Contact No.: {Buyer_Contact}</div>
-                            <div>GSTIN: {Buyer_GSTIN}</div>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                  <div className="col">
-                    <table className="table table-bordered table-responsive">
-                      <tbody>
-                        <tr>
-                          <td>
-                            <div>Invoice No.</div>
-                            <div>{InvoiceNumber}</div>
-                          </td>
-                          <td>
-                            <div>Dated</div>
-                            <div>{formattedDate}</div>
-                            <div>{formattedTime}</div>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <div>
-                              <Popover
-                                title={false}
-                                content={Vehicleno}
-                                trigger="click"
-                              >
-                                Vehicle No.{" "}
-                                <span className="text-danger">
-                                  *(Click here)
-                                </span>
-                              </Popover>
-                            </div>
-                            <div>{Vehicle}</div>
-                          </td>
-                          <td>
-                            <div>
-                              <Popover
-                                title={false}
-                                content={Mode_of_Payment}
-                                trigger="click"
-                              >
-                                Mode/Terms of Payment{" "}
-                                <span className="text-danger">
-                                  *(Click here)
-                                </span>
-                              </Popover>
-                            </div>
-                            <div>{Payment}</div>
-                          </td>
-                        </tr>
-                        {Payment === "online" ? (
-                          <tr>
-                            <td colSpan={2}>
-                              <div>
-                                <Popover
-                                  title={false}
-                                  content={Reference}
-                                  trigger="click"
-                                >
-                                  Reference No.{" "}
-                                  <span className="text-danger">
-                                    *(Click here)
-                                  </span>
-                                </Popover>
-                              </div>
-                              <div>{Reference_No}</div>
-                            </td>
-                          </tr>
-                        ) : Payment === "offline" ? (
-                          <tr>
-                            <td colSpan={2}>
-                              <div>
-                                <Popover
-                                  title={false}
-                                  content={OtherReferences}
-                                  trigger="click"
-                                >
-                                  Other References:{" "}
-                                  <span className="text-danger">
-                                    *(Click here)
-                                  </span>
-                                </Popover>
-                              </div>
-                              <div>{Other_References}</div>
-                            </td>
-                          </tr>
+          </header>
+          <main>
+            <div className="col">
+              <div className="table-responsive">
+                <table className="table">
+                  <thead className="table-secondary fs-6">
+                    <tr>
+                      <th className="text-start">Description of Goods</th>
+                      <th className="text-center">HSN/SAC</th>
+                      <th className="text-center">Quantity</th>
+                      <th className="text-center">Rate</th>
+                      <th className="text-center">Per</th>
+                      <th className="text-center">Amount</th>
+                      <th className="text-end">Option</th>
+                    </tr>
+                  </thead>
+                  <tbody className="fs-6 table-group-divider">
+                    <tr>
+                      <td className="text-start">
+                        <AntSelect
+                          showSearch
+                          allowClear
+                          style={{
+                            width: 200,
+                          }}
+                          placeholder="Search to Select"
+                          optionFilterProp="children"
+                          filterOption={(input, option) =>
+                            (option?.label ?? "").includes(input)
+                          }
+                          filterSort={(optionA, optionB) =>
+                            (optionA?.label ?? "")
+                              .toLowerCase()
+                              .localeCompare(
+                                (optionB?.label ?? "").toLowerCase()
+                              )
+                          }
+                          onChange={handleProductSelectChange}
+                          value={selectedValue}
+                          options={ProductsData.map((element) => ({
+                            value: element.id,
+                            label: element.DescriptionofServices,
+                          }))}
+                        />
+                      </td>
+                      <td className="text-center">{Products.HSN}</td>
+                      <td className="text-center">
+                        <input
+                          className="form-control form-control-sm"
+                          type="number"
+                          min={1}
+                          max={Products.Quantity}
+                          value={Products.userQyt || 0}
+                          onChange={(e) => handleQuantityChange(e)}
+                        />
+                      </td>
+                      <td className="text-center">
+                        <input
+                          className="form-control form-control-sm"
+                          type="number"
+                          min={1}
+                          value={Products.userRate || 0}
+                          onChange={(e) => handleRateChange(e)}
+                        />
+                      </td>
+                      <td className="text-center">{Products.Per}</td>
+                      <td className="text-center">{Products.Amount}</td>
+                      <td className="text-end">
+                        {selectedValue !== undefined && Sale !== "" ? (
+                          <button
+                            type="button"
+                            className="btn btn-success btn-sm"
+                            onClick={() => handelAdd(Products)}
+                          >
+                            ADD
+                          </button>
                         ) : null}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+                <table className="table">
+                  <thead className="table-secondary fs-6">
+                    <tr>
+                      <th className="text-start">Sl No.</th>
+                      <th className="text-center">Description of Goods</th>
+                      <th className="text-center">HSN/SAC</th>
+                      <th className="text-center">Quantity</th>
+                      <th className="text-center">Rate</th>
+                      <th className="text-center">Per</th>
+                      <th className="text-end">Amount</th>
+                      <th className="text-end">Option</th>
+                    </tr>
+                  </thead>
+                  <tbody className="fs-5 table-group-divider">
+                    {SelectedProduct.map((item, index) => (
+                      <tr key={index}>
+                        <td className="text-start" key={index}>
+                          {index + 1}
+                        </td>
+                        <td className="text-center">
+                          {item.DescriptionofServices}
+                        </td>
+                        <td className="text-center">{item.HSN}</td>
+                        <td className="text-center">{item.userQyt}</td>
+                        <td className="text-center">{item.userRate}</td>
+                        <td className="text-center">{item.Per}</td>
+                        <td className="text-end">{item.Amount}</td>
+                        <td className="text-end">
+                          <button
+                            type="button"
+                            className="btn btn-danger btn-sm"
+                            onClick={() => handelCancel(index)}
+                          >
+                            -
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                    <tr>
+                      <td></td>
+                      <td></td>
+                      <td></td>
+                      <td></td>
+                      <td></td>
+                      <td></td>
+                      <td className="text-end table-group-divider">
+                        {totalAmount}
+                      </td>
+                    </tr>
+                    {Sale === "Other State Sale" ? (
+                      <tr>
+                        <td></td>
+                        <td>
+                          <div className="text-end">IGST 18%</div>
+                        </td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td className="text-end">{IGSTAmount}</td>
+                      </tr>
+                    ) : Sale === "State Sale" ? (
+                      <>
                         <tr>
-                          <td colSpan={2}>
-                            <div>
-                              <Popover
-                                title={false}
-                                content={Sale_Type}
-                                trigger="click"
-                              >
-                                Sale Type:{" "}
-                                <span className="text-danger">
-                                  *(Click here)
-                                </span>
-                              </Popover>{" "}
-                              {Sale}
-                            </div>
+                          <td></td>
+                          <td>
+                            <div className="text-end">CGST 9%</div>
                           </td>
+                          <td></td>
+                          <td></td>
+                          <td></td>
+                          <td></td>
+                          <td className="text-end">{CGSTAmount}</td>
                         </tr>
                         <tr>
-                          <td colSpan={2}>
-                            <div>
-                              <Popover
-                                title={false}
-                                content={E_Way_Bill_No}
-                                trigger="click"
-                              >
-                                E Way Bill No:{" "}
-                                <span className="text-danger">
-                                  *(Click here)
-                                </span>
-                              </Popover>
-                            </div>
-                            <div>{EWayBill}</div>
+                          <td></td>
+                          <td>
+                            <div className="text-end">SGST 9%</div>
                           </td>
+                          <td></td>
+                          <td></td>
+                          <td></td>
+                          <td></td>
+                          <td className="text-end">{SGSTAmount}</td>
                         </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </header>
-              <main>
-                <div className="col">
+                      </>
+                    ) : null}
+                  </tbody>
+                  <tfoot className="table-bordered">
+                    <tr>
+                      <td></td>
+                      <td>
+                        <div className="text-end fw-bold">Total Amount</div>
+                      </td>
+                      <td></td>
+                      <td></td>
+                      <td></td>
+                      <td></td>
+                      <td className="text-end fw-bold">
+                        <FontAwesomeIcon icon={faInr} /> {NetAmount}
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+            <div className="row">
+              <div className="d-flex justify-content-between">
+                <span className="text-start">Amount Chargeable (in words)</span>
+                <span className="text-end">E. & O.E</span>
+              </div>
+              <div className="text-start fs-6 fw-bold">
+                {NetAmount > 0 ? <>INR {NetAmountWord}</> : null}
+              </div>
+              {Sale === "Other State Sale" ? (
+                <>
                   <div className="table-responsive">
-                    <table className="table">
-                      <thead className="table-secondary fs-6">
+                    <table className="table table-bordered">
+                      <thead className="fs-6 text-center">
                         <tr>
-                          <th className="text-start">Sl No.</th>
-                          <th className="text-center">
-                            Description of Goods{" "}
-                            {Sale !== undefined &&
-                            Sale !== "" &&
-                            Consignee_Name !== "" &&
-                            Consignee_Address !== "" &&
-                            Consignee_State !== "" &&
-                            Consignee_Code !== "" &&
-                            Consignee_Contact !== "" &&
-                            Consignee_GSTIN !== "" ? (
-                              <Button
-                                onClick={Services_showModal}
-                                danger
-                                type="primary"
-                                shape="circle"
-                                icon={<PlusCircleOutlined />}
-                                size="small"
-                              />
-                            ) : null}
-                          </th>
-                          <th className="text-center">HSN/SAC</th>
-                          <th className="text-center">Quantity</th>
-                          <th className="text-center">Rate</th>
-                          <th className="text-center">Per</th>
-                          <th className="text-end">Amount</th>
+                          <td rowSpan={2}>HSN/SAC</td>
+                          <td rowSpan={2}>Taxable Value</td>
+                          <td colSpan={2}>Integrated Tax</td>
+                          <td rowSpan={2}>Total Tax Amount</td>
+                        </tr>
+                        <tr>
+                          <td>Rate</td>
+                          <td>Amount</td>
                         </tr>
                       </thead>
-                      <tbody className="fs-5 table-group-divider">
-                        {SelectedCheckbox.map((item, index) => (
-                          <tr>
-                            <th scope="row" className="text-start" key={index}>
-                              {index + 1}
-                            </th>
-                            <td className="text-center">
-                              {item.DescriptionofServices}
-                            </td>
-                            <td className="text-center">{item.HSN}</td>
-                            <td className="text-center">
-                              <input
-                                className="form-control"
-                                type={"number"}
-                                min={1}
-                                max={item.Quantity}
-                                defaultValue={0}
-                                onChange={(e) =>
-                                  handleQuantityChange(e, item.id)
-                                }
-                              />
-                            </td>
-                            <td className="text-center">
-                              <input
-                                className="form-control"
-                                type={"number"}
-                                min={1}
-                                defaultValue={0}
-                                onChange={(e) => handleRateChange(e, item.id)}
-                              />
-                            </td>
-                            <td className="text-center">{item.Per}</td>
-                            <td className="text-end">{item.Amount}</td>
-                          </tr>
-                        ))}
+                      <tbody>
                         <tr>
-                          <td></td>
-                          <td></td>
-                          <td></td>
-                          <td></td>
-                          <td></td>
-                          <td></td>
-                          <td className="text-end table-group-divider">
-                            {totalAmount}
-                          </td>
+                          <td className="text-start">{uHSN}</td>
+                          <td className="text-center">{totalAmount}</td>
+                          <td className="text-center">18%</td>
+                          <td className="text-center">{IGSTAmount}</td>
+                          <td className="text-center">{NetAmount}</td>
                         </tr>
-                        {Sale === "Other State Sale" ? (
-                          <tr>
-                            <td></td>
-                            <td>
-                              <div className="text-end">IGST 18%</div>
-                            </td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td className="text-end">{IGSTAmount}</td>
-                          </tr>
-                        ) : Sale === "State Sale" ? (
-                          <>
-                            <tr>
-                              <td></td>
-                              <td>
-                                <div className="text-end">CGST 9%</div>
-                              </td>
-                              <td></td>
-                              <td></td>
-                              <td></td>
-                              <td></td>
-                              <td className="text-end">{CGSTAmount}</td>
-                            </tr>
-                            <tr>
-                              <td></td>
-                              <td>
-                                <div className="text-end">SGST 9%</div>
-                              </td>
-                              <td></td>
-                              <td></td>
-                              <td></td>
-                              <td></td>
-                              <td className="text-end">{SGSTAmount}</td>
-                            </tr>
-                          </>
-                        ) : null}
                       </tbody>
-                      <tfoot className="table-bordered">
+                      <tfoot>
                         <tr>
-                          <td></td>
-                          <td>
-                            <div className="text-end fw-bold">Total Amount</div>
-                          </td>
-                          <td></td>
-                          {/* <td>{totalProductQuantity}</td> */}
-                          <td></td>
-                          <td></td>
-                          <td></td>
-                          <td className="text-end fw-bold">
-                            <FontAwesomeIcon icon={faInr} /> {NetAmount}
-                          </td>
+                          <td className="text-end fw-bold">Total</td>
+                          <td className="text-center fw-bold">{totalAmount}</td>
+                          <td className="text-center fw-bold"></td>
+                          <td className="text-center fw-bold">{IGSTAmount}</td>
+                          <td className="text-center fw-bold">{IGSTAmount}</td>
                         </tr>
                       </tfoot>
                     </table>
                   </div>
-                </div>
-                <div className="row">
-                  <div className="d-flex justify-content-between">
-                    <span className="text-start">
-                      Amount Chargeable (in words)
-                    </span>
-                    <span className="text-end">E. & O.E</span>
+                </>
+              ) : Sale === "State Sale" ? (
+                <>
+                  <div className="table-responsive">
+                    <table className="table table-bordered">
+                      <thead className="fs-6 text-center">
+                        <tr>
+                          <td rowSpan={2}>HSN/SAC</td>
+                          <td rowSpan={2}>Taxable Value</td>
+                          <td colSpan={2}>Central Tax</td>
+                          <td colSpan={2}>State Tax</td>
+                          <td rowSpan={2}>Total Tax Amount</td>
+                        </tr>
+                        <tr>
+                          <td>Rate</td>
+                          <td>Amount</td>
+                          <td>Rate</td>
+                          <td>Amount</td>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td className="text-start">{uHSN}</td>
+                          <td className="text-center">{totalAmount}</td>
+                          <td className="text-center">9%</td>
+                          <td className="text-center">{CGSTAmount}</td>
+                          <td className="text-center">9%</td>
+                          <td className="text-center">{SGSTAmount}</td>
+                          <td className="text-center">{IGSTAmount}</td>
+                        </tr>
+                      </tbody>
+                      <tfoot>
+                        <tr>
+                          <td className="text-end fw-bold">Total</td>
+                          <td className="text-center fw-bold">{totalAmount}</td>
+                          <td className="text-center fw-bold"></td>
+                          <td className="text-center fw-bold">{CGSTAmount}</td>
+                          <td className="text-center fw-bold"></td>
+                          <td className="text-center fw-bold">{SGSTAmount}</td>
+                          <td className="text-center fw-bold">{IGSTAmount}</td>
+                        </tr>
+                      </tfoot>
+                    </table>
                   </div>
-                  <div className="text-start fs-6 fw-bold">
-                    {NetAmount > 0 ? <>INR {NetAmountWord}</> : null}
-                  </div>
-                  {Sale === "Other State Sale" ? (
-                    <>
-                      <div className="table-responsive">
-                        <table className="table table-bordered">
-                          <thead className="fs-6 text-center">
-                            <tr>
-                              <td rowSpan={2}>HSN/SAC</td>
-                              <td rowSpan={2}>Taxable Value</td>
-                              <td colSpan={2}>Integrated Tax</td>
-                              <td rowSpan={2}>Total Tax Amount</td>
-                            </tr>
-                            <tr>
-                              <td>Rate</td>
-                              <td>Amount</td>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <tr>
-                              <td className="text-start">{uHSN}</td>
-                              <td className="text-center">{totalAmount}</td>
-                              <td className="text-center">18%</td>
-                              <td className="text-center">{IGSTAmount}</td>
-                              <td className="text-center">{NetAmount}</td>
-                            </tr>
-                          </tbody>
-                          <tfoot>
-                            <tr>
-                              <td className="text-end fw-bold">Total</td>
-                              <td className="text-center fw-bold">
-                                {totalAmount}
-                              </td>
-                              <td className="text-center fw-bold"></td>
-                              <td className="text-center fw-bold">
-                                {IGSTAmount}
-                              </td>
-                              <td className="text-center fw-bold">
-                                {IGSTAmount}
-                              </td>
-                            </tr>
-                          </tfoot>
-                        </table>
-                      </div>
-                    </>
-                  ) : Sale === "State Sale" ? (
-                    <>
-                      <div className="table-responsive">
-                        <table className="table table-bordered">
-                          <thead className="fs-6 text-center">
-                            <tr>
-                              <td rowSpan={2}>HSN/SAC</td>
-                              <td rowSpan={2}>Taxable Value</td>
-                              <td colSpan={2}>Central Tax</td>
-                              <td colSpan={2}>State Tax</td>
-                              <td rowSpan={2}>Total Tax Amount</td>
-                            </tr>
-                            <tr>
-                              <td>Rate</td>
-                              <td>Amount</td>
-                              <td>Rate</td>
-                              <td>Amount</td>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <tr>
-                              <td className="text-start">{uHSN}</td>
-                              <td className="text-center">{totalAmount}</td>
-                              <td className="text-center">9%</td>
-                              <td className="text-center">{CGSTAmount}</td>
-                              <td className="text-center">9%</td>
-                              <td className="text-center">{SGSTAmount}</td>
-                              <td className="text-center">{IGSTAmount}</td>
-                            </tr>
-                          </tbody>
-                          <tfoot>
-                            <tr>
-                              <td className="text-end fw-bold">Total</td>
-                              <td className="text-center fw-bold">
-                                {totalAmount}
-                              </td>
-                              <td className="text-center fw-bold"></td>
-                              <td className="text-center fw-bold">
-                                {CGSTAmount}
-                              </td>
-                              <td className="text-center fw-bold"></td>
-                              <td className="text-center fw-bold">
-                                {SGSTAmount}
-                              </td>
-                              <td className="text-center fw-bold">
-                                {IGSTAmount}
-                              </td>
-                            </tr>
-                          </tfoot>
-                        </table>
-                      </div>
-                    </>
-                  ) : null}
-                  <div className="text-start">
-                    <span>Tax Amount (in words) :</span>&nbsp;&nbsp;&nbsp;
-                    <span className="fs-6 fw-bold">
-                      {IGSTAmount > 0 ? <>INR {IGSTAmountWord}</> : null}
-                    </span>
-                  </div>
-                  <div className="col">
-                    <div className="table-responsive">
-                      <table>
-                        <tbody>
-                          <tr>
-                            <td>
-                              <div>
-                                <span>Company’s PAN:</span>&nbsp;
-                                <span className="fw-bold">{Pan}</span>
-                              </div>
-                              <div>
-                                <u>Declaration</u>
-                              </div>
-                              <div className="fw-normal">
-                                1. Goods once sold can't be taken back. <br />
-                                2. Credit option not available.
-                                <br />
-                                3. Subject to Nadia District Judge Court
-                                Jurisdiction.
-                                <br />
-                                4. We declare that this invoice shows the actual
-                                price of the goods desscribed.
-                                <br />
-                              </div>
-                            </td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                  <div className="col">
-                    <div className="table-responsive">
-                      <table className="table table-bordered" border={2}>
-                        <tbody>
-                          <tr>
-                            <td>
-                              <div>Company’s Bank Details</div>
-                              <div>
-                                <span>A/c Holder’s Name:</span>&nbsp;
-                                <span className="fw-bold">
-                                  {accountHolderName}
-                                </span>
-                              </div>
-                              <div>
-                                <span>Bank Name:</span>&nbsp;
-                                <span className="fw-bold">{bankName}</span>
-                              </div>
-                              <div>
-                                <span>A/c No.:</span>&nbsp;
-                                <span className="fw-bold">{accountNumber}</span>
-                              </div>
-                              <div>
-                                <span>Branch & IFS Code:</span>&nbsp;
-                                <span className="fw-bold">{branchAndIFSC}</span>
-                              </div>
-                            </td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                  <div className="col">
-                    <div className="card">
-                      <div className="card-header text-end">for {ShopName}</div>
-                      <div
-                        className="card-body"
-                        style={{ minWidth: 100, minHeight: 100 }}
-                      ></div>
-                      <div className="card-footer">Authorised Signatory</div>
-                    </div>
-                  </div>
-                </div>
-              </main>
-            </div>
-
-            <div className="card-footer text-center fw-bold">
-              Thank You For Purchasing. Visit Again.
-            </div>
-          </Watermark>
-
-          {/* Consignee */}
-          <Modal
-            title="Consignee"
-            open={Consignee_isModalOpen}
-            onCancel={Consignee_handleCancel}
-            okButtonProps={{ hidden: true }}
-            cancelButtonProps={{ hidden: true }}
-          >
-            <div className="row g-3">
-              <div className="col-md-12">
-                <label htmlFor="Consignee_Name" className="form-label">
-                  Name
-                </label>
-                <CreatableSelect
-                  className="form-control"
-                  optionFilterProp="children"
-                  onChange={(inputValue) => handleInputChange(inputValue)}
-                  options={consigneeOptions}
-                  isSearchable
-                />
-              </div>
-              <div className="col-md-12">
-                <label htmlFor="Consignee_Address" className="form-label">
-                  Address
-                </label>
-                <TextArea
-                  className="form-control"
-                  value={Consignee_Address}
-                  onChange={(e) => setConsignee_Address(e.target.value)}
-                  type="text"
-                  autoSize
-                  id="Consignee_Address"
-                />
-              </div>
-              <div className="col-md-6">
-                <label htmlFor="Consignee_State" className="form-label">
-                  State
-                </label>
-                <input
-                  type="text"
-                  className="form-control"
-                  id="Consignee_State"
-                  value={Consignee_State}
-                  onChange={(e) => setConsignee_State(e.target.value)}
-                />
-              </div>
-              <div className="col-md-6">
-                <label htmlFor="Consignee_Code" className="form-label">
-                  Code
-                </label>
-                <input
-                  type="text"
-                  className="form-control"
-                  id="Consignee_Code"
-                  value={Consignee_Code}
-                  onChange={(e) => setConsignee_Code(e.target.value)}
-                />
-              </div>
-              <div className="col-md-6">
-                <label htmlFor="Consignee_Contact" className="form-label">
-                  Contact
-                </label>
-                <input
-                  type="text"
-                  className="form-control"
-                  id="Consignee_Contact"
-                  value={Consignee_Contact}
-                  onChange={(e) => setConsignee_Contact(e.target.value)}
-                />
-              </div>
-              <div className="col-md-6">
-                <label htmlFor="Consignee_GSTIN" className="form-label">
-                  GSTIN
-                </label>
-                <input
-                  type="text"
-                  className="form-control"
-                  id="Consignee_GSTIN"
-                  value={Consignee_GSTIN}
-                  onChange={(e) => setConsignee_GSTIN(e.target.value)}
-                />
+                </>
+              ) : null}
+              <div className="text-start">
+                <span>Tax Amount (in words) :</span>&nbsp;&nbsp;&nbsp;
+                <span className="fs-6 fw-bold">
+                  {IGSTAmount > 0 ? <>INR {IGSTAmountWord}</> : null}
+                </span>
               </div>
             </div>
-          </Modal>
+          </main>
+        </Watermark>
 
-          {/* Buyer */}
-          <Modal
-            title={
+        {/* Consignee */}
+        <Modal
+          title="Consignee"
+          open={Consignee_isModalOpen}
+          onCancel={Consignee_handleCancel}
+          okButtonProps={{ hidden: true }}
+          cancelButtonProps={{ hidden: true }}
+        >
+          <div className="row g-3">
+            <div className="col-md-12">
+              <label htmlFor="Consignee_Name" className="form-label">
+                Name
+              </label>
+              <CreatableSelect
+                className="form-control"
+                optionFilterProp="children"
+                onChange={(inputValue) => handleInputChange(inputValue)}
+                options={consigneeOptions}
+                isSearchable
+              />
+            </div>
+            <div className="col-md-12">
+              <label htmlFor="Consignee_Address" className="form-label">
+                Address
+              </label>
+              <TextArea
+                className="form-control"
+                value={Consignee_Address}
+                onChange={(e) => setConsignee_Address(e.target.value)}
+                type="text"
+                autoSize
+                id="Consignee_Address"
+              />
+            </div>
+            <div className="col-md-6">
+              <label htmlFor="Consignee_State" className="form-label">
+                State
+              </label>
+              <input
+                type="text"
+                className="form-control"
+                id="Consignee_State"
+                value={Consignee_State}
+                onChange={(e) => setConsignee_State(e.target.value)}
+              />
+            </div>
+            <div className="col-md-6">
+              <label htmlFor="Consignee_Code" className="form-label">
+                Code
+              </label>
+              <input
+                type="text"
+                className="form-control"
+                id="Consignee_Code"
+                value={Consignee_Code}
+                onChange={(e) => setConsignee_Code(e.target.value)}
+              />
+            </div>
+            <div className="col-md-6">
+              <label htmlFor="Consignee_Contact" className="form-label">
+                Contact
+              </label>
+              <input
+                type="text"
+                className="form-control"
+                id="Consignee_Contact"
+                value={Consignee_Contact}
+                onChange={(e) => setConsignee_Contact(e.target.value)}
+              />
+            </div>
+            <div className="col-md-6">
+              <label htmlFor="Consignee_GSTIN" className="form-label">
+                GSTIN
+              </label>
+              <input
+                type="text"
+                className="form-control"
+                id="Consignee_GSTIN"
+                value={Consignee_GSTIN}
+                onChange={(e) => setConsignee_GSTIN(e.target.value)}
+              />
+            </div>
+          </div>
+        </Modal>
+
+        {/* Buyer */}
+        <Modal
+          title={
+            <div>
+              Buyer / (Same as Consignee){" "}
+              <Checkbox onChange={BuyerSame} style={{ marginRight: 8 }} />
+            </div>
+          }
+          open={Buyer_isModalOpen}
+          onCancel={Buyer_handleCancel}
+          okButtonProps={{ hidden: true }}
+          cancelButtonProps={{ hidden: true }}
+        >
+          <div className="row g-3">
+            <div className="col-md-12">
+              <label htmlFor="Buyer_Name" className="form-label">
+                Name
+              </label>
+              <input
+                type="text"
+                className="form-control"
+                id="Buyer_Name"
+                value={Buyer_Name}
+                onChange={(e) => setBuyer_Name(e.target.value)}
+              />
+            </div>
+            <div className="col-md-12">
+              <label htmlFor="Buyer_Address" className="form-label">
+                Address
+              </label>
+              <TextArea
+                className="form-control"
+                value={Buyer_Address}
+                onChange={(e) => setBuyer_Address(e.target.value)}
+                type="text"
+                autoSize
+                id="Buyer_Address"
+              />
+            </div>
+            <div className="col-md-6">
+              <label htmlFor="Buyer_State" className="form-label">
+                State
+              </label>
+              <input
+                type="text"
+                className="form-control"
+                id="Buyer_State"
+                value={Buyer_State}
+                onChange={(e) => setBuyer_State(e.target.value)}
+              />
+            </div>
+            <div className="col-md-6">
+              <label htmlFor="Buyer_Code" className="form-label">
+                Code
+              </label>
+              <input
+                type="text"
+                className="form-control"
+                id="Buyer_Code"
+                value={Buyer_Code}
+                onChange={(e) => setBuyer_Code(e.target.value)}
+              />
+            </div>
+            <div className="col-md-6">
+              <label htmlFor="Buyer_Contact" className="form-label">
+                Contact
+              </label>
+              <input
+                type="text"
+                className="form-control"
+                id="Buyer_Contact"
+                value={Buyer_Contact}
+                onChange={(e) => setBuyer_Contact(e.target.value)}
+              />
+            </div>
+            <div className="col-md-6">
+              <label htmlFor="Buyer_GSTIN" className="form-label">
+                GSTIN
+              </label>
+              <input
+                type="text"
+                className="form-control"
+                id="Buyer_GSTIN"
+                value={Buyer_GSTIN}
+                onChange={(e) => setBuyer_GSTIN(e.target.value)}
+              />
+            </div>
+          </div>
+        </Modal>
+
+        {/* Payment */}
+        <Modal
+          title={"Payment"}
+          open={PaidDueModal}
+          onCancel={PaidDue_handleCancel}
+          cancelButtonProps={{ hidden: true }}
+          footer={[
+            <Button
+              className="my-2"
+              key="submit"
+              type="primary"
+              loading={loading}
+              onClick={() => BillPrint("Original for Recipient")}
+            >
+              Original for Recipient
+            </Button>,
+            <Button
+              className="my-2"
+              key="submit"
+              type="primary"
+              loading={loading}
+              onClick={() => BillPrint("Duplicate for Transporter")}
+            >
+              Duplicate for Transporter
+            </Button>,
+            <Button
+              className="my-2"
+              key="submit"
+              type="primary"
+              loading={loading}
+              onClick={() => BillPrint("Triplicate for Supplier")}
+            >
+              Triplicate for Supplier
+            </Button>,
+            <Button
+              className="my-2"
+              key="submit"
+              type="primary"
+              loading={loading}
+              onClick={Save}
+            >
+              Save
+            </Button>,
+            <Button className="my-2" key="back" onClick={PaidDue_handleCancel}>
+              Cancel
+            </Button>,
+          ]}
+          width={1000}
+        >
+          <div className="row g-3">
+            <div className="col-md-12">
+              <label htmlFor="NetAmount" className="form-label">
+                Total
+              </label>
+              <input
+                type="text"
+                className="form-control form-control-sm"
+                id="NetAmount"
+                value={NetAmount}
+                readOnly
+              />
+            </div>
+            <div className="col">
+              <label htmlFor="TermsofPayment" className="form-label">
+                Mode/Terms of Payment
+              </label>
               <div>
-                Buyer / (Same as Consignee){" "}
-                <Checkbox onChange={BuyerSame} style={{ marginRight: 8 }} />
-              </div>
-            }
-            open={Buyer_isModalOpen}
-            onCancel={Buyer_handleCancel}
-            okButtonProps={{ hidden: true }}
-            cancelButtonProps={{ hidden: true }}
-          >
-            <div className="row g-3">
-              <div className="col-md-12">
-                <label htmlFor="Buyer_Name" className="form-label">
-                  Name
-                </label>
-                <input
-                  type="text"
-                  className="form-control"
-                  id="Buyer_Name"
-                  value={Buyer_Name}
-                  onChange={(e) => setBuyer_Name(e.target.value)}
-                />
-              </div>
-              <div className="col-md-12">
-                <label htmlFor="Buyer_Address" className="form-label">
-                  Address
-                </label>
-                <TextArea
-                  className="form-control"
-                  value={Buyer_Address}
-                  onChange={(e) => setBuyer_Address(e.target.value)}
-                  type="text"
-                  autoSize
-                  id="Buyer_Address"
-                />
-              </div>
-              <div className="col-md-6">
-                <label htmlFor="Buyer_State" className="form-label">
-                  State
-                </label>
-                <input
-                  type="text"
-                  className="form-control"
-                  id="Buyer_State"
-                  value={Buyer_State}
-                  onChange={(e) => setBuyer_State(e.target.value)}
-                />
-              </div>
-              <div className="col-md-6">
-                <label htmlFor="Buyer_Code" className="form-label">
-                  Code
-                </label>
-                <input
-                  type="text"
-                  className="form-control"
-                  id="Buyer_Code"
-                  value={Buyer_Code}
-                  onChange={(e) => setBuyer_Code(e.target.value)}
-                />
-              </div>
-              <div className="col-md-6">
-                <label htmlFor="Buyer_Contact" className="form-label">
-                  Contact
-                </label>
-                <input
-                  type="text"
-                  className="form-control"
-                  id="Buyer_Contact"
-                  value={Buyer_Contact}
-                  onChange={(e) => setBuyer_Contact(e.target.value)}
-                />
-              </div>
-              <div className="col-md-6">
-                <label htmlFor="Buyer_GSTIN" className="form-label">
-                  GSTIN
-                </label>
-                <input
-                  type="text"
-                  className="form-control"
-                  id="Buyer_GSTIN"
-                  value={Buyer_GSTIN}
-                  onChange={(e) => setBuyer_GSTIN(e.target.value)}
+                <AntSelect
+                  placeholder="Search to Select"
+                  optionFilterProp="children"
+                  onChange={(e) => setPayment(e)}
+                  options={[
+                    {
+                      value: "offline",
+                      label: "Offline",
+                    },
+                    {
+                      value: "online",
+                      label: "Online",
+                    },
+                  ]}
+                  style={{
+                    width: 200,
+                  }}
+                  defaultValue={"offline"}
                 />
               </div>
             </div>
-          </Modal>
-
-          {/*Products*/}
-          <Modal
-            title="Products"
-            open={Services_isModalOpen}
-            okButtonProps={{ hidden: true }}
-            onCancel={Services_handleCancel}
-            width={1000}
-          >
-            <Table
-              rowSelection={{
-                type: "checkbox",
-                ...rowSelection,
-              }}
-              columns={columns}
-              dataSource={data}
-              scroll={{
-                y: 240,
-              }}
-            />
-          </Modal>
-        </div>
+            {Payment !== "online" ? (
+              <div className="col">
+                <label htmlFor="OtherReferences" className="form-label">
+                  Other References
+                </label>
+                <input
+                  type="text"
+                  className="form-control form-control-sm"
+                  value={Other_References}
+                  onChange={(e) => setOther_References(e.target.value)}
+                />
+              </div>
+            ) : (
+              <div className="col">
+                <label htmlFor="ReferenceNo" className="form-label">
+                  Reference No
+                </label>
+                <input
+                  type="text"
+                  className="form-control form-control-sm"
+                  value={Reference_No}
+                  onChange={(e) => setReference_No(e.target.value)}
+                />
+              </div>
+            )}
+            <div className="col">
+              <label htmlFor="PaidAmount" className="form-label">
+                Paid Amount
+              </label>
+              <InputNumber
+                className="form-control form-control-sm"
+                size="small"
+                value={PaidAmount}
+                onChange={(e) => setPaidAmount(e)}
+                type="tel"
+                id="PaidAmount"
+                max={NetAmount}
+                min={1}
+              />
+            </div>
+            <div className="col">
+              <label htmlFor="DueAmount" className="form-label">
+                Due Amount
+              </label>
+              <input
+                className="form-control form-control-sm"
+                value={DueAmount}
+                type="text"
+                autoSize
+                id="DueAmount"
+                readOnly
+              />
+            </div>
+          </div>
+        </Modal>
       </div>
 
       {SavePrintBtn ? (
         <>
-          <FloatButton.Group
-            trigger="hover"
-            type="primary"
-            style={{
-              right: 94,
-            }}
-          >
-            <FloatButton
-              onClick={Save}
-              tooltip={<div>Save</div>}
-              icon={<SaveOutlined />}
-            />
-            <FloatButton
-              icon={<PrinterOutlined />}
-              onClick={() => BillPrint("Original for Recipient")}
-              tooltip={<div>Original for Recipient</div>}
-            />
-            <FloatButton
-              icon={<PrinterOutlined />}
-              onClick={() => BillPrint("Duplicate for Transporter")}
-              tooltip={<div>Duplicate for Transporter</div>}
-            />
-            <FloatButton
-              icon={<PrinterOutlined />}
-              onClick={() => BillPrint("Triplicate for Supplier")}
-              tooltip={<div>Triplicate for Supplier</div>}
-            />
-          </FloatButton.Group>
+          <FloatButton
+            onClick={PaidDue_showModal}
+            tooltip={<div>Billing</div>}
+            icon={<SaveOutlined />}
+          />
         </>
       ) : null}
     </>

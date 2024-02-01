@@ -401,7 +401,10 @@ function App() {
             >
               <RequireAuth>
                 <Navbar number="2" />
-                {!isOnline ? <Offline /> : <Billing />}
+                {!isOnline ? <Offline /> : 
+                <Billing />
+                // <TryBilling/>
+                }
                 <NewFooter />
               </RequireAuth>
             </Suspense>
