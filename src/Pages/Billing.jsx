@@ -12,7 +12,7 @@ import {
   message,
 } from "antd";
 import React, { useEffect, useState } from "react";
-import { SaveOutlined, PrinterOutlined } from "@ant-design/icons";
+import { SaveOutlined } from "@ant-design/icons";
 import TextArea from "antd/es/input/TextArea";
 import { ToWords } from "to-words";
 import { onValue, push, ref, update } from "firebase/database";
@@ -23,12 +23,13 @@ import Select from "react-select";
 import CreatableSelect from "react-select/creatable";
 import { Select as AntSelect } from "antd";
 
-export default function Billing() {
+export default function TryBilling() {
   const date = new Date();
   const day = String(date.getDate()).padStart(2, "0");
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const year = date.getFullYear();
   const hours = String(date.getHours()).padStart(2, "0");
+
   const minutes = String(date.getMinutes()).padStart(2, "0");
   const seconds = String(date.getSeconds()).padStart(2, "0");
   const formattedDate = `${day}/${month}/${year}`;
@@ -279,7 +280,6 @@ export default function Billing() {
     const uniqueHsns = [
       ...new Set(SelectedProduct.map((item) => item.HSN)),
     ].join(", ");
-    // Calculate the total amount whenever selectedProducts change
     const toWords = new ToWords();
     const newTotalAmount = SelectedProduct.reduce(
       (total, product) => +(total + product.Amount).toFixed(2),
@@ -298,7 +298,6 @@ export default function Billing() {
 
     setuHSN(uniqueHsns);
     setTotalAmount(newTotalAmount);
-    // setTotalProductQuantity(newtotalProductQuantity);
     setIGSTAmount(newIGSTAmount);
     setCGSTAmount(newCGSTAmount);
     setSGSTAmount(newSGSTAmount);
@@ -488,7 +487,6 @@ export default function Billing() {
   useEffect(() => {
     setDueAmount(Number(NetAmount) - Number(PaidAmount));
   });
-
   const BillPrint = async (e) => {
     setLoading(true);
     const invoiceData = {
@@ -1654,8 +1652,8 @@ export default function Billing() {
                   <tfoot className="table-bordered">
                     <tr>
                       <td></td>
-                      <td>
-                        <div className="text-end fw-bold">Total Amount</div>
+                      <td className="text-end fw-bold">
+                        <div>Total Amount</div>
                       </td>
                       <td></td>
                       <td></td>
@@ -1670,13 +1668,6 @@ export default function Billing() {
               </div>
             </div>
             <div className="row">
-              <div className="d-flex justify-content-between">
-                <span className="text-start">Amount Chargeable (in words)</span>
-                <span className="text-end">E. & O.E</span>
-              </div>
-              <div className="text-start fs-6 fw-bold">
-                {NetAmount > 0 ? <>INR {NetAmountWord}</> : null}
-              </div>
               {Sale === "Other State Sale" ? (
                 <>
                   <div className="table-responsive">
@@ -1759,12 +1750,6 @@ export default function Billing() {
                   </div>
                 </>
               ) : null}
-              <div className="text-start">
-                <span>Tax Amount (in words) :</span>&nbsp;&nbsp;&nbsp;
-                <span className="fs-6 fw-bold">
-                  {IGSTAmount > 0 ? <>INR {IGSTAmountWord}</> : null}
-                </span>
-              </div>
             </div>
           </main>
         </Watermark>
@@ -2028,7 +2013,6 @@ export default function Billing() {
                   style={{
                     width: 200,
                   }}
-                  defaultValue={"offline"}
                 />
               </div>
             </div>
@@ -2080,7 +2064,6 @@ export default function Billing() {
                 className="form-control form-control-sm"
                 value={DueAmount}
                 type="text"
-                autoSize
                 id="DueAmount"
                 readOnly
               />

@@ -50,7 +50,6 @@ class PDF extends React.Component {
       PaidAmount,
       DueAmount,
     } = this.props;
-    console.log(SelectedProduct);
     return (
       <>
         <section>

@@ -234,8 +234,8 @@ export default function PrintBill() {
       Pan,
       Email,
       UPI,
-      PaidAmount,
-      DueAmount,
+      PaidAmount:PaidAmount || 0,
+      DueAmount:DueAmount || 0,
     };
     const newWindow = window.open("", "_blank", "width=600,height=400");
 
@@ -1259,7 +1259,7 @@ export default function PrintBill() {
                           <div>Paid: {PaidAmount || 0}</div>
                         </td>
                         <td>
-                          <div>Due: {DueAmount || NetAmount}</div>
+                          <div>Due: {DueAmount || 0}</div>
                         </td>
                       </tr>
                       <tr>

@@ -1,16 +1,23 @@
 import { SearchOutlined } from "@ant-design/icons";
 import Highlighter from "react-highlight-words";
-import { Input, Space, Table, Button, message, Popconfirm } from "antd";
+import {
+  Input,
+  Space,
+  Table,
+  Button,
+  message,
+  Popconfirm,
+  Modal,
+  InputNumber,
+} from "antd";
 import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { onValue, ref, remove } from "firebase/database";
 import { db } from "../Utils/Firebase/Firebase_config";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faTriangleExclamation,
-} from "@fortawesome/free-solid-svg-icons";
+import { faTriangleExclamation } from "@fortawesome/free-solid-svg-icons";
 
-export default function BillManage() {
+export default function AccountOut() {
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
@@ -193,44 +200,12 @@ export default function BillManage() {
       dataIndex: "Option",
       width: 100,
       render: (text, record) => {
-        const { id } = record;
-        const confirm = async () => {
-          await remove(ref(db, "Customer/" + id + "/"));
-          message.success("Customer Delete");
-        };
-        const cancel = () => {
-          message.error("Customer Not Delete");
-        };
-        const option = (
-          <>
-            <Popconfirm
-              title="Delete the Customer"
-              description="Are you sure to delete this Customer?"
-              onConfirm={confirm}
-              onCancel={cancel}
-              okText="Yes"
-              cancelText="No"
-            >
-              Delete
-            </Popconfirm>
-          </>
-        );
+        const { id, NetAmount, PaidAmount, DueAmount } = record;
         return (
-          <div className="d-flex justify-content-between">
-            <Link to={id} style={{ textDecoration: "none" }}>
-              Print
-            </Link>
-            {!Permission ? (
-              // eslint-disable-next-line jsx-a11y/anchor-is-valid
-              <a>{option}</a>
-            ) : (
-              <FontAwesomeIcon
-                icon={faTriangleExclamation}
-                style={{ color: "#810909" }}
-                size="xl"
-              />
-            )}
-          </div>
+          // eslint-disable-next-line jsx-a11y/anchor-is-valid
+          <a>
+            Edit
+          </a>
         );
       },
       fixed: "right",
@@ -313,14 +288,29 @@ export default function BillManage() {
         setCustomersData([]);
       } else {
         // Convert the object into an array of customer objects
-        const customerArray = Object.keys(data).map((customerId) => ({
-          id: customerId,
-          key: count++,
-          ...data[customerId],
-        }));
+        const customerArray = Object.keys(data).map((customerId) => {
+          const { NetAmount, PaidAmount } = data[customerId];
+          const DueAmount = NetAmount - PaidAmount;
 
-        // Update the state with the array of customer objects
-        setCustomersData(customerArray);
+          // Check if DueAmount is greater than 0
+          if (DueAmount > 0) {
+            return {
+              id: customerId,
+              key: count++,
+              ...data[customerId],
+            };
+          } else {
+            return null; // Filter out customers with DueAmount <= 0
+          }
+        });
+
+        // Remove null values from the array
+        const filteredCustomerArray = customerArray.filter(
+          (customer) => customer !== null
+        );
+
+        // Update the state with the filtered array of customer objects
+        setCustomersData(filteredCustomerArray);
       }
     });
   };

@@ -21,6 +21,8 @@ const BillManage = lazy(() => import("./Pages/BillManage"));
 const PrintBill = lazy(() => import("./Pages/Pdf/PrintBill"));
 const Agents = lazy(() => import("./Pages/Agents"));
 const Log = lazy(() => import("./Pages/Log"));
+const AccountIn = lazy(() => import("./Pages/AccountIn"));
+const AccountOut = lazy(() => import("./Pages/AccountOut"));
 
 function App() {
   useEffect(() => {
@@ -149,7 +151,10 @@ function App() {
     return acc;
   }, {});
   const resultArrayMonth = Object.values(monthCounts);
-  sessionStorage.setItem("billDateCountMonth", JSON.stringify(resultArrayMonth));
+  sessionStorage.setItem(
+    "billDateCountMonth",
+    JSON.stringify(resultArrayMonth)
+  );
 
   //day count
   const billDateCount = [];
@@ -242,14 +247,11 @@ function App() {
   sessionStorage.setItem("LogData", JSON.stringify(LogData));
 
   useEffect(() => {
-    document.getElementById("description").content = Details_Config.ShopName || "FORBIDDEN 403";
-    document.getElementById("Facebookdescription").content = Details_Config.ShopName || "FORBIDDEN 403";
-    document.getElementById("twitterdescription").content = Details_Config.ShopName || "FORBIDDEN 403";
     setInterval(() => {
       document.title = "FORBIDDEN 403";
     }, 4000);
     setInterval(() => {
-      document.title = Details_Config.ShopName || "FORBIDDEN 403";
+      document.title = "Bill";
     }, 8000);
   });
 
@@ -276,7 +278,7 @@ function App() {
         BankConfig(),
         Users(),
         Logs(),
-        DetailsConfig()
+        DetailsConfig(),
       ]);
     };
     if (check) {
@@ -401,10 +403,7 @@ function App() {
             >
               <RequireAuth>
                 <Navbar number="2" />
-                {!isOnline ? <Offline /> : 
-                <Billing />
-                // <TryBilling/>
-                }
+                {!isOnline ? <Offline /> : <Billing />}
                 <NewFooter />
               </RequireAuth>
             </Suspense>
@@ -494,26 +493,6 @@ function App() {
         />
         <Route
           exact
-          path="/settings"
-          element={
-            <Suspense
-              fallback={
-                <div className="container py-5 h-100">
-                  <Spin tip="Loading" size="large">
-                    <div className="content" />
-                  </Spin>
-                </div>
-              }
-            >
-              <RequireAuth>
-                <Navbar number="8" /> {!isOnline ? <Offline /> : <Config />}
-                <NewFooter />
-              </RequireAuth>
-            </Suspense>
-          }
-        />
-        <Route
-          exact
           path="/manage-user"
           element={
             <Suspense
@@ -547,6 +526,66 @@ function App() {
             >
               <RequireAuth>
                 <Navbar number="7" /> {!isOnline ? <Offline /> : <Log />}{" "}
+                <NewFooter />
+              </RequireAuth>
+            </Suspense>
+          }
+        />
+        <Route
+          exact
+          path="/account-in"
+          element={
+            <Suspense
+              fallback={
+                <div className="container py-5 h-100">
+                  <Spin tip="Loading" size="large">
+                    <div className="content" />
+                  </Spin>
+                </div>
+              }
+            >
+              <RequireAuth>
+                <Navbar number="8" />
+                {!isOnline ? <Offline /> : <AccountIn />} <NewFooter />
+              </RequireAuth>
+            </Suspense>
+          }
+        />
+        <Route
+          exact
+          path="/account-out"
+          element={
+            <Suspense
+              fallback={
+                <div className="container py-5 h-100">
+                  <Spin tip="Loading" size="large">
+                    <div className="content" />
+                  </Spin>
+                </div>
+              }
+            >
+              <RequireAuth>
+                <Navbar number="9" />
+                {!isOnline ? <Offline /> : <AccountOut />} <NewFooter />
+              </RequireAuth>
+            </Suspense>
+          }
+        />
+        <Route
+          exact
+          path="/settings"
+          element={
+            <Suspense
+              fallback={
+                <div className="container py-5 h-100">
+                  <Spin tip="Loading" size="large">
+                    <div className="content" />
+                  </Spin>
+                </div>
+              }
+            >
+              <RequireAuth>
+                <Navbar number="10" /> {!isOnline ? <Offline /> : <Config />}
                 <NewFooter />
               </RequireAuth>
             </Suspense>

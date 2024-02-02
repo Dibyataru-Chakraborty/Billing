@@ -1,21 +1,14 @@
 import { SearchOutlined } from "@ant-design/icons";
 import Highlighter from "react-highlight-words";
-import { Input, Space, Table, Button, message, Popconfirm } from "antd";
+import { Input, Space, Table, Button } from "antd";
 import React, { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
-import { onValue, ref, remove } from "firebase/database";
+import { onValue, ref } from "firebase/database";
 import { db } from "../Utils/Firebase/Firebase_config";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faTriangleExclamation,
-} from "@fortawesome/free-solid-svg-icons";
 
-export default function BillManage() {
+export default function AccountOut() {
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
-
-  const [Permission, setPermission] = useState(true);
 
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
     confirm();
@@ -188,53 +181,6 @@ export default function BillManage() {
       ...getColumnSearchProps("DueAmount"),
       sortDirections: ["descend", "ascend"],
     },
-    {
-      title: "Action",
-      dataIndex: "Option",
-      width: 100,
-      render: (text, record) => {
-        const { id } = record;
-        const confirm = async () => {
-          await remove(ref(db, "Customer/" + id + "/"));
-          message.success("Customer Delete");
-        };
-        const cancel = () => {
-          message.error("Customer Not Delete");
-        };
-        const option = (
-          <>
-            <Popconfirm
-              title="Delete the Customer"
-              description="Are you sure to delete this Customer?"
-              onConfirm={confirm}
-              onCancel={cancel}
-              okText="Yes"
-              cancelText="No"
-            >
-              Delete
-            </Popconfirm>
-          </>
-        );
-        return (
-          <div className="d-flex justify-content-between">
-            <Link to={id} style={{ textDecoration: "none" }}>
-              Print
-            </Link>
-            {!Permission ? (
-              // eslint-disable-next-line jsx-a11y/anchor-is-valid
-              <a>{option}</a>
-            ) : (
-              <FontAwesomeIcon
-                icon={faTriangleExclamation}
-                style={{ color: "#810909" }}
-                size="xl"
-              />
-            )}
-          </div>
-        );
-      },
-      fixed: "right",
-    },
   ];
 
   const expandedRowRender = (record) => {
@@ -313,11 +259,25 @@ export default function BillManage() {
         setCustomersData([]);
       } else {
         // Convert the object into an array of customer objects
-        const customerArray = Object.keys(data).map((customerId) => ({
-          id: customerId,
-          key: count++,
-          ...data[customerId],
-        }));
+        const customerArray = Object.keys(data)
+          .map((customerId) => {
+            const customerData = data[customerId];
+            const PaidAmount = customerData.PaidAmount || 0;
+            const NetAmount = customerData.NetAmount || 0;
+            const DueAmount = customerData.DueAmount || 0;
+
+            // Check the condition and include data in the array
+            if (PaidAmount === NetAmount - DueAmount && PaidAmount > 0) {
+              return {
+                id: customerId,
+                key: count++,
+                ...customerData,
+              };
+            } else {
+              return null; // Exclude data that doesn't meet the condition
+            }
+          })
+          .filter(Boolean); // Filter out null values
 
         // Update the state with the array of customer objects
         setCustomersData(customerArray);
@@ -327,14 +287,6 @@ export default function BillManage() {
 
   useEffect(() => {
     Customers();
-    const storedData = JSON.parse(sessionStorage.getItem("user")) || {};
-
-    const { email } = storedData;
-
-    const data = JSON.parse(sessionStorage.getItem("UserData"));
-
-    const isUserInData = data.some((item) => item.Email === email);
-    setPermission(isUserInData);
   }, []);
 
   return (

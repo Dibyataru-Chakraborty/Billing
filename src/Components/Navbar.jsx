@@ -4,6 +4,9 @@ import { useNavigate } from "react-router-dom";
 import { MenuOutlined } from "@ant-design/icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
+  faArrowDownLong,
+  faArrowRightArrowLeft,
+  faArrowUpLong,
   faBook,
   faBookBible,
   faChartSimple,
@@ -31,14 +34,16 @@ export default function Navbar(props) {
       5: "/updates",
       6: "/manage-user",
       7: "/log",
-      8: "/settings",
+      8:"/account-in",
+      9:"/account-out",
+      10: "/settings",
       default: "/dashboard",
     };
 
     setCurrent(e.key);
     log_out();
     function log_out() {
-      if (e.key === "9") {
+      if (e.key === "11") {
         message.success("Successfully Logout").then(() => {
           signOut(auth).then(() => {
             sessionStorage.clear();
@@ -137,18 +142,35 @@ export default function Navbar(props) {
         ),
       ]
     ),
+    getItem(
+      "Account",
+      null,
+      <FontAwesomeIcon icon={faArrowRightArrowLeft} rotation={90} style={{"--fa-primary-color": "#095f07", "--fa-secondary-color": "#640d07",}} />,
+      [
+        getItem(
+          "In",
+          "8",
+          <FontAwesomeIcon icon={faArrowDownLong} style={{color: "#008a55",}} />
+        ),
+        getItem(
+          "Out",
+          "9",
+          <FontAwesomeIcon icon={faArrowUpLong} style={{color: "#bd0000",}} />
+        ),
+      ]
+    ),
   ];
 
   const items2 = [
     getItem(
       "Setings",
-      "8",
+      "10",
       <FontAwesomeIcon
         icon={faScrewdriverWrench}
         style={{ color: "#f22602" }}
       />
     ),
-    getItem("Logout", "9", <FontAwesomeIcon icon={faLock} />),
+    getItem("Logout", "11", <FontAwesomeIcon icon={faLock} />),
   ];
 
   const items3 = [
@@ -197,14 +219,24 @@ export default function Navbar(props) {
       <FontAwesomeIcon icon={faBook} style={{ color: "#f04f0a" }} />
     ),
     getItem(
-      "Setings",
+      "In",
       "8",
+      <FontAwesomeIcon icon={faArrowDownLong} style={{color: "#008a55",}} />
+    ),
+    getItem(
+      "Out",
+      "9",
+      <FontAwesomeIcon icon={faArrowUpLong} style={{color: "#bd0000",}} />
+    ),
+    getItem(
+      "Setings",
+      "10",
       <FontAwesomeIcon
         icon={faScrewdriverWrench}
         style={{ color: "#f22602" }}
       />
     ),
-    getItem("Logout", "9", <FontAwesomeIcon icon={faLock} />),
+    getItem("Logout", "11", <FontAwesomeIcon icon={faLock} />),
   ];
 
   return (
