@@ -2,9 +2,12 @@ import { SearchOutlined } from "@ant-design/icons";
 import Highlighter from "react-highlight-words";
 import { Input, Space, Table, Button, Modal, message } from "antd";
 import React, { useEffect, useRef, useState } from "react";
-import { push, ref } from "firebase/database";
+import { ref, set } from "firebase/database";
 import { auth, db } from "../Utils/Firebase/Firebase_config";
-import { AuthErrorCodes, createUserWithEmailAndPassword } from "firebase/auth";
+import {
+  AuthErrorCodes,
+  createUserWithEmailAndPassword
+} from "firebase/auth";
 
 export default function Agents() {
   const [searchText, setSearchText] = useState("");
@@ -26,10 +29,13 @@ export default function Agents() {
     try {
       let create = await createUserWithEmailAndPassword(auth, Email, Password);
 
+      // console.log(create);
+      let UID = create.user.uid;
+
       let Users = {
         Email: Email,
         CreationTime: create.user.metadata.createdAt,
-        UID: create.user.uid,
+        // LastLogin: create.user.
       };
 
       setLoadings(true);
@@ -37,10 +43,10 @@ export default function Agents() {
       // Simulating an asynchronous operation (e.g., API call or database update)
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
-      await push(ref(db, "Users/"), Users);
+      await set(ref(db, `Users/${UID}`), Users);
 
       setLoadings(false);
-      setIsAddVisible(false);
+      // setIsAddVisible(false);
       setEmail("");
       setPassword("");
       message.info("User Added Successfully");
@@ -206,14 +212,6 @@ export default function Agents() {
         );
       },
     },
-    {
-      title: "UID",
-      dataIndex: "uid",
-      width: 100,
-      sorter: (a, b) => a.uid.length - b.uid.length,
-      ...getColumnSearchProps("uid"),
-      sortDirections: ["descend", "ascend"],
-    },
     // {
     //   title: "Options",
     //   dataIndex: "Options",
@@ -221,10 +219,11 @@ export default function Agents() {
     //   rowScope: "row",
     //   render: (text, record) => {
     //     const confirm = async () => {
-    //       const { id, Email, creationTime, uid } = record;
+    //       const { id } = record;
     //       //   await remove(ref(db, "/Users/" + id ));
-    //       // console.log(admin);
-    //         message.success("Agent Delete");
+    //       // admin.deleteUser()
+    //       console.log(id);
+    //       message.success("Agent Delete");
     //     };
     //     const cancel = () => {
     //       message.error("Agent Not Delete");
@@ -268,7 +267,6 @@ export default function Agents() {
         id: element.id,
         Email: element.Email,
         creationTime: element.CreationTime,
-        uid: element.UID,
       });
     }
   });

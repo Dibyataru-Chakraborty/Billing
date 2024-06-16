@@ -9,10 +9,10 @@ import {
   Popconfirm,
   Modal,
   InputNumber,
+  Radio,
 } from "antd";
 import React, { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
-import { onValue, ref, remove } from "firebase/database";
+import { onValue, ref, remove, set } from "firebase/database";
 import { db } from "../Utils/Firebase/Firebase_config";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTriangleExclamation } from "@fortawesome/free-solid-svg-icons";
@@ -23,6 +23,14 @@ export default function AccountOut() {
   const searchInput = useRef(null);
 
   const [Permission, setPermission] = useState(true);
+
+  const [date, setDate] = useState("");
+
+  let dates = new Date();
+  const day = String(dates.getDate()).padStart(2, "0");
+  const month = String(dates.getMonth() + 1).padStart(2, "0");
+  const year = dates.getFullYear();
+  const formattedDate = `${year}-${month}-${day}`;
 
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
     confirm();
@@ -122,6 +130,38 @@ export default function AccountOut() {
         text
       ),
   });
+
+  const [PaidDue, setPaidDue] = useState(false);
+  const [netAmount, setNetAmount] = useState("");
+  const [paidAmount, setPaidAmount] = useState("");
+  const [dueAmount, setDueAmount] = useState("");
+  const [Pay, setPay] = useState(0);
+  const [payAmount, setpayAmount] = useState([]);
+  const [Id, setId] = useState(0);
+
+  const showPaidDue = (e) => {
+    const { NetAmount, PaidAmount, DueAmount, Payment, id } = e;
+    setNetAmount(NetAmount);
+    setPaidAmount(PaidAmount);
+    setDueAmount(DueAmount);
+    setDate(formattedDate);
+    setpayAmount(Payment);
+    setId(id);
+    setPay(0);
+    setPaidDue(true);
+  };
+  const handleOk_PaidDue = async () => {
+    setPaidDue(false);
+    let length = payAmount.length;
+    let due = dueAmount - Pay;
+    let paid = paidAmount + Pay;
+    let data = { date, PaidAmount: paid, DueAmount: due };
+    await set(ref(db, `Customer/${Id}/Payment/${length}`), data);
+  };
+  const handleCancel_PaidDue = () => {
+    setPaidDue(false);
+  };
+
   const columns = [
     {
       title: "BillId",
@@ -200,10 +240,9 @@ export default function AccountOut() {
       dataIndex: "Option",
       width: 100,
       render: (text, record) => {
-        const { id, NetAmount, PaidAmount, DueAmount } = record;
         return (
           // eslint-disable-next-line jsx-a11y/anchor-is-valid
-          <a>
+          <a style={{ color: "#1554ad" }} onClick={(e) => showPaidDue(record)}>
             Edit
           </a>
         );
@@ -215,52 +254,27 @@ export default function AccountOut() {
   const expandedRowRender = (record) => {
     const expandcolumn = [
       {
-        title: "Description of Services",
-        dataIndex: "DescriptionofServices",
+        title: "Date",
+        dataIndex: "date",
         width: 150,
-        sorter: (a, b) =>
-          a.DescriptionofServices.length - b.DescriptionofServices.length,
-        ...getColumnSearchProps("DescriptionofServices"),
+        sorter: (a, b) => a.date.length - b.date.length,
+        ...getColumnSearchProps("date"),
         sortDirections: ["descend", "ascend"],
       },
       {
-        title: "Amount",
-        dataIndex: "Amount",
+        title: "Paid",
+        dataIndex: "PaidAmount",
         width: 150,
-        sorter: (a, b) => a.Amount - b.Amount,
-        ...getColumnSearchProps("Amount"),
+        sorter: (a, b) => a.PaidAmount - b.PaidAmount,
+        ...getColumnSearchProps("PaidAmount"),
         sortDirections: ["descend", "ascend"],
       },
       {
-        title: "HSN",
-        dataIndex: "HSN",
+        title: "Due",
+        dataIndex: "DueAmount",
         width: 150,
-        sorter: (a, b) => a.HSN - b.HSN,
-        ...getColumnSearchProps("HSN"),
-        sortDirections: ["descend", "ascend"],
-      },
-      {
-        title: "Quantity",
-        dataIndex: "userQyt",
-        width: 150,
-        sorter: (a, b) => a.userQyt - b.userQyt,
-        ...getColumnSearchProps("userQyt"),
-        sortDirections: ["descend", "ascend"],
-      },
-      {
-        title: "Rate",
-        dataIndex: "userRate",
-        width: 150,
-        sorter: (a, b) => a.userRate - b.userRate,
-        ...getColumnSearchProps("userRate"),
-        sortDirections: ["descend", "ascend"],
-      },
-      {
-        title: "Per",
-        dataIndex: "Per",
-        width: 150,
-        sorter: (a, b) => a.Per.length - b.Per.length,
-        ...getColumnSearchProps("Per"),
+        sorter: (a, b) => a.DueAmount - b.DueAmount,
+        ...getColumnSearchProps("DueAmount"),
         sortDirections: ["descend", "ascend"],
       },
     ];
@@ -268,8 +282,8 @@ export default function AccountOut() {
     return (
       <Table
         columns={expandcolumn}
-        dataSource={record.Product.map((product, index) => ({
-          ...product,
+        dataSource={record.Payment.map((payment, index) => ({
+          ...payment,
           key: index,
         }))}
         pagination={false}
@@ -289,14 +303,17 @@ export default function AccountOut() {
       } else {
         // Convert the object into an array of customer objects
         const customerArray = Object.keys(data).map((customerId) => {
-          const { NetAmount, PaidAmount } = data[customerId];
-          const DueAmount = NetAmount - PaidAmount;
+          const { NetAmount, Payment } = data[customerId];
+          const lastPayment = Payment[Payment.length - 1];
+          const DueAmount = NetAmount - lastPayment.PaidAmount;
 
           // Check if DueAmount is greater than 0
           if (DueAmount > 0) {
             return {
               id: customerId,
               key: count++,
+              PaidAmount: lastPayment.PaidAmount,
+              DueAmount: lastPayment.DueAmount,
               ...data[customerId],
             };
           } else {
@@ -353,6 +370,67 @@ export default function AccountOut() {
           </div>
         </div>
       </div>
+
+      <Modal
+        title="Payment"
+        open={PaidDue}
+        onOk={handleOk_PaidDue}
+        onCancel={handleCancel_PaidDue}
+        okButtonProps={{
+          disabled: Pay === 0 || Pay === null,
+        }}
+      >
+        <div className="row g-3">
+          <div className="col-md-12">
+            <label htmlFor="Date" className="form-label">
+              Date
+            </label>
+            <input
+              type="date"
+              className="form-control"
+              id="Date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+            />
+          </div>
+          <div className="col-md-4">
+            <label className="form-label">Net Amount</label>
+            <div className="form-control">{netAmount}</div>
+          </div>
+          <div className="col-md-4">
+            <label className="form-label">Last Paid Amount</label>
+            <div className="form-control">{paidAmount}</div>
+          </div>
+          <div className="col-md-4">
+            <label className="form-label">Due Amount</label>
+            <div className="form-control">{dueAmount}</div>
+          </div>
+          <div className="col-md-4">
+            <label htmlFor="PaidAmount" className="form-label">
+              Paid Amount
+            </label>
+            <InputNumber
+              className="form-control form-control-sm"
+              size="small"
+              value={Pay}
+              onChange={(e) => setPay(e)}
+              id="PaidAmount"
+              max={dueAmount}
+              min={1}
+            />
+          </div>
+          {/* <div className="col-md-8">
+            <label htmlFor="Payment_Mode" className="form-label">
+              Payment Mode
+            </label>
+            <br />
+            <Radio.Group onChange={onChange}defaultValue="offline" buttonStyle="solid">
+              <Radio.Button value="offline">offline</Radio.Button>
+              <Radio.Button value="online">Online</Radio.Button>
+            </Radio.Group>
+          </div> */}
+        </div>
+      </Modal>
     </>
   );
 }

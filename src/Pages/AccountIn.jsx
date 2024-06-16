@@ -186,52 +186,28 @@ export default function AccountOut() {
   const expandedRowRender = (record) => {
     const expandcolumn = [
       {
-        title: "Description of Services",
-        dataIndex: "DescriptionofServices",
+        title: "Date",
+        dataIndex: "date",
         width: 150,
         sorter: (a, b) =>
-          a.DescriptionofServices.length - b.DescriptionofServices.length,
-        ...getColumnSearchProps("DescriptionofServices"),
+          a.date.length - b.date.length,
+        ...getColumnSearchProps("date"),
         sortDirections: ["descend", "ascend"],
       },
       {
-        title: "Amount",
-        dataIndex: "Amount",
+        title: "Paid",
+        dataIndex: "PaidAmount",
         width: 150,
-        sorter: (a, b) => a.Amount - b.Amount,
-        ...getColumnSearchProps("Amount"),
+        sorter: (a, b) => a.PaidAmount - b.PaidAmount,
+        ...getColumnSearchProps("PaidAmount"),
         sortDirections: ["descend", "ascend"],
       },
       {
-        title: "HSN",
-        dataIndex: "HSN",
+        title: "Due",
+        dataIndex: "DueAmount",
         width: 150,
-        sorter: (a, b) => a.HSN - b.HSN,
-        ...getColumnSearchProps("HSN"),
-        sortDirections: ["descend", "ascend"],
-      },
-      {
-        title: "Quantity",
-        dataIndex: "userQyt",
-        width: 150,
-        sorter: (a, b) => a.userQyt - b.userQyt,
-        ...getColumnSearchProps("userQyt"),
-        sortDirections: ["descend", "ascend"],
-      },
-      {
-        title: "Rate",
-        dataIndex: "userRate",
-        width: 150,
-        sorter: (a, b) => a.userRate - b.userRate,
-        ...getColumnSearchProps("userRate"),
-        sortDirections: ["descend", "ascend"],
-      },
-      {
-        title: "Per",
-        dataIndex: "Per",
-        width: 150,
-        sorter: (a, b) => a.Per.length - b.Per.length,
-        ...getColumnSearchProps("Per"),
+        sorter: (a, b) => a.DueAmount - b.DueAmount,
+        ...getColumnSearchProps("DueAmount"),
         sortDirections: ["descend", "ascend"],
       },
     ];
@@ -239,8 +215,8 @@ export default function AccountOut() {
     return (
       <Table
         columns={expandcolumn}
-        dataSource={record.Product.map((product, index) => ({
-          ...product,
+        dataSource={record.Payment.map((payment, index) => ({
+          ...payment,
           key: index,
         }))}
         pagination={false}
@@ -261,17 +237,18 @@ export default function AccountOut() {
         // Convert the object into an array of customer objects
         const customerArray = Object.keys(data)
           .map((customerId) => {
-            const customerData = data[customerId];
-            const PaidAmount = customerData.PaidAmount || 0;
-            const NetAmount = customerData.NetAmount || 0;
-            const DueAmount = customerData.DueAmount || 0;
+            const { NetAmount, Payment } = data[customerId];
+            const lastPayment = Payment[Payment.length - 1];
+            const DueAmount = NetAmount - lastPayment.PaidAmount;
 
             // Check the condition and include data in the array
-            if (PaidAmount === NetAmount - DueAmount && PaidAmount > 0) {
+            if (lastPayment.PaidAmount === NetAmount - DueAmount && lastPayment.PaidAmount > 0) {
               return {
                 id: customerId,
                 key: count++,
-                ...customerData,
+                PaidAmount:lastPayment.PaidAmount,
+                DueAmount:lastPayment.DueAmount,
+                ...data[customerId],
               };
             } else {
               return null; // Exclude data that doesn't meet the condition

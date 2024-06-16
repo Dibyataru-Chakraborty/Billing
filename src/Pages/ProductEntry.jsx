@@ -69,6 +69,7 @@ export default function ProductEntry() {
         Quantity: Number(Quantity) + Number(AddQuantity) - Number(SubQuantity),
         RATE: RATE,
         Per: per,
+        Date: date
       };
       let Updateproduct = {
         DescriptionofServices: DescriptionofServices,

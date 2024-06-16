@@ -94,7 +94,7 @@ export default function TryBilling() {
     </div>
   );
 
-  const [Payment, setPayment] = useState("");
+  const [Payment_mode, setPayment_mode] = useState("");
 
   const [Reference_No, setReference_No] = useState("");
 
@@ -442,7 +442,7 @@ export default function TryBilling() {
           ],
           Id,
           Vehicle,
-          Payment,
+          Payment_mode,
           Reference_No,
           Other_References,
           Sale,
@@ -506,7 +506,7 @@ export default function TryBilling() {
       formattedDate,
       formattedTime,
       Vehicle,
-      Payment,
+      Payment_mode,
       Reference_No,
       Other_References,
       Sale,
@@ -1428,17 +1428,17 @@ export default function TryBilling() {
                       </td>
                       <td>
                         <div>Mode/Terms of Payment</div>
-                        <div>{Payment}</div>
+                        <div>{Payment_mode}</div>
                       </td>
                     </tr>
-                    {Payment === "online" ? (
+                    {Payment_mode === "online" ? (
                       <tr>
                         <td colSpan={2}>
                           <div>Reference No.</div>
                           <div>{Reference_No}</div>
                         </td>
                       </tr>
-                    ) : Payment === "offline" ? (
+                    ) : Payment_mode === "offline" ? (
                       <tr>
                         <td colSpan={2}>
                           <div>Other References:</div>
@@ -1938,7 +1938,6 @@ export default function TryBilling() {
           footer={[
             <Button
               className="my-2"
-              key="submit"
               type="primary"
               loading={loading}
               onClick={() => BillPrint("Original for Recipient")}
@@ -1947,7 +1946,6 @@ export default function TryBilling() {
             </Button>,
             <Button
               className="my-2"
-              key="submit"
               type="primary"
               loading={loading}
               onClick={() => BillPrint("Duplicate for Transporter")}
@@ -1956,7 +1954,6 @@ export default function TryBilling() {
             </Button>,
             <Button
               className="my-2"
-              key="submit"
               type="primary"
               loading={loading}
               onClick={() => BillPrint("Triplicate for Supplier")}
@@ -1965,7 +1962,6 @@ export default function TryBilling() {
             </Button>,
             <Button
               className="my-2"
-              key="submit"
               type="primary"
               loading={loading}
               onClick={Save}
@@ -1999,7 +1995,7 @@ export default function TryBilling() {
                 <AntSelect
                   placeholder="Search to Select"
                   optionFilterProp="children"
-                  onChange={(e) => setPayment(e)}
+                  onChange={(e) => setPayment_mode(e)}
                   options={[
                     {
                       value: "offline",
@@ -2016,7 +2012,7 @@ export default function TryBilling() {
                 />
               </div>
             </div>
-            {Payment !== "online" ? (
+            {Payment_mode !== "online" ? (
               <div className="col">
                 <label htmlFor="OtherReferences" className="form-label">
                   Other References
@@ -2050,7 +2046,6 @@ export default function TryBilling() {
                 size="small"
                 value={PaidAmount}
                 onChange={(e) => setPaidAmount(e)}
-                type="tel"
                 id="PaidAmount"
                 max={NetAmount}
                 min={1}

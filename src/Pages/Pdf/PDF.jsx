@@ -52,16 +52,16 @@ class PDF extends React.Component {
     } = this.props;
     return (
       <>
-        <section>
+        <section style={{fontSize:"small"}}>
           <header>
             <div className="text-center">
               <div className="row justify-content-end">
-                <div className="text-center fw-bold fs-4 text-decoration-underline col">
+                <div className="text-center fw-bold  text-decoration-underline col">
                   TAX INVOICE
                 </div>
               </div>
               <div className="row">
-                <div className="text-end fw-bold fs-6 col">{printmode}</div>
+                <div className="text-end fw-bold  col">{printmode}</div>
               </div>
             </div>
             <div className="row">
@@ -70,7 +70,7 @@ class PDF extends React.Component {
                   <tbody>
                     <tr>
                       <td>
-                        <div className="fs-2">{ShopName}</div>
+                        <div className="">{ShopName}</div>
                         <div>
                           <pre>{ShopAddress}</pre>
                         </div>
@@ -82,7 +82,7 @@ class PDF extends React.Component {
                     <tr className="table-group-divider">
                       <td>
                         <div>Consignee (Ship to)</div>
-                        <div className="fs-6 fw-bold">{Consignee_Name}</div>
+                        <div className=" fw-bold">{Consignee_Name}</div>
                         <div>{Consignee_Address}</div>
                         <div>
                           State: {Consignee_State} Code: {Consignee_Code}
@@ -94,7 +94,7 @@ class PDF extends React.Component {
                     <tr className="table-group-divider">
                       <td>
                         <div>Buyer (Bill to)</div>
-                        <div className="fs-6 fw-bold">{Buyer_Name}</div>
+                        <div className=" fw-bold">{Buyer_Name}</div>
                         <div>{Buyer_Address}</div>
                         <div>
                           State: {Buyer_State} Code: {Buyer_Code}
@@ -176,7 +176,7 @@ class PDF extends React.Component {
             <div className="col">
               <div className="table-responsive">
                 <table className="table">
-                  <thead className="fs-6 table-group-divider">
+                  <thead className=" table-group-divider">
                     <tr>
                       <th className="text-start">Sl No.</th>
                       <th className="text-center">Description of Goods</th>
@@ -187,7 +187,7 @@ class PDF extends React.Component {
                       <th className="text-end">Amount</th>
                     </tr>
                   </thead>
-                  <tbody className="fs-5 table-group-divider">
+                  <tbody className=" table-group-divider">
                     {SelectedProduct.map((item, index) => (
                       <tr>
                         <th scope="row" className="text-start" key={index}>
@@ -259,14 +259,14 @@ class PDF extends React.Component {
                 <span className="text-start">Amount Chargeable (in words)</span>
                 <span className="text-end">E. & O.E</span>
               </div>
-              <div className="text-start fs-6 fw-bold">
+              <div className="text-start  fw-bold">
                 {NetAmount > 0 ? <>INR {NetAmountWord}</> : null}
               </div>
               {Sale === "Other State Sale" ? (
                 <>
                   <div className="table-responsive">
                     <table className="table table-bordered" border={2}>
-                      <thead className="fs-6 text-center">
+                      <thead className=" text-center">
                         <tr>
                           <td rowSpan={2}>HSN/SAC</td>
                           <td rowSpan={2}>Taxable Value</td>
@@ -306,7 +306,7 @@ class PDF extends React.Component {
                       className="table table-bordered border-primary"
                       border={2}
                     >
-                      <thead className="fs-6 text-center">
+                      <thead className=" text-center">
                         <tr>
                           <td rowSpan={2}>HSN/SAC</td>
                           <td rowSpan={2}>Taxable Value</td>
@@ -349,7 +349,7 @@ class PDF extends React.Component {
               ) : null}
               <div className="text-start">
                 <span>Tax Amount (in words) :</span>&nbsp;&nbsp;&nbsp;
-                <span className="fs-6 fw-bold">
+                <span className=" fw-bold">
                   {IGSTAmount > 0 ? <>INR {IGSTAmountWord}</> : null}
                 </span>
               </div>

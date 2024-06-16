@@ -41,7 +41,7 @@ export default function PrintBill() {
   const [formattedDate, setformattedDate] = useState("0");
   const [formattedTime, setformattedTime] = useState("0");
   const [Vehicle, setVehicle] = useState("");
-  const [Payment, setPayment] = useState("");
+  const [Payment_mode, setPayment_mode] = useState("");
   const [Reference_No, setReference_No] = useState("");
   const [Other_References, setOther_References] = useState("");
   const [Sale, setSale] = useState("");
@@ -140,21 +140,24 @@ export default function PrintBill() {
     const filteredData = CustomersData.filter(
       (item) => item.id === BillId.billid
     )[0];
+
+
     const toWords = new ToWords();
 
     if (BillId) {
       if (CustomersData.length !== 0) {
+        const lastPayment = filteredData.Payment[filteredData.Payment.length - 1];
         setload(false);
         setInvoiceNumber(filteredData.BillId);
         setformattedDate(filteredData.BillDate);
         setformattedTime(filteredData.BillTime);
         setVehicle(filteredData.Vehicle);
-        setPayment(filteredData.Payment);
+        setPayment_mode(filteredData.Payment_mode);
         setReference_No(filteredData.Reference_No);
         setOther_References(filteredData.Other_References);
         setSale(filteredData.Sale);
-        setPaidAmount(filteredData.PaidAmount);
-        setDueAmount(filteredData.DueAmount);
+        setPaidAmount(lastPayment.PaidAmount);
+        setDueAmount(lastPayment.DueAmount);
         setEWayBill(filteredData.EWayBill);
         setBuyer_Name(filteredData.Buyer[0].Name);
         setBuyer_Address(filteredData.Buyer[0].Address);
@@ -208,7 +211,7 @@ export default function PrintBill() {
       formattedDate,
       formattedTime,
       Vehicle,
-      Payment,
+      Payment_mode,
       Reference_No,
       Other_References,
       Sale,
@@ -1231,22 +1234,22 @@ export default function PrintBill() {
                           <div>{Sale}</div>
                         </td>
                       </tr>
-                      {Payment === "online" ? (
+                      {Payment_mode === "online" ? (
                         <tr>
                           <td>
                             <div>Mode/Terms of Payment</div>
-                            <div>{Payment}</div>
+                            <div>{Payment_mode}</div>
                           </td>
                           <td>
                             <div>Reference No.</div>
                             <div>{Reference_No}</div>
                           </td>
                         </tr>
-                      ) : Payment === "offline" ? (
+                      ) : Payment_mode === "offline" ? (
                         <tr>
                           <td>
                             <div>Mode/Terms of Payment</div>
-                            <div>{Payment}</div>
+                            <div>{Payment_mode}</div>
                           </td>
                           <td>
                             <div>Other References:</div>
@@ -1259,7 +1262,9 @@ export default function PrintBill() {
                           <div>Paid: {PaidAmount || 0}</div>
                         </td>
                         <td>
-                          <div>Due: {DueAmount || 0}</div>
+                          <div>
+                            Due: {DueAmount || 0}
+                          </div>
                         </td>
                       </tr>
                       <tr>
